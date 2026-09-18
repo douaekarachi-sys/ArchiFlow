@@ -60,6 +60,8 @@ export default tseslint.config(
       '**/build/**',
       '**/coverage/**',
       'backend/prisma/migrations/**',
+      'backend/src/generated/**',
+      '.tmp/**',
       '**/*.config.js',
       '**/*.config.cjs',
     ],

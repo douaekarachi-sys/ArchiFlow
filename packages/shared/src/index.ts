@@ -4,3 +4,5 @@ export * from './rbac/check-permissions.js';
 export * from './workflow/project-state-machine.js';
 export * from './auth/auth.schema.js';
 export * from './architecture/document.schema.js';
+export * from './organization/client-company.schema.js';
+export * from './projects/project.schema.js';

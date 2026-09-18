@@ -16,3 +16,6 @@ npm-debug.log*
 
 .vite/
 .eslintcache
+src/generated/
+.tmp/
+.dev-mailbox/
