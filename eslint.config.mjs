@@ -35,27 +35,16 @@ const DOMAIN_PURITY = [
   },
 ];
 
-const SHARED_PURITY = [
+/**
+ * Liste BLANCHE : seuls zod, les imports relatifs et vitest (dans les tests) sont admis.
+ * Une liste noire laissait passer n'importe quelle bibliotheque non prevue (lodash, dayjs...).
+ */
+const SHARED_ALLOWLIST = (extra = []) => [
   'error',
   {
     patterns: [
       {
-        group: [
-          '@nestjs',
-          '@nestjs/*',
-          '@prisma/client',
-          'prisma',
-          'react',
-          'react-dom',
-          'react/*',
-          'axios',
-          'express',
-          'node:*',
-          'fs',
-          'path',
-          'http',
-          'https',
-        ],
+        regex: `^(?!(?:${['zod$', '\\.{1,2}/', ...extra].join('|')}))`,
         message:
           "packages/shared : zero dependance externe, zod excepte (ADR 0002). Si une dependance devient necessaire, il faut un nouvel ADR.",
       },
@@ -94,7 +83,12 @@ export default tseslint.config(
   },
   {
     files: ['packages/shared/src/**/*.ts'],
-    rules: { '@typescript-eslint/no-restricted-imports': SHARED_PURITY },
+    ignores: ['packages/shared/src/**/*.spec.ts'],
+    rules: { '@typescript-eslint/no-restricted-imports': SHARED_ALLOWLIST() },
+  },
+  {
+    files: ['packages/shared/src/**/*.spec.ts'],
+    rules: { '@typescript-eslint/no-restricted-imports': SHARED_ALLOWLIST(['vitest$']) },
   },
   {
     files: ['frontend/src/**/*.{ts,tsx}'],

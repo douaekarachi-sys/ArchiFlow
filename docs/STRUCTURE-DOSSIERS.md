@@ -1,8 +1,7 @@
 # Structure des dossiers cible — Phase 0, point 8
 
-> **Projet reconstruit à neuf.** Cette arborescence est celle à créer, sans reprise ni
-> rapprochement avec l'existant. L'ancien code reste consultable en référence ; il
-> n'impose aucune convention.
+> **Projet construit à neuf** (D-16). Cette arborescence est la référence ; elle est complétée
+> au fil des phases.
 
 ---
 
@@ -11,15 +10,15 @@
 ```
 /
 ├── docker-compose.yml
-├── package.json                  ← workspaces npm (racine, si D-02 = paquet partagé)
+├── package.json                  ← workspaces npm
+├── .github/workflows/ci.yml      ← build + test + lint
 ├── docs/
 │   ├── TRACABILITE.md
 │   ├── ARCHITECTURE-CIBLE.md
 │   ├── PHASES.md
 │   ├── DECISIONS-OUVERTES.md
-│   └── ADR/
-│       ├── 0001-document-architecture-jsonb.md
-│       └── ...
+│   ├── ADR/                      ← une décision = un fichier
+│   └── diagrams/                 ← .drawio corrigés ; source/ = originaux
 ├── packages/
 │   └── shared/                   ← voir décision D-02
 ├── backend/
@@ -30,16 +29,20 @@
 
 ## `packages/shared/` — types et règles pures partagés
 
-Tranché en **D-02** (ADR 0002). Contrainte ferme : **zéro dépendance externe, sauf Zod**.
+Tranché en **D-02** (ADR 0002), publié en **ESM** (ADR 0011). Contrainte ferme : **zéro
+dépendance externe, sauf Zod** — outillée par une liste blanche ESLint.
 
 ```
 packages/shared/src/
 ├── architecture/
-│   ├── document.schema.ts        ← Zod : elements, connections, zones, placement
-│   └── types.ts                  ← dérivés par z.infer du schéma ci-dessus
+│   └── document.schema.ts        ← Zod : elements, connections, zones, placement ; types par z.infer
+├── auth/
+│   └── auth.schema.ts            ← login, création de compte, changement de rôle, profil
+├── workflow/
+│   └── project-state-machine.ts  ← table de transitions + canTransition()
 ├── catalog/                      ← types du catalogue consommés par les moteurs
 ├── rbac/
-│   ├── actions.ts
+│   ├── roles.ts · permissions.ts
 │   └── check-permissions.ts      ← fonction pure, identique back et front
 ├── validation/
 │   ├── compatibility.ts          ← verifyCompatibility()

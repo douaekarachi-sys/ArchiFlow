@@ -1,7 +1,7 @@
 # Registre des décisions techniques
 
-*Anciennement « décisions ouvertes ». Huit arbitrages sont tranchés et documentés en ADR,
-deux sont sans objet, trois restent ouverts.*
+*Anciennement « décisions ouvertes ». Douze arbitrages sont tranchés, un est sans objet,
+quatre restent ouverts.*
 
 | Réf. | Sujet | État | ADR | Bloque |
 |---|---|---|---|---|
@@ -12,15 +12,19 @@ deux sont sans objet, trois restent ouverts.*
 | D-05 | Périmètre du temps réel | 🕓 Ouvert | — | Phase 10 |
 | D-06 | Migration de l'enum de rôles | ⛔ Sans objet | — | — |
 | D-07 | Retours en arrière du workflow | ✅ Tranché — nommés et motivés | [0005](ADR/0005-retours-en-arriere-nommes.md) | — |
-| D-08 | Priorité de EF-104 | ⛔ Sans objet | — | — |
+| D-08 | Priorité (§3) et lot (§8.1) du CDC | ✅ Rouverte puis tranchée — §8.1 pour le lot, §3 pour la priorité | [0009](ADR/0009-priorite-et-lot-du-cdc.md) | — |
 | D-09 | Multi-tenancy | ✅ Tranché — deux niveaux | [0006](ADR/0006-tenancy-deux-niveaux.md) | — |
 | D-10 | shadcn/ui, format des tokens | ✅ Tranché — re-thémé, tokens HSL | [0007](ADR/0007-shadcn-retheme-sur-tokens.md) | — |
 | D-11 | Génération du PDF | 🕓 Ouvert | — | Phase 5 |
 | D-12 | Fournisseur LLM du chatbot | 🕓 Ouvert | — | Phase 13 |
 | D-13 | Suppression au catalogue | ✅ Tranché — archivage | [0008](ADR/0008-archivage-catalogue.md) | — |
+| D-14 | Création des comptes CLIENT | ✅ Tranché — par l'administrateur, anti-énumération | [0010](ADR/0010-comptes-client-crees-par-admin.md) | — |
+| D-15 | Format du paquet partagé | ✅ Tranché — ESM | [0011](ADR/0011-paquet-partage-esm.md) | — |
+| D-16 | Ancien code et section 0.1 du brief | ✅ Tranché — abandonné, section retirée | — | — |
+| D-17 | Base PostgreSQL de développement | 🕓 Ouvert | — | Environnement local |
 
-**Plus aucune décision ne bloque la Phase 1 ni la Phase 3.** Restent D-11 (Phase 5), D-05
-(Phase 10) et D-12 (Phase 13).
+**Aucune décision ne bloque la Phase 1.** Restent D-11 (Phase 5), D-05 (Phase 10), D-12
+(Phase 13) et D-17 (environnement de développement, non bloquant pour le code).
 
 Ce registre donne l'état ; les ADR portent le raisonnement. En cas de divergence, l'ADR fait
 foi.
@@ -189,15 +193,57 @@ le snapshot figé et non depuis le catalogue courant.
 Fermée par la reconstruction à neuf. Les six rôles sont définis directement dans la première
 migration ; le seed crée un compte par rôle.
 
-## D-08 — ~~Priorité réelle de EF-104~~
+---
 
-Fermée après réception des libellés verbatim. Il n'y avait pas de contradiction : le CDC porte
-deux axes distincts, priorité d'exigence et lot de livraison. EF-104 est **Moyenne** et livrée
-en **V2**.
+# Partie 2 bis — Décisions tranchées en Phase 0.5
+
+## D-08 — Priorité (§3) et lot (§8.1) : **rouverte, puis tranchée**
+
+**Première clôture erronée.** Elle affirmait que priorité et lot étaient deux axes
+indépendants. Or le CDC §3 les lie explicitement (« Élevée (indispensable au MVP), Moyenne
+(attendue en version 1), Faible (souhaitable, évolution) »), et se contredit avec §8.1 sur
+sept exigences : EF-104, EF-202, EF-203, EF-204, EF-206, EF-404, EF-405.
+
+**Décision.** §8.1 fait foi pour le lot, §3 pour la priorité. Constat présenté au jury comme
+un résultat d'analyse. Détail : ADR 0009 et note d'écart en tête de `TRACABILITE.md`.
+
+## D-14 — Création des comptes CLIENT : **par l'administrateur**
+
+Pas d'inscription publique ; le rôle `invite` n'existe pas. L'administrateur crée le compte
+CLIENT et le rattache à une société cliente. Réponse identique que l'adresse soit libre ou non,
+compte non créé silencieusement en cas de collision. Détail : ADR 0010.
+
+## D-15 — Paquet partagé : **ESM**
+
+`packages/shared` est publié en ESM ; le backend CommonJS le charge par `require()` d'ESM
+(Node ≥ 22.12). Détail : ADR 0011.
+
+## D-16 — Ancien code : **abandonné**
+
+L'ancien code n'existe plus. La section 0.1 du brief (« le repository contient déjà une base
+fonctionnelle… tu ne la réécris pas ») est **retirée**. Seul subsiste le tableau de la stack
+imposée : NestJS, Prisma, PostgreSQL, React, Vite, TypeScript, Tailwind, React Flow, Zustand.
+Toute mention d'un « ancien code conservé en référence » dans ces documents est caduque.
 
 ---
 
 # Partie 3 — Décisions encore ouvertes
+
+## D-17 — Base PostgreSQL de développement
+
+**Constat.** Un service Windows `postgresql-x64-16` écoute déjà sur le port hôte **5433**,
+celui que `docker-compose.yml` réserve au conteneur. Les deux ne peuvent pas coexister, et
+les identifiants de l'instance native ne sont pas ceux de `.env.example`.
+
+| Option | Effet |
+|---|---|
+| **A** *(recommandée)* — utiliser l'instance native sur 5433 | Créer le rôle et la base `archiflow` (script fourni : `backend/scripts/create-dev-db.sql`) ; Docker devient optionnel |
+| **B** — arrêter le service natif, utiliser Docker | Conforme au `docker-compose.yml` tel quel |
+| **C** — PostgreSQL hébergé | `DATABASE_URL` à renseigner dans `.env` |
+
+En attendant, les migrations et les tests d'intégration tournent sur un cluster PostgreSQL 16
+**jetable**, créé avec les binaires locaux (`npm run db:ephemeral`), sans toucher au service
+existant.
 
 ## D-05 — Périmètre du temps réel
 

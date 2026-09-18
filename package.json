@@ -9,8 +9,9 @@
     "frontend"
   ],
   "scripts": {
-    "build": "npm run build --workspace=@archiflow/shared && npm run build --workspace=@archiflow/backend && npm run build --workspace=@archiflow/frontend",
-    "test": "npm run test --workspace=@archiflow/shared && npm run test --workspace=@archiflow/backend",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx,css,json,md}\"",
     "db:up": "docker compose up -d",
@@ -29,6 +30,6 @@
     "typescript-eslint": "^8.46.4"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.12"
   }
 }

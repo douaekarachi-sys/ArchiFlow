@@ -1,7 +1,17 @@
 # Architecture cible — Phase 0, point 6
 
-*Version 3 — projet reconstruit à neuf. L'ancien code est conservé en référence et ne
-contraint plus aucune décision.*
+*Version 4 — projet construit à neuf ; l'ancien code n'existe plus (D-16).*
+
+**Amendements de la Phase 0.5** (le détail est dans les ADR cités) :
+
+- **Pas d'inscription publique** : l'administrateur crée les comptes, réponse anti-énumération
+  (ADR 0010). `POST /auth/register` disparaît de l'API ; `PATCH /auth/password` est ajouté pour
+  le changement de mot de passe, obligatoire à la première connexion.
+- **Jeton de rafraîchissement exclusivement en cookie** `httpOnly` : il n'apparaît jamais dans
+  un corps JSON, ni en requête ni en réponse (§6.7).
+- **`packages/shared` publié en ESM** (ADR 0011).
+- Catégories d'équipement `workstation` (« postes clients » d'EF-101) et `wifi-controller`
+  ajoutées au document d'architecture.
 
 **Statut du document.**
 Ce n'est plus une cible conditionnelle : c'est **l'architecture de référence du projet**.
@@ -13,9 +23,7 @@ migration.
 TypeScript + Tailwind + React Flow + Zustand côté client. Cette stack est documentée dans le
 rapport de projet et n'est pas rediscutée ici.
 
-**Ce qui reste ouvert** : les douze arbitrages de `DECISIONS-OUVERTES.md`. La reconstruction
-à neuf les rend plus faciles à trancher, pas moins nécessaires — plusieurs (D-01, D-02, D-09)
-déterminent la toute première migration Prisma et ne se rattrapent pas après coup.
+**Ce qui reste ouvert** : voir le registre `DECISIONS-OUVERTES.md` (D-05, D-11, D-12, D-17).
 
 ---
 
@@ -381,7 +389,8 @@ l'historique, émet l'entrée d'audit et déclenche les notifications. Aucun ser
 Endpoints principaux :
 
 ```
-POST   /auth/register · /auth/login · /auth/refresh · /auth/logout · /auth/forgot · /auth/reset
+POST   /auth/login · /auth/refresh · /auth/logout · /auth/forgot · /auth/reset
+PATCH  /auth/password                      (pas de /auth/register — ADR 0010)
 GET    /me
 GET    /users · POST /users · PATCH /users/:id · PATCH /users/:id/role
 GET    /organizations · …

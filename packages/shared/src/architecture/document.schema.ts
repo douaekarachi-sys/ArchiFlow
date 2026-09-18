@@ -16,11 +16,14 @@ export const EQUIPMENT_CATEGORIES = [
   'router',
   'switch',
   'access-point',
+  'wifi-controller',
   'server',
   'storage',
   'load-balancer',
   'ups',
   'rack',
+  /** « Postes clients » d'EF-101. */
+  'workstation',
   'internet',
 ] as const;
 export type EquipmentCategory = (typeof EQUIPMENT_CATEGORIES)[number];
@@ -103,33 +106,44 @@ export const architectureDocumentSchema = z
     zones: z.array(architectureZoneSchema).default([]),
   })
   .superRefine((doc, ctx) => {
-    const ids = new Set<string>();
-    for (const el of doc.elements) {
-      if (ids.has(el.id)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['elements'],
-          message: `identifiant d'element duplique : ${el.id}`,
-        });
+    const issue = (path: (string | number)[], message: string) =>
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path, message });
+
+    const elementIds = new Set<string>();
+    doc.elements.forEach((el, i) => {
+      if (elementIds.has(el.id)) issue(['elements', i, 'id'], `identifiant d'element duplique : ${el.id}`);
+      elementIds.add(el.id);
+    });
+
+    const connectionIds = new Set<string>();
+    doc.connections.forEach((conn, i) => {
+      if (connectionIds.has(conn.id)) {
+        issue(['connections', i, 'id'], `identifiant de connexion duplique : ${conn.id}`);
       }
-      ids.add(el.id);
-    }
-    for (const conn of doc.connections) {
-      if (!ids.has(conn.from)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['connections'],
-          message: `connexion ${conn.id} : element source inconnu ${conn.from}`,
-        });
+      connectionIds.add(conn.id);
+      if (!elementIds.has(conn.from)) {
+        issue(['connections', i, 'from'], `connexion ${conn.id} : element source inconnu ${conn.from}`);
       }
-      if (!ids.has(conn.to)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['connections'],
-          message: `connexion ${conn.id} : element cible inconnu ${conn.to}`,
-        });
+      if (!elementIds.has(conn.to)) {
+        issue(['connections', i, 'to'], `connexion ${conn.id} : element cible inconnu ${conn.to}`);
       }
-    }
+      // Une connexion d'un element vers lui-meme n'a pas de sens physique ; deux ports d'un
+      // meme equipement relies entre eux relevent d'une boucle, detectee en Phase 7.
+      if (conn.from === conn.to) {
+        issue(['connections', i], `connexion ${conn.id} : un element ne peut pas etre relie a lui-meme`);
+      }
+    });
+
+    const zoneIds = new Set<string>();
+    doc.zones.forEach((zone, i) => {
+      if (zoneIds.has(zone.id)) issue(['zones', i, 'id'], `identifiant de zone duplique : ${zone.id}`);
+      zoneIds.add(zone.id);
+      zone.elementIds.forEach((elementId, j) => {
+        if (!elementIds.has(elementId)) {
+          issue(['zones', i, 'elementIds', j], `zone ${zone.id} : element inconnu ${elementId}`);
+        }
+      });
+    });
   });
 
 export type ArchitectureDocument = z.infer<typeof architectureDocumentSchema>;

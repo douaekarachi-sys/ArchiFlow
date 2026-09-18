@@ -1,5 +1,5 @@
-import { PERMISSION_MATRIX, type Permission } from './permissions';
-import { isInternalRole, type Role } from './roles';
+import { PERMISSION_MATRIX, type Permission } from './permissions.js';
+import { isInternalRole, type Role } from './roles.js';
 
 /**
  * Contexte d'authentification, construit COTE SERVEUR a partir du token verifie.

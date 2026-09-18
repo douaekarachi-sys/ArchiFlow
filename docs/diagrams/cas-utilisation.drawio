@@ -1,0 +1,139 @@
+<mxfile host="Electron" agent="archiflow-docs">
+  <diagram name="Cas d&#39;utilisation" id="uc-diagram-1">
+    <mxGraphModel dx="1192" dy="607" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=16;fontStyle=1;" value="Diagramme de cas d&#39;utilisation — Plateforme de conception d&#39;architecture réseau et système" vertex="1">
+          <mxGeometry height="30" width="900" x="40" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="sys" parent="1" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fontStyle=1;fontSize=14;fillColor=none;strokeColor=#000000;spacingTop=4;" value="Plateforme ArchiFlow" vertex="1">
+          <mxGeometry height="570" width="660" x="210" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="arch" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#ffffff;strokeColor=#000000;" value="Ingénieur /&#xa;Architecte" vertex="1">
+          <mxGeometry height="60" width="30" x="60" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="cli" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#ffffff;strokeColor=#000000;" value="Client final" vertex="1">
+          <mxGeometry height="60" width="30" x="70" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="cdp" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#ffffff;strokeColor=#000000;" value="Chef de projet" vertex="1">
+          <mxGeometry height="60" width="30" x="70" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="com" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#ffffff;strokeColor=#000000;" value="Commercial /&#xa;Avant-vente" vertex="1">
+          <mxGeometry height="60" width="30" x="940" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="adm" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#ffffff;strokeColor=#000000;" value="Administrateur" vertex="1">
+          <mxGeometry height="60" width="30" x="950" y="430" as="geometry" />
+        </mxCell>
+        <mxCell id="st_arch" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=10;fontStyle=2;" value="«primaire»" vertex="1">
+          <mxGeometry height="20" width="80" x="35" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="st_cli" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=10;fontStyle=2;" value="«secondaire»" vertex="1">
+          <mxGeometry height="20" width="80" x="45" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="st_cdp" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=10;fontStyle=2;" value="«primaire»" vertex="1">
+          <mxGeometry height="20" width="80" x="45" y="540" as="geometry" />
+        </mxCell>
+        <mxCell id="st_com" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=10;fontStyle=2;" value="«secondaire»" vertex="1">
+          <mxGeometry height="20" width="80" x="915" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_design" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" value="Concevoir&#xa;l&#39;architecture réseau" vertex="1">
+          <mxGeometry height="60" width="180" x="410" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_tools" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" value="Utiliser les outils de&#xa;conception (catalogue,&#xa;capacité, compatibilité)" vertex="1">
+          <mxGeometry height="80" width="180" x="230" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_collab" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" value="Collaborer sur&#xa;un projet" vertex="1">
+          <mxGeometry height="60" width="180" x="240" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_report" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" value="Générer les rapports&#xa;clients (PDF, BOM, coûts)" vertex="1">
+          <mxGeometry height="70" width="180" x="590" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_dash" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" value="Consulter le tableau&#xa;de bord des projets" vertex="1">
+          <mxGeometry height="60" width="180" x="370" y="510" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_admin" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" value="Administrer la&#xa;plateforme" vertex="1">
+          <mxGeometry height="60" width="180" x="680" y="383" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_users" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" value="Gérer les comptes&#xa;utilisateurs" vertex="1">
+          <mxGeometry height="60" width="180" x="620" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_create_client" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" value="Créer un compte&#xa;CLIENT" vertex="1">
+          <mxGeometry height="50" width="150" x="690" y="565" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_auth" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;" value="S&#39;authentifier" vertex="1">
+          <mxGeometry height="50" width="160" x="460" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="arch" target="uc_design" style="html=1;endArrow=none;strokeColor=#000000;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="arch" target="uc_tools" style="html=1;endArrow=none;strokeColor=#000000;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="arch" target="uc_report" style="html=1;endArrow=none;strokeColor=#000000;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="arch" target="uc_collab" style="html=1;endArrow=none;strokeColor=#000000;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="cdp" target="uc_dash" style="html=1;endArrow=none;strokeColor=#000000;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="cdp" target="uc_collab" style="html=1;endArrow=none;strokeColor=#000000;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="com" target="uc_report" style="html=1;endArrow=none;strokeColor=#000000;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="com" target="uc_dash" style="html=1;endArrow=none;strokeColor=#000000;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="cli" target="uc_collab" style="html=1;endArrow=none;strokeColor=#000000;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="adm" target="uc_admin" style="html=1;endArrow=none;strokeColor=#000000;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="adm" target="uc_users" style="html=1;endArrow=none;strokeColor=#000000;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="i1" edge="1" parent="1" source="uc_design" target="uc_auth" style="html=1;endArrow=open;dashed=1;strokeColor=#000000;fontSize=10;labelBackgroundColor=#ffffff;" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="i2" edge="1" parent="1" source="uc_tools" target="uc_auth" style="html=1;endArrow=open;dashed=1;strokeColor=#000000;fontSize=10;labelBackgroundColor=#ffffff;" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="i3" edge="1" parent="1" source="uc_collab" target="uc_auth" style="html=1;endArrow=open;dashed=1;strokeColor=#000000;fontSize=10;labelBackgroundColor=#ffffff;" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="i4" edge="1" parent="1" source="uc_report" target="uc_auth" style="html=1;endArrow=open;dashed=1;strokeColor=#000000;fontSize=10;labelBackgroundColor=#ffffff;" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="i5" edge="1" parent="1" source="uc_dash" target="uc_auth" style="html=1;endArrow=open;dashed=1;strokeColor=#000000;fontSize=10;labelBackgroundColor=#ffffff;" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="i6" edge="1" parent="1" source="uc_admin" target="uc_auth" style="html=1;endArrow=open;dashed=1;strokeColor=#000000;fontSize=10;labelBackgroundColor=#ffffff;" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="i7" edge="1" parent="1" source="uc_users" target="uc_auth" style="html=1;endArrow=open;dashed=1;strokeColor=#000000;fontSize=10;labelBackgroundColor=#ffffff;" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="x1" edge="1" parent="1" source="uc_create_client" target="uc_users" style="html=1;endArrow=open;dashed=1;strokeColor=#000000;fontSize=10;labelBackgroundColor=#ffffff;" value="«extend»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n1" parent="1" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#ffffff;strokeColor=#000000;align=left;spacingLeft=6;" value="Détaillé : catalogue de composants, calcul de&#xa;capacité, vérification de compatibilité, détection&#xa;d&#39;anomalies, génération de diagrammes, plan d&#39;adressage IP" vertex="1">
+          <mxGeometry height="70" width="300" x="160" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="n2" parent="1" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#ffffff;strokeColor=#000000;align=left;spacingLeft=6;" value="Détaillé : partage, droits d&#39;accès, commentaires,&#xa;édition simultanée, historique des versions, notifications" vertex="1">
+          <mxGeometry height="55" width="300" x="490" y="677.5" as="geometry" />
+        </mxCell>
+        <mxCell id="n3" parent="1" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#ffffff;strokeColor=#000000;align=left;spacingLeft=6;" value="Détaillé : export PDF / Word / Excel / Visio, BOM,&#xa;estimation des coûts, documentation technique" vertex="1">
+          <mxGeometry height="55" width="300" x="650" y="750" as="geometry" />
+        </mxCell>
+        <mxCell id="n4" parent="1" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#ffffff;strokeColor=#000000;align=left;spacingLeft=6;" value="Pas d&#39;inscription publique : seul l&#39;administrateur&#xa;crée les comptes CLIENT et les rattache à une&#xa;société cliente (ADR 0010)." vertex="1">
+          <mxGeometry height="60" width="290" x="860" y="660" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

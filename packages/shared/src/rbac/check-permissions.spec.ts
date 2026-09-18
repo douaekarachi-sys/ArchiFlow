@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { checkPermissions, hasPermission, type AuthContext } from './check-permissions';
-import { PERMISSION_MATRIX, PERMISSIONS } from './permissions';
-import { ROLES } from './roles';
+import { checkPermissions, hasPermission, type AuthContext } from './check-permissions.js';
+import { PERMISSION_MATRIX, PERMISSIONS } from './permissions.js';
+import { ROLES } from './roles.js';
 
 const ORG_A = '11111111-1111-1111-1111-111111111111';
 const ORG_B = '22222222-2222-2222-2222-222222222222';
@@ -45,6 +45,15 @@ describe('matrice de permissions', () => {
     expect(hasPermission('CLIENT', 'architecture.edit')).toBe(false);
     expect(hasPermission('CLIENT', 'sizing.edit')).toBe(false);
     expect(hasPermission('CLIENT', 'catalog.manage')).toBe(false);
+  });
+
+  it("l'ingenieur lit le besoin client qu'il doit dimensionner, sans pouvoir le modifier", () => {
+    expect(hasPermission('ENGINEER', 'request.read')).toBe(true);
+    expect(hasPermission('ENGINEER', 'request.update')).toBe(false);
+  });
+
+  it('le commercial ne lit pas le besoin brut du client', () => {
+    expect(hasPermission('SALES', 'request.read')).toBe(false);
   });
 
   it("seul l'administrateur change un role ou lit l'audit", () => {

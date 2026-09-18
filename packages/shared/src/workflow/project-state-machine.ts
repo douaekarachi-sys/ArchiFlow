@@ -1,4 +1,4 @@
-import type { Role } from '../rbac/roles';
+import type { Role } from '../rbac/roles.js';
 
 export const PROJECT_STATUSES = [
   'DRAFT',
@@ -27,87 +27,105 @@ export interface ProjectTransition {
    * Ce qui n'est pas dans cette table n'existe pas : aucun retour arbitraire.
    */
   reverse?: boolean;
-  /** Libelle de l'action tel qu'affiche a l'utilisateur. */
-  label: string;
+  /** Roles projet qui doivent etre affectes pour que la transition soit possible. */
+  requiredAssignments?: readonly Role[];
+  /** Cle i18n du libelle de l'action (ENF-03 : aucune chaine en dur). */
+  labelKey: string;
 }
 
 export const PROJECT_TRANSITIONS: readonly ProjectTransition[] = [
-  { from: 'DRAFT', to: 'SUBMITTED', roles: ['CLIENT'], label: 'Soumettre la demande' },
-  { from: 'SUBMITTED', to: 'PENDING_ASSIGNMENT', roles: ['ADMIN'], label: 'Valider la demande' },
+  { from: 'DRAFT', to: 'SUBMITTED', roles: ['CLIENT'], labelKey: 'workflow.submit' },
+  { from: 'SUBMITTED', to: 'PENDING_ASSIGNMENT', roles: ['ADMIN'], labelKey: 'workflow.accept' },
   {
     from: 'PENDING_ASSIGNMENT',
     to: 'ASSIGNED',
     roles: ['ADMIN'],
-    label: "Confirmer les affectations",
+    requiredAssignments: ['ENGINEER', 'ARCHITECT'],
+    labelKey: 'workflow.confirmAssignments',
   },
-  { from: 'ASSIGNED', to: 'ENGINEERING', roles: ['ENGINEER'], label: 'Demarrer le dimensionnement' },
+  { from: 'ASSIGNED', to: 'ENGINEERING', roles: ['ENGINEER'], labelKey: 'workflow.startSizing' },
   {
     from: 'ENGINEERING',
     to: 'ARCHITECTURE',
     roles: ['ENGINEER', 'PROJECT_MANAGER'],
-    label: 'Transmettre a la conception',
+    labelKey: 'workflow.handToArchitect',
   },
   {
     from: 'ARCHITECTURE',
     to: 'INTERNAL_REVIEW',
     roles: ['ARCHITECT'],
-    label: 'Soumettre a la revue interne',
+    labelKey: 'workflow.submitInternalReview',
   },
   {
     from: 'INTERNAL_REVIEW',
     to: 'COMMERCIAL_REVIEW',
     roles: ['PROJECT_MANAGER'],
-    label: 'Transmettre au commercial',
+    labelKey: 'workflow.handToSales',
   },
   {
     from: 'INTERNAL_REVIEW',
     to: 'ARCHITECTURE',
     roles: ['PROJECT_MANAGER'],
     reverse: true,
-    label: "Renvoyer a l'architecte",
+    labelKey: 'workflow.sendBackToArchitect',
   },
   {
     from: 'COMMERCIAL_REVIEW',
     to: 'CLIENT_REVIEW',
     roles: ['SALES'],
-    label: 'Publier la proposition client',
+    labelKey: 'workflow.publishProposal',
   },
   {
     from: 'CLIENT_REVIEW',
     to: 'CLIENT_COMMENTS',
     roles: ['CLIENT'],
-    label: 'Demander une modification',
+    labelKey: 'workflow.requestChanges',
   },
-  { from: 'CLIENT_REVIEW', to: 'CLIENT_APPROVED', roles: ['CLIENT'], label: "Valider l'architecture" },
+  { from: 'CLIENT_REVIEW', to: 'CLIENT_APPROVED', roles: ['CLIENT'], labelKey: 'workflow.approve' },
   {
     from: 'CLIENT_COMMENTS',
     to: 'REVISION',
     roles: ['PROJECT_MANAGER'],
     reverse: true,
-    label: 'Ouvrir une revision',
+    labelKey: 'workflow.openRevision',
   },
   {
     from: 'REVISION',
     to: 'ARCHITECTURE',
     roles: ['ARCHITECT'],
     reverse: true,
-    label: 'Reprendre la conception',
+    labelKey: 'workflow.resumeDesign',
   },
   // Depuis CLIENT_APPROVED, aucun retour : on cree une nouvelle version (ADR 0005).
   {
     from: 'CLIENT_APPROVED',
     to: 'COMPLETED',
     roles: ['PROJECT_MANAGER', 'ADMIN'],
-    label: 'Cloturer le projet',
+    labelKey: 'workflow.close',
   },
 ];
 
-export interface TransitionCheck {
-  allowed: boolean;
-  /** Vrai pour un retour en arriere : applyTransition refusera sans motif. */
-  requiresReason: boolean;
+export const TRANSITION_REFUSALS = [
+  'UNKNOWN_TRANSITION',
+  'ROLE_NOT_ALLOWED',
+  'MISSING_ASSIGNMENTS',
+  'REASON_REQUIRED',
+] as const;
+export type TransitionRefusal = (typeof TRANSITION_REFUSALS)[number];
+
+export interface TransitionRequest {
+  from: ProjectStatus;
+  to: ProjectStatus;
+  role: Role;
+  /** Motif saisi par l'utilisateur ; obligatoire pour un retour en arriere. */
   reason?: string;
+  /** Roles projet actuellement affectes (ProjectAssignment). */
+  assignedRoles?: readonly Role[];
 }
+
+export type TransitionCheck =
+  | { allowed: true; transition: ProjectTransition }
+  | { allowed: false; refusal: TransitionRefusal; detail: string };
 
 export function findTransition(
   from: ProjectStatus,
@@ -117,44 +135,31 @@ export function findTransition(
 }
 
 /**
- * Seul point de verite des transitions. Aucun service n'ecrit project.status directement.
+ * Seul point de verite des transitions. Aucun service n'ecrit project.status directement :
+ * le backend appelle canTransition() dans applyTransition(), le frontend l'appelle pour
+ * proposer les actions — confort d'affichage, jamais une autorite.
  */
-export function canTransition(
-  from: ProjectStatus,
-  to: ProjectStatus,
-  role: Role,
-  reason?: string,
-): TransitionCheck {
+export function canTransition(request: TransitionRequest): TransitionCheck {
+  const { from, to, role, reason, assignedRoles = [] } = request;
   const transition = findTransition(from, to);
 
   if (!transition) {
-    return {
-      allowed: false,
-      requiresReason: false,
-      reason: `transition ${from} -> ${to} inexistante`,
-    };
+    return { allowed: false, refusal: 'UNKNOWN_TRANSITION', detail: `${from} -> ${to}` };
   }
-
   if (!transition.roles.includes(role)) {
-    return {
-      allowed: false,
-      requiresReason: transition.reverse === true,
-      reason: `role ${role} non autorise sur ${from} -> ${to}`,
-    };
+    return { allowed: false, refusal: 'ROLE_NOT_ALLOWED', detail: `${role} sur ${from} -> ${to}` };
   }
-
+  const missing = (transition.requiredAssignments ?? []).filter((r) => !assignedRoles.includes(r));
+  if (missing.length > 0) {
+    return { allowed: false, refusal: 'MISSING_ASSIGNMENTS', detail: missing.join(', ') };
+  }
   if (transition.reverse === true && (reason === undefined || reason.trim() === '')) {
-    return {
-      allowed: false,
-      requiresReason: true,
-      reason: 'motif obligatoire pour un retour en arriere',
-    };
+    return { allowed: false, refusal: 'REASON_REQUIRED', detail: `${from} -> ${to}` };
   }
-
-  return { allowed: true, requiresReason: transition.reverse === true };
+  return { allowed: true, transition };
 }
 
-/** Transitions proposables a l'utilisateur depuis l'etat courant. */
+/** Transitions proposables a l'utilisateur depuis l'etat courant, selon son role. */
 export function availableTransitions(
   from: ProjectStatus,
   role: Role,

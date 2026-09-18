@@ -1,4 +1,4 @@
-import type { Role } from './roles';
+import type { Role } from './roles.js';
 
 /**
  * Matrice role -> permission, EN CODE et non en base (ADR 0004).
@@ -26,6 +26,7 @@ export const PERMISSIONS = [
   'project.transition',
 
   // Expression du besoin client (portail client, hors CDC — voir EF-507 propose)
+  'request.read',
   'request.create',
   'request.update',
   'request.submit',
@@ -74,6 +75,7 @@ export const PERMISSION_MATRIX: Record<Role, readonly Permission[]> = {
     'project.update',
     'project.assign',
     'project.transition',
+    'request.read',
     'catalog.read',
     'architecture.read',
     'sizing.read',
@@ -82,9 +84,11 @@ export const PERMISSION_MATRIX: Record<Role, readonly Permission[]> = {
     'comment.create',
   ],
 
+  // L'ingenieur dimensionne a partir du besoin client : il doit le lire, jamais le modifier.
   ENGINEER: [
     'project.read',
     'project.transition',
+    'request.read',
     'catalog.read',
     'architecture.read',
     'sizing.read',
@@ -95,6 +99,7 @@ export const PERMISSION_MATRIX: Record<Role, readonly Permission[]> = {
   ARCHITECT: [
     'project.read',
     'project.transition',
+    'request.read',
     'catalog.read',
     'architecture.read',
     'architecture.edit',
@@ -118,6 +123,7 @@ export const PERMISSION_MATRIX: Record<Role, readonly Permission[]> = {
   CLIENT: [
     'project.read',
     'project.transition',
+    'request.read',
     'request.create',
     'request.update',
     'request.submit',

@@ -1,14 +1,12 @@
 # Phases d'implémentation — Phase 0, point 9
 
-> **Projet reconstruit à neuf.** L'ancien code est conservé en référence et ne contraint
-> aucune phase. Les points 1 à 5 et 7 de la Phase 0 — audit de l'existant, dettes, plan de
-> migration Prisma — sont **sans objet**.
+> **Projet construit à neuf** ; l'ancien code n'existe plus (D-16). Il n'y a ni audit de
+> l'existant ni plan de migration Prisma.
 >
 > La charge indiquée reste un ordre de grandeur relatif, pas un engagement de délai.
 >
-> **Plus aucune décision ne bloque les Phases 1 à 4** : les huit arbitrages structurants
-> (D-01, D-02, D-03, D-04, D-07, D-09, D-10, D-13) sont tranchés et documentés dans
-> `ADR/`. Restent **D-11** (Phase 5), **D-05** (Phase 10) et **D-12** (Phase 13).
+> **Aucune décision ne bloque les Phases 1 à 4.** Restent **D-11** (Phase 5), **D-05**
+> (Phase 10), **D-12** (Phase 13) et **D-17** (base de développement, sans effet sur le code).
 
 ## Règle appliquée à chaque phase
 
@@ -30,9 +28,24 @@ Sans exécution réelle des tests et du build, une phase est déclarée **en cou
 Livrables produits : `ARCHITECTURE-CIBLE.md`, `STRUCTURE-DOSSIERS.md`, `PHASES.md`,
 `DECISIONS-OUVERTES.md`, `TRACABILITE.md`.
 
-Les points 1 à 5 et 7 — audit de l'existant et plan de migration — sont **annulés** par la
-décision de reconstruire à neuf. Les huit arbitrages structurants sont tranchés et documentés
-dans `docs/ADR/`. Il ne reste qu'un préalable : **le dossier de travail**.
+Les huit arbitrages structurants sont tranchés et documentés dans `docs/ADR/`.
+
+---
+
+## Phase 0.5 — Remise à niveau (une demi-journée)
+
+*Dépend de : 0.*
+
+- Rapatriement des livrables de Phase 0 dans `docs/`, premier commit.
+- D-08 rouverte et close (ADR 0009) ; `TRACABILITE.md` v4 avec note d'écart.
+- D-14 comptes CLIENT créés par l'administrateur (ADR 0010), D-15 paquet partagé en ESM
+  (ADR 0011), D-16 ancien code abandonné.
+- Trois diagrammes UML corrigés dans `docs/diagrams/` ; originaux conservés dans
+  `docs/diagrams/source/`.
+- Corrections de `packages/shared` : jeton de rafraîchissement hors JSON, catégories
+  `workstation` et `wifi-controller`, `superRefine` complété, permission `request.read`,
+  tests de la machine à états, liste blanche ESLint, sortie ESM.
+- CI minimale (`build` + `test` + `lint`), `.nvmrc`.
 
 ---
 
@@ -64,7 +77,8 @@ corriger des dizaines d'imports.
   mais le schéma est posé maintenant.
 - Thème sombre par défaut + thème clair complet, `prefers-reduced-motion` respecté.
 - i18n avec `fr.json` peuplé dès le premier écran.
-- Auth complète conforme au diagramme de séquence : inscription, connexion, refresh,
+- Auth complète conforme au diagramme de séquence : création de compte par l'administrateur
+  (ADR 0010, pas d'inscription publique), connexion, refresh, changement de mot de passe,
   mot de passe oublié — message générique « Identifiants incorrects » dans les deux branches.
 - Rôles, **matrice de permissions en code** dans un fichier unique testé unitairement (D-04),
   décorateurs NestJS.
