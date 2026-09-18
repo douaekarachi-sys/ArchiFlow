@@ -1,0 +1,34 @@
+{
+  "name": "archiflow",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plateforme interactive de conception d'architecture reseau et systeme",
+  "workspaces": [
+    "packages/shared",
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=@archiflow/shared && npm run build --workspace=@archiflow/backend && npm run build --workspace=@archiflow/frontend",
+    "test": "npm run test --workspace=@archiflow/shared && npm run test --workspace=@archiflow/backend",
+    "lint": "eslint .",
+    "format": "prettier --write \"**/*.{ts,tsx,css,json,md}\"",
+    "db:up": "docker compose up -d",
+    "db:migrate": "npm run db:migrate --workspace=@archiflow/backend",
+    "db:seed": "npm run db:seed --workspace=@archiflow/backend",
+    "dev:api": "npm run start:dev --workspace=@archiflow/backend",
+    "dev:web": "npm run dev --workspace=@archiflow/frontend"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.5.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.4"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

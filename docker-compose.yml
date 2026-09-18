@@ -1,0 +1,22 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: archiflow-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-archiflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-archiflow}
+      POSTGRES_DB: ${POSTGRES_DB:-archiflow}
+    ports:
+      # Port hote 5433 : evite le conflit avec une instance PostgreSQL locale sur 5432.
+      - '5433:5432'
+    volumes:
+      - archiflow-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-archiflow} -d ${POSTGRES_DB:-archiflow}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  archiflow-db-data:
