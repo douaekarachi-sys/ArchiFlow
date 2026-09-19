@@ -13,18 +13,18 @@ import { ROLES, isInternalRole } from '../rbac/roles.js';
 export const emailSchema = z
   .string()
   .trim()
-  .min(1, 'Adresse e-mail requise')
-  .email('Adresse e-mail invalide')
+  .min(1, 'validation.email.required')
+  .email('validation.email.invalid')
   .transform((v) => v.toLowerCase());
 
 export const passwordSchema = z
   .string()
-  .min(12, 'Le mot de passe doit contenir au moins 12 caracteres')
-  .max(128, 'Mot de passe trop long');
+  .min(12, 'validation.password.tooShort')
+  .max(128, 'validation.password.tooLong');
 
 export const loginSchema = z.object({
   email: emailSchema,
-  password: z.string().min(1, 'Mot de passe requis').max(128),
+  password: z.string().min(1, 'validation.password.required').max(128),
 });
 export type LoginInput = z.infer<typeof loginSchema>;
 
@@ -34,8 +34,8 @@ export type LoginInput = z.infer<typeof loginSchema>;
  */
 export const createUserSchema = z
   .object({
-    firstName: z.string().trim().min(1, 'Prenom requis').max(80),
-    lastName: z.string().trim().min(1, 'Nom requis').max(80),
+    firstName: z.string().trim().min(1, 'validation.firstName.required').max(80),
+    lastName: z.string().trim().min(1, 'validation.lastName.required').max(80),
     email: emailSchema,
     temporaryPassword: passwordSchema,
     role: z.enum(ROLES),
@@ -48,14 +48,14 @@ export const createUserSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['clientCompanyId'],
-        message: 'Un compte client doit etre rattache a une societe cliente',
+        message: 'validation.clientCompany.required',
       });
     }
     if (internal && input.clientCompanyId) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['clientCompanyId'],
-        message: 'Un compte interne ne se rattache pas a une societe cliente',
+        message: 'validation.clientCompany.forbidden',
       });
     }
   });
@@ -78,12 +78,12 @@ export type ChangeRoleInput = z.infer<typeof changeRoleSchema>;
 
 export const changePasswordSchema = z
   .object({
-    currentPassword: z.string().min(1, 'Mot de passe actuel requis').max(128),
+    currentPassword: z.string().min(1, 'validation.password.currentRequired').max(128),
     newPassword: passwordSchema,
   })
   .refine((v) => v.currentPassword !== v.newPassword, {
     path: ['newPassword'],
-    message: "Le nouveau mot de passe doit differer de l'actuel",
+    message: 'validation.password.mustDiffer',
   });
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 

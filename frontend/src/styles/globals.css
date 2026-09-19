@@ -1,0 +1,395 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+/*
+ * Configuration Tailwind (v4 : la configuration vit en CSS, @theme).
+ * Chaque couleur Tailwind POINTE vers un jeton de tokens.css : il n'existe pas de seconde palette.
+ * La palette par défaut de Tailwind est retirée — une classe comme `bg-blue-500` n'existe pas.
+ */
+@theme inline {
+  --color-*: initial;
+
+  --color-base: hsl(var(--bg-base));
+  --color-surface: hsl(var(--bg-surface));
+  --color-elevated: hsl(var(--bg-elevated));
+  --color-inset: hsl(var(--bg-inset));
+  --color-line: hsl(var(--border));
+  --color-line-strong: hsl(var(--border-strong));
+  --color-fg: hsl(var(--text-primary));
+  --color-fg-secondary: hsl(var(--text-secondary));
+  --color-fg-muted: hsl(var(--text-muted));
+  --color-overlay: hsl(var(--overlay));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-hover: hsl(var(--primary-hover));
+  --color-primary-active: hsl(var(--primary-active));
+  --color-primary-text: hsl(var(--primary-text));
+  --color-primary-solid: hsl(var(--primary-solid));
+  --color-primary-solid-hover: hsl(var(--primary-solid-hover));
+  --color-primary-solid-active: hsl(var(--primary-solid-active));
+  --color-accent: hsl(var(--accent));
+  --color-focus: hsl(var(--focus));
+
+  --color-success: hsl(var(--success));
+  --color-warning: hsl(var(--warning));
+  --color-critical: hsl(var(--critical));
+  --color-info: hsl(var(--info));
+  --color-success-text: hsl(var(--success-text));
+  --color-warning-text: hsl(var(--warning-text));
+  --color-critical-text: hsl(var(--critical-text));
+  --color-info-text: hsl(var(--info-text));
+  --color-danger-solid: hsl(var(--danger-solid));
+  --color-danger-solid-hover: hsl(var(--danger-solid-hover));
+  --color-danger-solid-active: hsl(var(--danger-solid-active));
+  --color-on-solid: hsl(var(--on-solid));
+
+  --color-cat-firewall: hsl(var(--cat-firewall));
+  --color-cat-router: hsl(var(--cat-router));
+  --color-cat-switch: hsl(var(--cat-switch));
+  --color-cat-access-point: hsl(var(--cat-access-point));
+  --color-cat-wifi-controller: hsl(var(--cat-wifi-controller));
+  --color-cat-server: hsl(var(--cat-server));
+  --color-cat-storage: hsl(var(--cat-storage));
+  --color-cat-load-balancer: hsl(var(--cat-load-balancer));
+  --color-cat-ups: hsl(var(--cat-ups));
+  --color-cat-rack: hsl(var(--cat-rack));
+  --color-cat-workstation: hsl(var(--cat-workstation));
+  --color-cat-internet: hsl(var(--cat-internet));
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /* Typographie : Inter pour l'interface, JetBrains Mono pour ce qui se lit caractère par caractère */
+  --font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
+
+  /* Échelle du brief : 12 / 13 / 14 / 16 / 20 / 24 / 32 */
+  --text-*: initial;
+  --text-xs: 12px;
+  --text-xs--line-height: 1.5;
+  --text-caption: 13px;
+  --text-caption--line-height: 1.5;
+  --text-sm: 14px;
+  --text-sm--line-height: 1.5;
+  --text-base: 16px;
+  --text-base--line-height: 1.5;
+  --text-lg: 20px;
+  --text-lg--line-height: 1.4;
+  --text-xl: 24px;
+  --text-xl--line-height: 1.3;
+  --text-2xl: 32px;
+  --text-2xl--line-height: 1.2;
+
+  --radius-field: var(--rounded-field);
+  --radius-button: var(--rounded-button);
+  --radius-card: var(--rounded-card);
+  --radius-modal: var(--rounded-modal);
+
+  --shadow-elevated: var(--elevation);
+
+  --ease-out: var(--easing-out);
+  --default-transition-duration: var(--duration-base);
+  --default-transition-timing-function: var(--easing-out);
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-color: hsl(var(--bg-base));
+    color: hsl(var(--text-primary));
+    min-height: 100dvh;
+  }
+
+  /* Focus clavier visible sur TOUS les éléments interactifs, jamais supprimé (brief §9.2). */
+  :focus-visible {
+    outline: 2px solid hsl(var(--focus));
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: hsl(var(--primary) / 0.35);
+  }
+
+  code,
+  kbd,
+  samp {
+    font-family: var(--font-mono);
+  }
+}
+
+@layer utilities {
+  /* Identifiants, IP, ports, VLAN : chiffres tabulaires, police à chasse fixe. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .dashboard-shell {
+    background: hsl(var(--dashboard-bg));
+    color: hsl(var(--dashboard-text));
+  }
+
+  .dashboard-topbar,
+  .dashboard-context,
+  .dashboard-tabs {
+    color: hsl(var(--dashboard-muted));
+  }
+
+  .dashboard-search {
+    background: hsl(var(--dashboard-panel));
+    color: hsl(var(--dashboard-muted));
+    box-shadow: 0 1px 4px rgb(41 36 68 / 0.08);
+  }
+
+  .dashboard-round-button,
+  .dashboard-tool-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: hsl(var(--dashboard-muted));
+    transition: color var(--duration-base) var(--easing-out), background-color var(--duration-base) var(--easing-out);
+  }
+
+  .dashboard-round-button {
+    height: 32px;
+    width: 32px;
+    border-radius: 999px;
+    background: hsl(var(--dashboard-panel));
+    box-shadow: 0 1px 4px rgb(41 36 68 / 0.08);
+  }
+
+  .dashboard-round-button:hover,
+  .dashboard-tool-button:hover {
+    color: hsl(var(--dashboard-purple));
+    background: hsl(var(--dashboard-line));
+  }
+
+  .dashboard-notification-popover {
+    position: absolute;
+    right: 1rem;
+    top: 4rem;
+    z-index: 20;
+    display: flex;
+    min-width: 220px;
+    flex-direction: column;
+    gap: 0.35rem;
+    border: 1px solid hsl(var(--dashboard-line));
+    border-radius: 8px;
+    background: hsl(var(--dashboard-panel));
+    padding: 0.85rem;
+    color: hsl(var(--dashboard-text));
+    box-shadow: 0 10px 28px rgb(41 36 68 / 0.14);
+    font-size: 0.75rem;
+  }
+
+  .dashboard-notification-popover span {
+    color: hsl(var(--dashboard-muted));
+  }
+
+  .dashboard-new-button,
+  .dashboard-edit-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border-radius: 7px;
+    background: hsl(var(--dashboard-purple));
+    color: white;
+    padding: 0.55rem 0.8rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .dashboard-app-icon {
+    display: flex;
+    height: 48px;
+    width: 48px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 7px;
+    background: hsl(var(--dashboard-purple));
+    color: white;
+    box-shadow: 4px 4px 0 hsl(var(--dashboard-blue) / 0.35);
+  }
+
+  .dashboard-context-chip {
+    display: flex;
+    min-width: 130px;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid hsl(var(--dashboard-line));
+    border-radius: 7px;
+    background: hsl(var(--dashboard-panel));
+    padding: 0.6rem 0.7rem;
+    color: hsl(var(--dashboard-muted));
+    font-size: 0.7rem;
+    box-shadow: 0 1px 4px rgb(41 36 68 / 0.05);
+  }
+
+  .dashboard-tabs {
+    min-height: 46px;
+  }
+
+  .dashboard-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    border-bottom: 2px solid transparent;
+    color: hsl(var(--dashboard-muted));
+    padding: 0.8rem 0.1rem 0.7rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+
+  .dashboard-tab:hover,
+  .dashboard-tab.is-active {
+    border-color: hsl(var(--dashboard-purple));
+    color: hsl(var(--dashboard-purple));
+  }
+
+  .dashboard-map-panel,
+  .dashboard-summary-card,
+  .dashboard-projects {
+    background: hsl(var(--dashboard-panel));
+    box-shadow: 0 2px 8px rgb(41 36 68 / 0.04);
+  }
+
+  .dashboard-projects-header {
+    background: hsl(var(--dashboard-panel));
+  }
+
+  .dashboard-projects-columns {
+    background: hsl(var(--dashboard-bg));
+  }
+
+  .dashboard-project-row {
+    border-bottom: 1px solid hsl(var(--dashboard-line));
+    transition: background-color var(--duration-base) var(--easing-out), box-shadow var(--duration-base) var(--easing-out);
+  }
+
+  .dashboard-project-row:last-child {
+    border-bottom: 0;
+  }
+
+  .dashboard-project-row:hover,
+  .dashboard-project-row:focus-visible {
+    background: hsl(var(--dashboard-bg));
+    box-shadow: inset 3px 0 0 hsl(var(--dashboard-purple));
+  }
+
+  .dashboard-map {
+    background-color: hsl(var(--dashboard-panel));
+    background-image: radial-gradient(hsl(var(--dashboard-line)) 0.8px, transparent 0.8px);
+    background-size: 17px 17px;
+  }
+
+  .dashboard-tool-button {
+    height: 30px;
+    width: 30px;
+    border-radius: 6px;
+  }
+
+  .dashboard-map-node {
+    display: flex;
+    min-width: 150px;
+    transform: translate(-50%, -50%);
+    align-items: center;
+    gap: 0.6rem;
+    border: 1px solid hsl(var(--dashboard-line));
+    border-radius: 7px;
+    background: hsl(var(--dashboard-panel));
+    padding: 0.65rem 0.8rem;
+    text-align: left;
+    box-shadow: 0 4px 12px rgb(41 36 68 / 0.1);
+    transition: transform var(--duration-base) var(--easing-out), box-shadow var(--duration-base) var(--easing-out), border-color var(--duration-base) var(--easing-out);
+  }
+
+  .dashboard-map-node:hover,
+  .dashboard-map-node.is-selected {
+    transform: translate(-50%, -50%) scale(1.04);
+    border-color: hsl(var(--dashboard-purple));
+    box-shadow: 0 7px 18px rgb(41 36 68 / 0.16);
+  }
+
+  .dashboard-node-icon {
+    display: flex;
+    height: 30px;
+    width: 30px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: hsl(var(--dashboard-blue) / 0.15);
+    color: hsl(var(--dashboard-blue));
+  }
+
+  .dashboard-node-icon svg {
+    height: 16px;
+    width: 16px;
+  }
+
+  .dashboard-node-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+  }
+
+  .dashboard-node-copy strong {
+    overflow: hidden;
+    color: hsl(var(--dashboard-text));
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .dashboard-node-copy small {
+    color: hsl(var(--dashboard-muted));
+    font-size: 0.65rem;
+  }
+
+  @media (max-width: 640px) {
+    .dashboard-map-node {
+      min-width: 116px;
+      padding: 0.45rem;
+    }
+
+    .dashboard-node-copy strong {
+      font-size: 0.62rem;
+    }
+
+    .dashboard-context-chip {
+      min-width: 0;
+      flex: 1;
+    }
+  }
+}
+
+/* Les animations non essentielles disparaissent quand l'utilisateur le demande. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Micro-interactions autorisées (brief §9.4) : apparition des panneaux et des dialogues. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+}

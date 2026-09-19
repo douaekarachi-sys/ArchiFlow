@@ -21,8 +21,8 @@ jobs:
           --health-retries 10
     env:
       DATABASE_URL: postgresql://archiflow:archiflow@localhost:5432/archiflow?schema=public
+      DATABASE_URL_TEST: postgresql://archiflow:archiflow@localhost:5432/archiflow_test?schema=public
       JWT_ACCESS_SECRET: ci-access-secret-not-for-production-0000000000
-      JWT_REFRESH_PEPPER: ci-refresh-pepper-not-for-production-000000000
       NODE_ENV: test
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +31,8 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      - run: npm run build --workspace=@archiflow/shared
       - run: npm run lint
+      - run: npm run typecheck
       - run: npm run build
       - run: npm test

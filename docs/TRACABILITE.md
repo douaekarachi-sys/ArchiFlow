@@ -1,6 +1,6 @@
 # Traçabilité au cahier des charges
 
-**Statut : version 4 — colonne *Lot* recalculée (ADR 0009).**
+**Statut : version 7 — demande client structurée, tranche Phase 2 (18/09/2026).** Colonne *Lot* : ADR 0009.
 
 Les libellés de la colonne *Exigence* sont repris **mot pour mot** du cahier des charges
 (tableaux 3.1 à 3.5 et 5). Ils ne doivent pas être reformulés lors des mises à jour.
@@ -124,8 +124,8 @@ Statut :
 
 | Réf. | Exigence | Priorité | Lot | Statut | Où c'est implémenté |
 |---|---|---|---|---|---|
-| EF-401 | Partage d'un projet avec d'autres utilisateurs (lien ou invitation). | Élevée | MVP | 🕓 Phase 3 | — |
-| EF-402 | Gestion fine des droits d'accès : lecture, commentaire, édition. | Élevée | MVP (§3) ⚑ | 🕓 Phases 1 et 10 | — |
+| EF-401 | Partage d'un projet avec d'autres utilisateurs (lien ou invitation). | Élevée | MVP | 🔨 Phases 1 et 3 — partage par affectation à un projet (API, testé) ; invitation et lien en Phase 3 | `backend/src/modules/projects/` (affectations) |
+| EF-402 | Gestion fine des droits d'accès : lecture, commentaire, édition. | Élevée | MVP (§3) ⚑ | 🔨 Phases 1 et 10 — portée par rôle, locataire, société cliente et affectation (testé) ; droits lecture / commentaire / édition par projet en Phase 10 | `packages/shared/src/rbac/`, `backend/src/domain/projects/visibility.ts` |
 | EF-403 | Commentaires et annotations en temps réel, positionnés sur les éléments. | Moyenne | V1 | 🕓 Phase 10 | — |
 | EF-404 | Édition collaborative simultanée avec indication de la présence des utilisateurs. | Moyenne | V2 ⚠ | 🕓 Phase 10 (présence) · post-V2 (co-édition) | — |
 | EF-405 | Historique et gestion des versions : comparaison et restauration d'une version antérieure. | Élevée | V1 ⚠ | 🕓 Phase 10 | — |
@@ -145,10 +145,10 @@ Statut :
 
 | Réf. | Exigence | Priorité | Lot | Statut | Où c'est implémenté |
 |---|---|---|---|---|---|
-| EF-501 | Création et gestion des comptes utilisateurs et des organisations. | Élevée | MVP | 🕓 Phases 1 et 3 | — |
-| EF-502 | Authentification sécurisée (identifiant / mot de passe, SSO ou OAuth en option). | Élevée | MVP (§3) | 🕓 Phase 1 | — |
-| EF-503 | Gestion des rôles et permissions (administrateur, concepteur, invité). | Élevée | MVP (§3) | 🕓 Phase 1 | — |
-| EF-504 | Tableau de bord des projets : liste, recherche, filtres, statut. | Moyenne | V1 (§3) | 🕓 Phases 1 et 3 | — |
+| EF-501 | Création et gestion des comptes utilisateurs et des organisations. | Élevée | MVP | 🔨 Phases 1 et 3 — API comptes (création, rôle, désactivation, anonymisation) et sociétés clientes, testées ; liste, recherche et activation/désactivation des comptes livrées ; création et sociétés clientes à poursuivre | `backend/src/modules/users/`, `backend/src/modules/client-companies/`, `frontend/src/features/admin/users-page.tsx` |
+| EF-502 | Authentification sécurisée (identifiant / mot de passe, SSO ou OAuth en option). | Élevée | MVP (§3) | ✅ Phase 1 — identifiant / mot de passe ; SSO et OAuth (optionnels) non implémentés | `backend/src/modules/auth/`, `backend/src/security/`, `frontend/src/features/auth/` — tests `backend/test/auth.e2e-spec.ts` |
+| EF-503 | Gestion des rôles et permissions (administrateur, concepteur, invité). | Élevée | MVP (§3) | ✅ Phase 1 | `packages/shared/src/rbac/`, `backend/src/security/guards/` — tests `check-permissions.spec.ts`, `users.e2e-spec.ts` |
+| EF-504 | Tableau de bord des projets : liste, recherche, filtres, statut. | Moyenne | V1 (§3) | 🔨 Phases 1 et 3 — liste et statut par portail (API : recherche et filtre par statut) ; recherche et filtres à l’écran en Phase 3 | `frontend/src/features/projects/`, `frontend/src/features/dashboard/` |
 | EF-505 | Gestion du catalogue de composants par l'administrateur (ajout, mise à jour). | Moyenne | V1 | 🕓 Phase 3 | — |
 
 > **EF-502 — ADR 0010.** Pas d'inscription publique : l'administrateur crée les comptes. La
@@ -164,13 +164,13 @@ Statut :
 
 | Réf. | Domaine | Exigence | Statut | Où c'est implémenté |
 |---|---|---|---|---|
-| ENF-01 | Performance | Temps de réponse inférieur à 2 s pour les actions courantes ; rendu fluide d'un plan comportant plusieurs centaines d'éléments ; latence de co-édition inférieure à 500 ms. | 🕓 Transverse · mesurée Phase 14 | — |
-| ENF-02 | Sécurité | Chiffrement des échanges (TLS) et des données sensibles ; gestion sécurisée des sessions ; conformité à la loi 09-08 relative à la protection des données personnelles (Maroc) et, le cas échéant, au RGPD. | 🕓 Phases 1 et 14 | — |
-| ENF-03 | Ergonomie | Interface intuitive et responsive ; prise en main rapide ; interface en français, extensible à l'arabe et à l'anglais. | 🕓 Phase 1 | — |
-| ENF-04 | Disponibilité | Taux de disponibilité cible de 99,5 % ; sauvegardes régulières et plan de reprise d'activité. | 🕓 Phases 1 et 14 | — |
-| ENF-05 | Compatibilité | Support des navigateurs récents (Chrome, Firefox, Edge, Safari) ; usage bureautique prioritaire, tablette en option. | 🕓 Phases 1 et 14 | — |
-| ENF-06 | Évolutivité | Architecture modulaire permettant la montée en charge et l'ajout de nouveaux modules ; mode multi-organisations. | 🕓 Phase 1 | — |
-| ENF-07 | Traçabilité | Journalisation des actions (audit) et historisation des versions de projet. | 🕓 Phases 1 et 10 | — |
+| ENF-01 | Performance | Temps de réponse inférieur à 2 s pour les actions courantes ; rendu fluide d'un plan comportant plusieurs centaines d'éléments ; latence de co-édition inférieure à 500 ms. | 🕓 Transverse · mesurée Phase 14 — chunks séparés et chargement paresseux en place | `frontend/vite.config.ts`, `frontend/src/app/router.tsx` |
+| ENF-02 | Sécurité | Chiffrement des échanges (TLS) et des données sensibles ; gestion sécurisée des sessions ; conformité à la loi 09-08 relative à la protection des données personnelles (Maroc) et, le cas échéant, au RGPD. | 🔨 Phases 1 et 14 — bcrypt, sessions rotatives révocables, HSTS, anonymisation, rétention, registre (testés) ; TLS de déploiement et chiffrement du volume à la charge de l’hébergement | `backend/src/security/`, `backend/src/domain/`, `backend/src/workers/`, `docs/REGISTRE-TRAITEMENTS.md` |
+| ENF-03 | Ergonomie | Interface intuitive et responsive ; prise en main rapide ; interface en français, extensible à l'arabe et à l'anglais. | 🔨 Phase 1 — interface en français, aucune chaîne en dur (test automatique), responsive, bascule RTL prête ; arabe et anglais à traduire | `frontend/src/i18n/` — test `i18n.test.ts` |
+| ENF-04 | Disponibilité | Taux de disponibilité cible de 99,5 % ; sauvegardes régulières et plan de reprise d'activité. | 🔨 Phases 1 et 14 — sauvegarde chiffrée, rotation GFS, restauration vérifiée le 18/09/2026, supervision /health ; test chronométré en conditions réelles en Phase 14 | `backend/scripts/`, `docs/RUNBOOK-RESTAURATION.md` |
+| ENF-05 | Compatibilité | Support des navigateurs récents (Chrome, Firefox, Edge, Safari) ; usage bureautique prioritaire, tablette en option. | 🔨 Phases 1 et 14 — vérifié sur Edge (bureau et mobile) ; Chrome, Firefox, Safari en Phase 14 | — |
+| ENF-06 | Évolutivité | Architecture modulaire permettant la montée en charge et l'ajout de nouveaux modules ; mode multi-organisations. | 🔨 Phase 1 — multi-organisations livré et testé (deux suites d’isolation, filet Prisma) ; montée en charge mesurée en Phase 14 | `backend/src/core/prisma/org-scope.ts` — tests `isolation.e2e-spec.ts` |
+| ENF-07 | Traçabilité | Journalisation des actions (audit) et historisation des versions de projet. | 🔨 Phases 1 et 10 — journal d’audit et historique des statuts livrés et testés ; historisation des versions d’architecture en Phase 10 | `backend/src/modules/audit/`, `ProjectStatusHistory` |
 
 ---
 
@@ -195,8 +195,8 @@ aucune exigence du CDC. Numérotation proposée, à valider :
 
 | Réf. proposée | Exigence proposée | Priorité proposée | Lot proposé | Statut |
 |---|---|---|---|---|
-| EF-506 | Cycle de vie d'un projet piloté par une machine à états, avec transitions contrôlées par rôle, retours en arrière nommés et motivés. | Élevée | MVP | 🕓 Phase 1 |
-| EF-507 | Portail client d'expression du besoin : formulaire multi-étapes, sauvegarde en brouillon, soumission. | Élevée | V1 | 🕓 Phase 2 |
+| EF-506 | Cycle de vie d'un projet piloté par une machine à états, avec transitions contrôlées par rôle, retours en arrière nommés et motivés. | Élevée | MVP | ✅ Phase 1 — `packages/shared/src/workflow/`, `ProjectsService.applyTransition`, dialogue de projet |
+| EF-507 | Portail client d'expression du besoin : formulaire multi-étapes, sauvegarde en brouillon, soumission. | Élevée | V1 | 🔨 Phase 2 — cadrage, capacité, réseau et sécurité structurés ; sauvegarde locale et transaction ProjectRequest livrées ; bâtiments/départements et reprise serveur à enrichir | `frontend/src/features/request/request-page.tsx`, `backend/src/modules/projects/projects.service.ts` — test `request-page.test.tsx` |
 | EF-508 | Consultation, commentaire et validation d'une version publiée par le client. | Moyenne | V1 | 🕓 Phase 11 |
 
 ### 4. Chatbot d'assistance client — hors périmètre initial

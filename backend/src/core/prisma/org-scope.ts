@@ -22,6 +22,10 @@ export const ORG_SCOPED_MODELS: ReadonlySet<string> = new Set([
   'ArchitectureConnection',
   'ArchitectureZone',
   'ArchitectureVersion',
+  'ProjectRequest',
+  'RequestBuilding',
+  'RequestDepartment',
+  'ProjectComment',
 ]);
 
 const WHERE_OPERATIONS = new Set([

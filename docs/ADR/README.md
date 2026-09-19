@@ -17,6 +17,9 @@ remplace et on marque l'ancien « Remplacé par ADR NNNN ».
 | [0009](0009-priorite-et-lot-du-cdc.md) | Priorité (§3) et lot (§8.1) du CDC | D-08 | Accepté |
 | [0010](0010-comptes-client-crees-par-admin.md) | Comptes CLIENT créés par l'administrateur, anti-énumération | D-14 | Accepté |
 | [0011](0011-paquet-partage-esm.md) | Paquet partagé publié en ESM | D-15 | Accepté |
+| [0012](0012-ajustements-contraste-palette.md) | Ajustements de la palette imposés par WCAG AA | D-18 | Accepté |
+| [0013](0013-versions-de-la-stack.md) | Versions de la stack imposée | D-19 | Accepté |
+| [0014](0014-politique-mot-de-passe-et-sessions.md) | Politique de mot de passe et de session | D-20 | Accepté |
 
 Décisions encore ouvertes, sans ADR à ce stade : **D-05** (périmètre du temps réel),
 **D-11** (génération du PDF), **D-12** (fournisseur LLM), **D-17** (base de développement).

@@ -1,0 +1,404 @@
+{
+  "app": {
+    "name": "ArchiFlow",
+    "tagline": "Conception d'architecture réseau et système"
+  },
+  "common": {
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "retry": "Réessayer",
+    "save": "Enregistrer",
+    "confirm": "Confirmer",
+    "loading": "Chargement…",
+    "comingSoon": "À venir",
+    "phase": "Phase {{n}}",
+    "back": "Retour",
+    "next": "Suivant",
+    "yes": "Oui",
+    "no": "Non",
+    "open": "Ouvrir",
+    "none": "Aucun"
+  },
+  "theme": {
+    "toggle": "Changer de thème",
+    "dark": "Thème sombre",
+    "light": "Thème clair"
+  },
+  "roles": {
+    "ADMIN": "Administrateur",
+    "PROJECT_MANAGER": "Chef de projet",
+    "ENGINEER": "Ingénieur",
+    "ARCHITECT": "Architecte",
+    "SALES": "Commercial",
+    "CLIENT": "Client"
+  },
+  "portal": {
+    "ADMIN": { "title": "Administration", "subtitle": "Comptes, projets, affectations et catalogue de la plateforme." },
+    "PROJECT_MANAGER": { "title": "Pilotage des projets", "subtitle": "Suivi, revues internes et coordination des équipes." },
+    "ENGINEER": { "title": "Ingénierie", "subtitle": "Dimensionnement technique des projets qui vous sont affectés." },
+    "ARCHITECT": { "title": "Conception", "subtitle": "Architectures en cours de conception et de révision." },
+    "SALES": { "title": "Avant-vente", "subtitle": "Chiffrage, propositions et publication aux clients." },
+    "CLIENT": { "title": "Mes projets", "subtitle": "Suivez vos projets, consultez les propositions et validez-les." }
+  },
+  "nav": {
+    "main": "Navigation principale",
+    "dashboard": "Tableau de bord",
+    "projects": "Projets",
+    "users": "Utilisateurs",
+    "catalog": "Catalogue",
+    "audit": "Journal d'audit",
+    "assignments": "Affectations",
+    "sizing": "Dimensionnement",
+    "designer": "Designer",
+    "planning": "Planning",
+    "costs": "Chiffrage",
+    "proposals": "Propositions",
+    "request": "Exprimer un besoin",
+    "documents": "Documents",
+    "account": "Mon compte",
+    "logout": "Se déconnecter",
+    "skipToContent": "Aller au contenu"
+  },
+  "request": {
+    "title": "Exprimer un besoin",
+    "subtitle": "Décrivez le contexte, le site et le besoin métier pour démarrer le projet.",
+    "success": "Projet créé",
+    "form": {
+      "title": "Nouvelle demande",
+      "progress": "Progression de la demande",
+      "name": "Nom du projet",
+      "location": "Lieu",
+      "description": "Description",
+      "descriptionPlaceholder": "Décrivez le contexte de votre besoin et les objectifs attendus.",
+      "need": "Votre besoin",
+      "needPlaceholder": "Exemple : nous avons 220 employés, 180 postes fixes, un Wi-Fi pour les visiteurs et un besoin de redondance.",
+      "submit": "Créer le projet"
+    },
+    "steps": {
+      "general": "Projet",
+      "needs": "Capacité",
+      "technical": "Réseau & sécurité"
+    },
+    "projectTypes": {
+      "new_headquarters": "Nouveau siège",
+      "new_site": "Nouveau site",
+      "expansion": "Extension",
+      "refresh": "Modernisation",
+      "datacenter": "Datacenter",
+      "multi_site": "Multi-sites"
+    },
+    "fields": {
+      "name": "Nom du projet",
+      "location": "Localisation",
+      "projectType": "Type de projet",
+      "choose": "Sélectionner",
+      "siteCount": "Nombre de sites",
+      "description": "Contexte et objectifs",
+      "descriptionPlaceholder": "Décrivez le contexte de votre besoin et les objectifs attendus.",
+      "employees": "Employés",
+      "workstations": "Postes de travail",
+      "concurrentUsers": "Utilisateurs simultanés",
+      "servers": "Serveurs souhaités",
+      "wifiApCount": "Bornes Wi-Fi souhaitées",
+      "storage": "Besoins de stockage",
+      "freeText": "Expression libre du besoin",
+      "freeTextPlaceholder": "Exemple : nous voulons du Wi-Fi pour 200 employés et une connexion VPN pour deux sites.",
+      "networkTitle": "Services réseau",
+      "securityTitle": "Sécurité",
+      "networkNotes": "Précisions réseau",
+      "securityNotes": "Précisions sécurité",
+      "serverNotes": "Précisions serveurs",
+      "wifi": "Wi-Fi",
+      "voip": "Téléphonie IP",
+      "cctv": "Vidéosurveillance",
+      "internetAccess": "Accès Internet",
+      "vpn": "VPN",
+      "remoteSites": "Sites distants",
+      "lan": "LAN",
+      "wan": "WAN",
+      "dmz": "DMZ",
+      "firewall": "Firewall",
+      "idsIps": "IDS / IPS",
+      "segmentation": "Segmentation",
+      "vlan": "VLAN",
+      "accessControl": "Contrôle d'accès",
+      "haSecurity": "Haute disponibilité"
+    },
+    "help": {
+      "title": "Conseil",
+      "text": "La demande initiale n’a pas vocation à être complète : elle sert à lancer le projet et à guider le dimensionnement puis la conception."
+    }
+  },
+  "users": {
+    "title": "Utilisateurs",
+    "subtitle": "Gérez les comptes de votre organisation et leur accès à ArchiFlow.",
+    "listTitle": "Comptes de l'organisation",
+    "search": "Rechercher par nom ou e-mail",
+    "count_one": "{{count}} compte",
+    "count_other": "{{count}} comptes",
+    "empty": "Aucun utilisateur trouvé",
+    "never": "Jamais",
+    "deactivate": "Désactiver",
+    "reactivate": "Réactiver",
+    "columns": { "name": "Utilisateur", "role": "Rôle", "lastLogin": "Dernière connexion", "state": "État" }
+  },
+  "adminRequests": {
+    "eyebrow": "File de travail",
+    "title": "Demandes entrantes",
+    "subtitle": "Analysez les besoins clients avant affectation de l'équipe technique.",
+    "search": "Rechercher une demande",
+    "filters": "Filtres des demandes",
+    "filter": { "all": "À traiter", "submitted": "Nouvelles", "assignment": "En attente d'affectation" },
+    "empty": "Aucune demande dans cette file",
+    "emptyHint": "Les nouvelles expressions de besoin apparaîtront ici."
+  },
+  "catalog": {
+    "eyebrow": "Référentiel technique",
+    "title": "Catalogue d'équipements",
+    "subtitle": "Modèles disponibles pour le dimensionnement et la conception.",
+    "search": "Rechercher un modèle, une marque ou une référence",
+    "filters": "Filtrer le catalogue",
+    "all": "Tous",
+    "empty": "Aucun modèle trouvé",
+    "emptyHint": "Modifiez votre recherche ou votre filtre de catégorie.",
+    "ports": "Ports",
+    "throughput": "Débit",
+    "power": "Puissance",
+    "demo": "DEMO DATA"
+  },
+  "auth": {
+    "login": {
+      "title": "Connexion",
+      "subtitle": "Accédez à votre espace ArchiFlow.",
+      "email": "Adresse e-mail",
+      "password": "Mot de passe",
+      "submit": "Se connecter",
+      "forgot": "Mot de passe oublié ?"
+    },
+    "forgot": {
+      "title": "Mot de passe oublié",
+      "subtitle": "Indiquez votre adresse : si un compte y est associé, vous recevrez un lien de réinitialisation.",
+      "submit": "Envoyer le lien",
+      "sent": "Si un compte correspond à cette adresse, un lien de réinitialisation vient d'être envoyé. Il est valable une heure.",
+      "backToLogin": "Retour à la connexion"
+    },
+    "reset": {
+      "title": "Nouveau mot de passe",
+      "subtitle": "Choisissez un mot de passe d'au moins 12 caractères.",
+      "newPassword": "Nouveau mot de passe",
+      "submit": "Enregistrer le mot de passe",
+      "done": "Votre mot de passe a été modifié. Vous pouvez vous connecter.",
+      "missingToken": "Ce lien de réinitialisation est incomplet. Demandez-en un nouveau."
+    },
+    "changePassword": {
+      "title": "Changer votre mot de passe",
+      "requiredNotice": "Votre compte a été créé avec un mot de passe provisoire. Choisissez votre propre mot de passe pour continuer.",
+      "current": "Mot de passe actuel",
+      "new": "Nouveau mot de passe",
+      "hint": "Au moins 12 caractères. Une phrase de plusieurs mots est plus sûre et plus facile à retenir.",
+      "submit": "Changer le mot de passe"
+    },
+    "noPublicSignup": "Les comptes sont créés par l'administrateur de votre organisation.",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe"
+  },
+  "validation": {
+    "email": { "required": "Adresse e-mail requise", "invalid": "Adresse e-mail invalide" },
+    "password": {
+      "required": "Mot de passe requis",
+      "currentRequired": "Mot de passe actuel requis",
+      "tooShort": "Au moins 12 caractères",
+      "tooLong": "Mot de passe trop long",
+      "mustDiffer": "Le nouveau mot de passe doit être différent de l'actuel"
+    },
+    "firstName": { "required": "Prénom requis" },
+    "lastName": { "required": "Nom requis" },
+    "name": { "required": "Nom requis" },
+    "projectName": { "required": "Nom du projet requis" },
+    "comment": { "required": "Commentaire requis" },
+    "clientCompany": {
+      "required": "Un compte client doit être rattaché à une société cliente",
+      "forbidden": "Un compte interne ne se rattache pas à une société cliente"
+    },
+    "country": { "length": "Code pays sur deux lettres" },
+    "reason": { "required": "Indiquez le motif du retour en arrière" }
+  },
+  "errors": {
+    "INVALID_CREDENTIALS": "Identifiants incorrects",
+    "UNAUTHENTICATED": "Votre session a expiré. Reconnectez-vous.",
+    "SESSION_EXPIRED": "Votre session a expiré. Reconnectez-vous.",
+    "FORBIDDEN": "Permissions insuffisantes",
+    "PASSWORD_CHANGE_REQUIRED": "Changez votre mot de passe provisoire pour continuer.",
+    "NOT_FOUND": "Élément introuvable, ou vous n'y avez pas accès.",
+    "CONFLICT": "L'opération entre en conflit avec l'état actuel. Rechargez et réessayez.",
+    "TRANSITION_REFUSED": "Cette étape n'est pas possible maintenant.",
+    "VALIDATION_FAILED": "Certaines informations sont invalides.",
+    "UNPROCESSABLE": "L'opération n'est pas possible dans ces conditions.",
+    "RATE_LIMITED": "Trop de tentatives. Patientez une minute avant de réessayer.",
+    "NETWORK": "Le serveur ne répond pas. Vérifiez votre connexion et réessayez.",
+    "INTERNAL": "Une erreur inattendue s'est produite. Réessayez dans un instant."
+  },
+  "states": {
+    "errorTitle": "Chargement impossible"
+  },
+  "confirm": {
+    "title": "{{action}} « {{target}} » ?",
+    "irreversible": "Cette action est irréversible."
+  },
+  "status": {
+    "DRAFT": "Brouillon",
+    "SUBMITTED": "Soumis",
+    "PENDING_ASSIGNMENT": "En attente d'affectation",
+    "ASSIGNED": "Équipe affectée",
+    "ENGINEERING": "Dimensionnement",
+    "ARCHITECTURE": "Conception",
+    "INTERNAL_REVIEW": "Revue interne",
+    "COMMERCIAL_REVIEW": "Chiffrage",
+    "CLIENT_REVIEW": "Proposition client",
+    "CLIENT_COMMENTS": "Commentaires client",
+    "REVISION": "Révision",
+    "CLIENT_APPROVED": "Validé par le client",
+    "COMPLETED": "Terminé"
+  },
+  "workflow": {
+    "submit": "Soumettre la demande",
+    "accept": "Valider la demande",
+    "confirmAssignments": "Confirmer les affectations",
+    "startSizing": "Démarrer le dimensionnement",
+    "handToArchitect": "Transmettre à la conception",
+    "submitInternalReview": "Soumettre à la revue interne",
+    "handToSales": "Transmettre au commercial",
+    "sendBackToArchitect": "Renvoyer à l'architecte",
+    "publishProposal": "Publier la proposition client",
+    "requestChanges": "Demander une modification",
+    "approve": "Valider l'architecture",
+    "openRevision": "Ouvrir une révision",
+    "resumeDesign": "Reprendre la conception",
+    "close": "Clôturer le projet",
+    "reverseNotice": "Retour en arrière : le motif est obligatoire et restera dans l'historique du projet.",
+    "reason": "Motif",
+    "reasonPlaceholder": "Pourquoi le projet revient-il à cette étape ?",
+    "noAction": "Aucune action ne vous revient à cette étape.",
+    "done": "Statut mis à jour : {{status}}"
+  },
+  "projects": {
+    "title": "Projets",
+    "subtitle": "Suivi des architectures et des demandes de votre espace.",
+    "empty": {
+      "title": "Aucun projet pour le moment",
+      "CLIENT": "Vos projets apparaîtront ici dès leur création.",
+      "ADMIN": "Les projets de l'organisation apparaîtront ici.",
+      "default": "Les projets qui vous sont affectés apparaîtront ici."
+    },
+    "columns": {
+      "name": "Projet",
+      "client": "Client",
+      "status": "Statut",
+      "updated": "Mis à jour"
+    },
+    "detail": {
+      "status": "Statut",
+      "client": "Société cliente",
+      "team": "Équipe",
+      "noTeam": "Aucune personne affectée.",
+      "history": "Historique",
+      "noHistory": "Aucune transition pour le moment.",
+      "actions": "Actions",
+      "reasonLabel": "Motif :",
+      "requestTitle": "Expression du besoin",
+      "noRequest": "Aucune demande détaillée n'est encore associée à ce projet.",
+      "buildings": "Bâtiments",
+      "departments": "Départements",
+      "floors": "étages"
+      ,"assignTitle": "Affecter une ressource"
+      ,"assignRole": "Rôle à affecter"
+      ,"assignUser": "Utilisateur à affecter"
+      ,"chooseUser": "Choisir un utilisateur"
+      ,"assign": "Affecter"
+    },
+    "count_one": "{{count}} projet",
+    "count_other": "{{count}} projets"
+  },
+  "dashboard": {
+    "search": "Rechercher dans l'espace...",
+    "notifications": "Notifications",
+    "noNotifications": "Aucune nouvelle notification",
+    "new": "Nouveau",
+    "workspaceType": "Architecture réseau",
+    "updated": "Mis à jour aujourd'hui",
+    "location": "Localisation",
+    "edit": "Modifier",
+    "tabsLabel": "Navigation du projet",
+    "tabs": { "home": "Accueil", "diagram": "Diagramme", "requests": "Demandes", "activity": "Activité" },
+    "diagram": "Diagramme",
+    "diagramHint": "Vue des relations de l'architecture",
+    "editDiagram": "Modifier le diagramme",
+    "expandDiagram": "Agrandir le diagramme",
+    "cis": "Éléments",
+    "byType": "Par type",
+    "requestsCard": "Demandes",
+    "byStatus": "Par statut",
+    "totalCost": "Coût total",
+    "ofCis": "Des éléments",
+    "tags": "Étiquettes",
+    "associated": "Associées",
+    "activityTitle": "Activité récente",
+    "activityEmpty": "Les événements de votre espace apparaîtront ici.",
+    "clientProgress": "Progression de votre demande",
+    "clientNextStep": "Votre équipe technique prépare la prochaine étape.",
+    "clientSteps": { "request": "Demande", "analysis": "Analyse", "design": "Conception", "validation": "Validation" },
+    "myProjects": "Mes projets",
+    "lastActivity": "Dernière activité",
+    "clientView": "Visible dans votre espace",
+    "capacity": "À dimensionner",
+    "toReview": "Projets affectés",
+    "alerts": "Alertes techniques",
+    "noCritical": "Aucune anomalie critique",
+    "devices": "Équipements",
+    "layers": "Calques de conception",
+    "delivery": "Progression des livraisons",
+    "liveSpace": "espace actif",
+    "overview": "Vue d'ensemble",
+    "overviewHint": "Survolez un signal pour révéler son détail opérationnel.",
+    "signal": "signal / live",
+    "stats": {
+      "total": "Projets",
+      "inProgress": "En cours",
+      "completed": "Terminés",
+      "pending": "En attente",
+      "activeUsers": "Utilisateurs actifs",
+      "toProcess": "À traiter",
+      "toDesign": "À concevoir",
+      "internalReview": "En revue interne",
+      "toQuote": "À chiffrer",
+      "awaitingClient": "Chez le client",
+      "awaitingMyDecision": "Attendent votre validation",
+      "approved": "Validés"
+    }
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "description": "Cette adresse ne correspond à aucune page de votre espace.",
+    "action": "Revenir au tableau de bord"
+  },
+  "desktopOnly": {
+    "title": "Écran trop étroit",
+    "description": "Le designer d'architecture est conçu pour un écran d'ordinateur. Agrandissez la fenêtre ou utilisez un poste de travail."
+  },
+  "equipment": {
+    "category": {
+      "firewall": "Pare-feu",
+      "router": "Routeur",
+      "switch": "Commutateur",
+      "access-point": "Point d'accès Wi-Fi",
+      "wifi-controller": "Contrôleur Wi-Fi",
+      "server": "Serveur",
+      "storage": "Stockage",
+      "load-balancer": "Répartiteur de charge",
+      "ups": "Onduleur",
+      "rack": "Baie",
+      "workstation": "Poste client",
+      "internet": "Internet"
+    }
+  }
+}

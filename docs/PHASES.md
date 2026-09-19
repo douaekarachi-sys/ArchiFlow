@@ -32,7 +32,7 @@ Les huit arbitrages structurants sont tranchés et documentés dans `docs/ADR/`.
 
 ---
 
-## Phase 0.5 — Remise à niveau (une demi-journée)
+## Phase 0.5 — Remise à niveau — ✅ Close (18/09/2026)
 
 *Dépend de : 0.*
 
@@ -49,7 +49,20 @@ Les huit arbitrages structurants sont tranchés et documentés dans `docs/ADR/`.
 
 ---
 
-## Phase 1 — Fondations
+## Phase 1 — Fondations — ✅ Close (18/09/2026)
+
+> **Bilan.** Livré et testé : schéma et première migration, authentification complète, RBAC,
+> tenancy à deux niveaux (deux suites d'isolation, filet Prisma), machine à états avec
+> `applyTransition`, audit, rétention, anonymisation, sauvegardes chiffrées et test de
+> restauration, design system (tokens, contraste AA vérifié), composants de base, i18n,
+> six portails avec tableaux de bord et détail de projet. 162 tests backend et partagés,
+> 102 tests frontend, parcours navigateur vérifié.
+>
+> **Écarts à la liste ci-dessous** : shadcn/ui n'a pas été installé par son CLI ; les
+> composants sont écrits dans son style (Radix + cva) directement sur les jetons, ce que
+> l'ADR 0007 autorise. La « Table » est une primitive simple, la virtualisation viendra avec
+> les listes volumineuses (Phase 3). La restauration a été testée sur la base de développement ;
+> le test chronométré en conditions réelles reste en Phase 14.
 
 *Priorité CDC : MVP. Charge : élevée. Dépend de : rien — plus aucun arbitrage en attente.*
 

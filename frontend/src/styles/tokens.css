@@ -1,0 +1,190 @@
+/*
+ * tokens.css — le design system d'ArchiFlow, écrit AVANT tout composant (brief §9).
+ *
+ * Règles :
+ *  - valeurs en triplets HSL, valeur hexadécimale en commentaire sur CHAQUE ligne (ADR 0007) ;
+ *    l'enveloppe hsl(var(--x)) conserve les modificateurs d'opacité Tailwind (bg-primary/10) ;
+ *  - aucune couleur en dur dans un composant : uniquement ces jetons ;
+ *  - tout texte respecte WCAG AA — vérifié automatiquement par src/styles/tokens.test.ts.
+ *    Les rares écarts à la palette du brief imposés par AA sont justifiés dans l'ADR 0012.
+ *
+ * Thème sombre par défaut ; thème clair complet sous [data-theme='light'].
+ */
+
+/* ----------------------------------------------------------------------------------------- */
+/* Thème sombre (défaut)                                                                     */
+/* ----------------------------------------------------------------------------------------- */
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Fonds */
+  --bg-base: 221 44% 7%; /* #0A0F1A — fond application / canvas */
+  --bg-surface: 221 39% 11%; /* #111827 — cartes, panneaux */
+  --bg-elevated: 221 38% 15%; /* #172033 — modales, menus, popovers */
+  --bg-inset: 220 46% 5%; /* #070B13 — zones creusées (code, grille du canvas) */
+
+  /* Bordures */
+  --border: 221 34% 21%; /* #243049 */
+  --border-strong: 219 32% 29%; /* #334463 */
+
+  /* Texte */
+  --text-primary: 219 59% 94%; /* #E8EEF9 */
+  --text-secondary: 217 31% 71%; /* #9FB0CC */
+  --text-muted: 218 21% 57%; /* #7A8BA8 — brief #6B7C99 éclairci : 4,20 < 4,5 (ADR 0012) */
+
+  /* Superposition de survol : blanc en sombre (bg-overlay/5 = rgba(255,255,255,.05)) */
+  --overlay: 0 0% 100%; /* #FFFFFF */
+
+  /* Action principale */
+  --primary: 220 100% 62%; /* #3D7DFF — liens actifs, sélection, indicateurs */
+  --primary-hover: 220 100% 68%; /* #5A91FF */
+  --primary-active: 221 69% 51%; /* #2C63D9 */
+  --primary-text: 221 100% 71%; /* #6B9BFF — primaire employé comme TEXTE (AA sur toutes les surfaces) */
+
+  /* Remplissage des boutons primaires : texte blanc AA (ADR 0012) */
+  --primary-solid: 221 83% 53%; /* #2563EB — 5,17:1 avec le blanc */
+  --primary-solid-hover: 224 76% 48%; /* #1D4ED8 — 6,70:1 */
+  --primary-solid-active: 226 71% 40%; /* #1E40AF — 8,72:1 */
+
+  /* Données, arêtes actives du canvas, sélection */
+  --accent: 188 86% 53%; /* #22D3EE */
+  --focus: 188 86% 53%; /* #22D3EE — anneau de focus clavier */
+
+  /* Sémantique — remplissages (icônes, pastilles, bordures) */
+  --success: 142 71% 45%; /* #22C55E */
+  --warning: 38 92% 50%; /* #F59E0B */
+  --critical: 0 84% 60%; /* #EF4444 */
+  --info: 198 93% 60%; /* #38BDF8 */
+
+  /* Sémantique — employées comme TEXTE */
+  --success-text: 142 71% 45%; /* #22C55E — 7,79:1 sur surface */
+  --warning-text: 38 92% 50%; /* #F59E0B — 8,26:1 */
+  --critical-text: 0 91% 71%; /* #F87171 */
+  --info-text: 198 93% 60%; /* #38BDF8 — 8,28:1 */
+
+  /* Bouton destructif : texte blanc AA (ADR 0012) */
+  --danger-solid: 0 72% 51%; /* #DC2626 — 4,83:1 */
+  --danger-solid-hover: 0 74% 42%; /* #B91C1C */
+  --danger-solid-active: 0 70% 35%; /* #991B1B */
+
+  /* Texte posé sur un remplissage plein */
+  --on-solid: 0 0% 100%; /* #FFFFFF */
+
+  /* Élévation : en sombre, pas d'ombre noire diffuse — superposition de fond + bordure */
+  --elevation: none;
+
+  /* Console de cartographie : mêmes surfaces que l'application sombre, sans panneau clair isolé. */
+  --dashboard-bg: 221 44% 7%; /* #0A0F1A */
+  --dashboard-sidebar: 221 39% 11%; /* #111827 */
+  --dashboard-panel: 221 39% 11%; /* #111827 */
+  --dashboard-line: 221 34% 21%; /* #243049 */
+  --dashboard-text: 219 59% 94%; /* #E8EEF9 */
+  --dashboard-muted: 217 31% 71%; /* #9FB0CC */
+  --dashboard-purple: 220 100% 68%; /* #5A91FF */
+  --dashboard-blue: 188 86% 53%; /* #22D3EE */
+}
+
+/* ----------------------------------------------------------------------------------------- */
+/* Thème clair                                                                               */
+/* ----------------------------------------------------------------------------------------- */
+[data-theme='light'] {
+  color-scheme: light;
+
+  --bg-base: 220 43% 97%; /* #F5F7FB */
+  --bg-surface: 0 0% 100%; /* #FFFFFF */
+  --bg-elevated: 0 0% 100%; /* #FFFFFF */
+  --bg-inset: 216 42% 95%; /* #EEF2F8 */
+
+  --border: 216 33% 91%; /* #E1E7F0 */
+  --border-strong: 216 32% 83%; /* #C7D2E2 */
+
+  --text-primary: 218 49% 10%; /* #0D1626 */
+  --text-secondary: 215 19% 35%; /* #475569 */
+  --text-muted: 216 18% 43%; /* #5A6B82 — brief #7A8CA3 assombri : 3,44 < 4,5 (ADR 0012) */
+
+  --overlay: 218 49% 10%; /* #0D1626 — survol assombrissant en clair */
+
+  --primary: 220 100% 62%; /* #3D7DFF */
+  --primary-hover: 220 100% 68%; /* #5A91FF */
+  --primary-active: 221 69% 51%; /* #2C63D9 */
+  --primary-text: 222 71% 49%; /* #2459D6 */
+
+  --primary-solid: 221 83% 53%; /* #2563EB */
+  --primary-solid-hover: 224 76% 48%; /* #1D4ED8 */
+  --primary-solid-active: 226 71% 40%; /* #1E40AF */
+
+  --accent: 188 86% 53%; /* #22D3EE */
+  --focus: 192 91% 36%; /* #0891B2 — le cyan du brief n'atteint pas 3:1 sur fond blanc (ADR 0012) */
+
+  --success: 142 71% 45%; /* #22C55E */
+  --warning: 38 92% 50%; /* #F59E0B */
+  --critical: 0 84% 60%; /* #EF4444 */
+  --info: 198 93% 60%; /* #38BDF8 */
+
+  --success-text: 142 72% 29%; /* #15803D */
+  --warning-text: 26 90% 37%; /* #B45309 */
+  --critical-text: 0 74% 42%; /* #B91C1C */
+  --info-text: 201 96% 32%; /* #0369A1 */
+
+  --danger-solid: 0 72% 51%; /* #DC2626 */
+  --danger-solid-hover: 0 74% 42%; /* #B91C1C */
+  --danger-solid-active: 0 70% 35%; /* #991B1B */
+
+  --on-solid: 0 0% 100%; /* #FFFFFF */
+
+  --elevation: 0 1px 2px rgb(13 22 38 / 0.06), 0 4px 12px rgb(13 22 38 / 0.08);
+}
+
+/* ----------------------------------------------------------------------------------------- */
+/* Communs aux deux thèmes                                                                   */
+/* ----------------------------------------------------------------------------------------- */
+:root {
+  /* Catégories d'équipement : un code couleur constant partout (palette, nœuds 2D, 3D, BOM, PDF) */
+  --cat-firewall: 350 89% 60%; /* #F43F5E */
+  --cat-router: 255 92% 76%; /* #A78BFA */
+  --cat-switch: 198 93% 60%; /* #38BDF8 */
+  --cat-access-point: 188 86% 53%; /* #22D3EE */
+  --cat-wifi-controller: 172 66% 50%; /* #2DD4BF — hors brief, ajouté avec la catégorie */
+  --cat-server: 158 64% 52%; /* #34D399 */
+  --cat-storage: 43 96% 56%; /* #FBBF24 */
+  --cat-load-balancer: 329 86% 70%; /* #F472B6 */
+  --cat-ups: 215 20% 65%; /* #94A3B8 */
+  --cat-rack: 215 16% 47%; /* #64748B */
+  --cat-workstation: 212 96% 78%; /* #93C5FD — hors brief, ajouté avec la catégorie */
+  --cat-internet: 219 59% 94%; /* #E8EEF9 */
+
+  /* Surface de la console de cartographie, inspirée des outils CMDB visuels. */
+  --dashboard-bg: 240 33% 97%; /* #F5F5FA */
+  --dashboard-sidebar: 255 35% 18%; /* #261E3E */
+  --dashboard-panel: 0 0% 100%; /* #FFFFFF */
+  --dashboard-line: 230 20% 90%; /* #E0E2EB */
+  --dashboard-text: 224 20% 22%; /* #2D3343 */
+  --dashboard-muted: 220 10% 55%; /* #818998 */
+  --dashboard-purple: 254 52% 58%; /* #765CCC */
+  --dashboard-blue: 205 64% 56%; /* #479BD6 */
+
+  /* Rayons */
+  --rounded-field: 6px; /* champs, badges */
+  --rounded-button: 8px;
+  --rounded-card: 12px;
+  --rounded-modal: 16px;
+
+  /* Mouvement : 120–200 ms, jamais décoratif */
+  --duration-fast: 120ms;
+  --duration-base: 150ms;
+  --duration-slow: 200ms;
+  --easing-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Canvas (Phase 5) */
+  --canvas-grid: 24px;
+  --canvas-snap: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+  }
+}

@@ -9,6 +9,7 @@ import { PrismaModule } from './core/prisma/prisma.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ClientCompaniesModule } from './modules/client-companies/client-companies.module';
+import { CatalogModule } from './modules/catalog/catalog.module';
 import { HealthModule } from './modules/health/health.controller';
 import { MailModule } from './modules/mail/mail.module';
 import { ProjectsModule } from './modules/projects/projects.module';
@@ -35,6 +36,7 @@ import { WorkersModule } from './workers/retention.worker';
     AuthModule,
     UsersModule,
     ClientCompaniesModule,
+    CatalogModule,
     ProjectsModule,
     HealthModule,
     WorkersModule,

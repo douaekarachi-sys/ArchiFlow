@@ -3,9 +3,9 @@ import { ROLES } from '../rbac/roles.js';
 import { PROJECT_STATUSES } from '../workflow/project-state-machine.js';
 
 export const createProjectSchema = z.object({
-  name: z.string().trim().min(3, 'Nom du projet requis').max(120),
+  name: z.string().trim().min(3, 'validation.projectName.required').max(120),
   description: z.string().trim().max(2000).optional(),
-  clientCompanyId: z.string().uuid('Société cliente requise'),
+  clientCompanyId: z.string().uuid('validation.clientCompany.required'),
 });
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 

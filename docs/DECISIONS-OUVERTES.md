@@ -1,6 +1,6 @@
 # Registre des décisions techniques
 
-*Anciennement « décisions ouvertes ». Douze arbitrages sont tranchés, un est sans objet,
+*Anciennement « décisions ouvertes ». Quinze arbitrages sont tranchés, un est sans objet,
 quatre restent ouverts.*
 
 | Réf. | Sujet | État | ADR | Bloque |
@@ -22,6 +22,9 @@ quatre restent ouverts.*
 | D-15 | Format du paquet partagé | ✅ Tranché — ESM | [0011](ADR/0011-paquet-partage-esm.md) | — |
 | D-16 | Ancien code et section 0.1 du brief | ✅ Tranché — abandonné, section retirée | — | — |
 | D-17 | Base PostgreSQL de développement | 🕓 Ouvert | — | Environnement local |
+| D-18 | Palette et contraste WCAG AA | ✅ Tranché — jetons ajoutés là où la palette échoue | [0012](ADR/0012-ajustements-contraste-palette.md) | — |
+| D-19 | Versions de la stack | ✅ Tranché — NestJS 11, Prisma 7.10, Tailwind 4 | [0013](ADR/0013-versions-de-la-stack.md) | — |
+| D-20 | Mot de passe et sessions | ✅ Tranché — 12 caractères, rotation, détection de réutilisation | [0014](ADR/0014-politique-mot-de-passe-et-sessions.md) | — |
 
 **Aucune décision ne bloque la Phase 1.** Restent D-11 (Phase 5), D-05 (Phase 10), D-12
 (Phase 13) et D-17 (environnement de développement, non bloquant pour le code).
@@ -93,12 +96,11 @@ pipe Zod — **une seule grammaire de validation dans tout le projet**.
 **Motif.** Un aller-retour serveur à chaque glisser-déposer est incompatible avec ENF-01
 (< 2 s, plusieurs centaines d'éléments) et avec EF-106 (mise à jour temps réel du plan).
 
-**Conséquence documentaire — action en attente.** Le fichier **`.drawio`** du diagramme de
-séquence « Conception architecture » doit être corrigé : `verifierCompatibilite` et
+**Conséquence documentaire — faite en Phase 0.5.** Le fichier **`.drawio`** du diagramme de
+séquence « Conception architecture » est corrigé (`diagrams/sequence-conception-architecture.drawio`) : `verifierCompatibilite` et
 `calculerCapacite` sortent du bloc `loop` côté serveur pour devenir des appels internes au
 client ; les branches `alt [compatible]` / `alt [incompatible]` restent mais se jouent
-localement. **À effectuer dès réception du dossier de travail.** La correction et son motif
-sont consignés dans l'ADR 0003.
+localement. La correction et son motif sont consignés dans l'ADR 0003.
 
 ---
 

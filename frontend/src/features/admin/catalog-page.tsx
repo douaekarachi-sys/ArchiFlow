@@ -1,0 +1,23 @@
+import { useQuery } from '@tanstack/react-query';
+import { Cpu, Search } from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { catalogApi } from '@/api/endpoints';
+import { Badge } from '@/components/ui/badge';
+import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states';
+import { errorMessage } from '@/utils/errors';
+
+const categories = ['all', 'firewall', 'router', 'switch', 'access-point', 'server', 'storage', 'load-balancer'];
+
+export function CatalogPage() {
+  const { t } = useTranslation();
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('all');
+  const query = useQuery({ queryKey: ['catalog', search, category], queryFn: () => catalogApi.equipment({ pageSize: 100, q: search || undefined, category: category === 'all' ? undefined : category }) });
+  return <div className="dashboard-shell -mx-4 -my-6 min-h-[calc(100dvh-3.5rem)] px-4 pb-8 md:-mx-8 md:-my-8 md:px-8"><header className="flex flex-wrap items-end justify-between gap-4 border-b border-[hsl(var(--dashboard-line))] py-6"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-[hsl(var(--dashboard-purple))]">{t('catalog.eyebrow')}</p><h1 className="mt-2 text-2xl font-semibold text-[hsl(var(--dashboard-text))]">{t('catalog.title')}</h1><p className="mt-1 text-sm text-[hsl(var(--dashboard-muted))]">{t('catalog.subtitle')}</p></div><label className="dashboard-search flex w-full max-w-xs items-center gap-2 rounded-field px-3 py-2"><Search className="size-4 text-[hsl(var(--dashboard-muted))]" /><span className="sr-only">{t('catalog.search')}</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t('catalog.search')} className="min-w-0 flex-1 bg-transparent text-sm outline-none" /></label></header><nav className="flex gap-2 overflow-x-auto py-4" aria-label={t('catalog.filters')}>{categories.map((item) => <button key={item} type="button" onClick={() => setCategory(item)} className={`rounded-button border px-3 py-1.5 text-xs transition-colors ${category === item ? 'border-[hsl(var(--dashboard-purple))] bg-[hsl(var(--dashboard-purple))] text-white' : 'border-[hsl(var(--dashboard-line))] text-[hsl(var(--dashboard-muted))] hover:border-[hsl(var(--dashboard-purple))]'}`}>{item === 'all' ? t('catalog.all') : t(`equipment.category.${item}`)}</button>)}</nav>{query.isPending ? <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{Array.from({ length: 6 }, (_, index) => <Skeleton key={index} className="h-40 rounded-card" />)}</div> : query.isError ? <ErrorState message={errorMessage(t, query.error)} onRetry={() => void query.refetch()} /> : query.data.data.length === 0 ? <EmptyState icon={<Cpu />} title={t('catalog.empty')} description={t('catalog.emptyHint')} /> : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{query.data.data.map((equipment) => <EquipmentCard key={equipment.id} equipment={equipment} />)}</div>}</div>;
+}
+
+function EquipmentCard({ equipment }: { equipment: Awaited<ReturnType<typeof catalogApi.equipment>>['data'][number] }) {
+  const { t } = useTranslation();
+  return <article className="dashboard-summary-card rounded-card border border-[hsl(var(--dashboard-line))] p-4"><div className="flex items-start justify-between gap-3"><div className="flex min-w-0 items-center gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-card bg-[hsl(var(--dashboard-blue)/.14)] text-[hsl(var(--dashboard-blue))]"><Cpu className="size-5" /></span><div className="min-w-0"><h2 className="truncate font-semibold text-[hsl(var(--dashboard-text))]">{equipment.name}</h2><p className="truncate text-xs text-[hsl(var(--dashboard-muted))]">{equipment.brand.manufacturer.name} · {equipment.brand.name}</p></div></div><Badge tone="neutral">{t(`equipment.category.${equipment.category.code}`)}</Badge></div><p className="mt-4 font-mono text-xs text-[hsl(var(--dashboard-muted))]">{equipment.reference}</p><div className="mt-3 grid grid-cols-2 gap-2 border-t border-[hsl(var(--dashboard-line))] pt-3 text-xs text-[hsl(var(--dashboard-muted))]"><span>{t('catalog.ports')}: <strong className="text-[hsl(var(--dashboard-text))]">{equipment.portCount ?? '-'}</strong></span><span>{t('catalog.throughput')}: <strong className="text-[hsl(var(--dashboard-text))]">{equipment.throughputMbps ? `${equipment.throughputMbps} Mbps` : '-'}</strong></span><span>{t('catalog.power')}: <strong className="text-[hsl(var(--dashboard-text))]">{equipment.powerDrawW ? `${equipment.powerDrawW} W` : '-'}</strong></span><span>{equipment.isDemoData ? t('catalog.demo') : equipment.availability ?? '-'}</span></div></article>;
+}

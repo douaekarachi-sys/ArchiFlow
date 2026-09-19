@@ -4,7 +4,7 @@ import {
   canTransition,
   type AuthContext,
   type CreateAssignmentInput,
-  type CreateProjectInput,
+  type CreateRequestInput,
   type ProjectStatus,
   type Role,
   type TransitionRefusal,
@@ -89,15 +89,21 @@ export class ProjectsService {
   async get(ctx: AuthContext, projectId: string) {
     const project = await this.prisma.tenant.project.findFirst({
       where: { AND: [{ id: projectId }, this.scope(ctx)] },
-      select: { ...PROJECT_SUMMARY, assignments: { select: ASSIGNMENT_VIEW } },
+      select: {
+        ...PROJECT_SUMMARY,
+        assignments: { select: ASSIGNMENT_VIEW },
+        request: { include: { buildings: true, departments: true } },
+      },
     });
     if (!project) throw notFound('Projet');
     return project;
   }
 
-  async create(ctx: AuthContext, input: CreateProjectInput) {
+  async create(ctx: AuthContext, input: CreateRequestInput) {
+    const clientCompanyId = input.clientCompanyId ?? ctx.clientCompanyId;
+    if (!clientCompanyId) throw new AppError('UNPROCESSABLE', 'Une société cliente est obligatoire');
     const company = await this.prisma.tenant.clientCompany.findFirst({
-      where: { id: input.clientCompanyId, organizationId: ctx.organizationId, deletedAt: null },
+      where: { id: clientCompanyId, organizationId: ctx.organizationId, deletedAt: null },
       select: { id: true },
     });
     if (!company) throw notFound('Société cliente');
@@ -112,6 +118,55 @@ export class ProjectsService {
           createdById: ctx.userId,
         },
         select: PROJECT_SUMMARY,
+      });
+      await tx.projectRequest.create({
+        data: {
+          organizationId: ctx.organizationId,
+          projectId: project.id,
+          location: input.location,
+          projectType: input.projectType,
+          siteCount: input.siteCount,
+          totalEmployees: input.totalEmployees,
+          workstationCount: input.workstationCount,
+          concurrentUsers: input.concurrentUsers,
+          serverCount: input.serverCount,
+          serverPhysical: input.serverPhysical,
+          serverVirtual: input.serverVirtual,
+          storageNeed: input.storageNeed,
+          backupNeed: input.backupNeed,
+          virtualization: input.virtualization,
+          highAvailability: input.highAvailability,
+          serverNotes: input.serverNotes,
+          wifi: input.wifi,
+          wifiApCount: input.wifiApCount,
+          voip: input.voip,
+          cctv: input.cctv,
+          printers: input.printers,
+          iot: input.iot,
+          internetAccess: input.internetAccess,
+          vpn: input.vpn,
+          remoteSites: input.remoteSites,
+          dmz: input.dmz,
+          lan: input.lan,
+          wan: input.wan,
+          networkNotes: input.networkNotes,
+          firewall: input.firewall,
+          idsIps: input.idsIps,
+          segmentation: input.segmentation,
+          vlan: input.vlan,
+          accessControl: input.accessControl,
+          haSecurity: input.haSecurity,
+          securityNotes: input.securityNotes,
+          vendors: input.vendors,
+          vendorNotes: input.vendorNotes,
+          freeTextNeed: input.freeTextNeed,
+          buildings: {
+            create: input.buildings.map((building, sortOrder) => ({ ...building, sortOrder, organizationId: ctx.organizationId })),
+          },
+          departments: {
+            create: input.departments.map((department, sortOrder) => ({ ...department, sortOrder, organizationId: ctx.organizationId })),
+          },
+        },
       });
       // Un chef de projet qui crée un projet en devient le responsable, sans quoi il ne le verrait pas.
       if (requiresAssignmentAs(ctx.role)) {

@@ -199,6 +199,8 @@ model Project {
   assignments   ProjectAssignment[]
   history       ProjectStatusHistory[]
   architecture  Architecture?
+  request       ProjectRequest?
+  comments      ProjectComment[]
 
   @@index([organizationId, status])
   @@index([clientCompanyId, status])
@@ -237,6 +239,109 @@ model ProjectStatusHistory {
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId, createdAt(sort: Desc)])
+}
+
+// ---------------------------------------------------------------------------
+// Expression du besoin (Phase 2 / EF-507) — langage client, pas catalogue
+// ---------------------------------------------------------------------------
+
+model ProjectRequest {
+  id               String    @id @default(uuid()) @db.Uuid
+  organizationId   String    @db.Uuid
+  projectId        String    @unique @db.Uuid
+  location         String?
+  projectType      String?
+  siteCount        Int?
+  totalEmployees   Int?
+  workstationCount Int?
+  concurrentUsers  Int?
+  serverCount      Int?
+  serverPhysical   Boolean?
+  serverVirtual    Boolean?
+  storageNeed      String?
+  backupNeed       String?
+  virtualization   String?
+  highAvailability Boolean?
+  serverNotes      String?
+  wifi             Boolean?
+  wifiApCount      Int?
+  voip             Boolean?
+  cctv             Boolean?
+  printers         Boolean?
+  iot              Boolean?
+  internetAccess   Boolean?
+  vpn              Boolean?
+  remoteSites      Boolean?
+  dmz              Boolean?
+  lan              Boolean?
+  wan              Boolean?
+  networkNotes     String?
+  firewall         Boolean?
+  idsIps           Boolean?
+  segmentation     Boolean?
+  vlan             Boolean?
+  accessControl    Boolean?
+  haSecurity       Boolean?
+  securityNotes    String?
+  vendors          String[]
+  vendorNotes      String?
+  freeTextNeed     String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  project      Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  buildings    RequestBuilding[]
+  departments  RequestDepartment[]
+
+  @@index([organizationId])
+}
+
+model RequestBuilding {
+  id             String  @id @default(uuid()) @db.Uuid
+  organizationId String  @db.Uuid
+  requestId      String  @db.Uuid
+  sortOrder      Int     @default(0)
+  name           String
+  areaM2         Float?
+  floors         Int?
+  description    String?
+
+  request ProjectRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId])
+  @@index([organizationId])
+}
+
+model RequestDepartment {
+  id             String  @id @default(uuid()) @db.Uuid
+  organizationId String  @db.Uuid
+  requestId      String  @db.Uuid
+  sortOrder      Int     @default(0)
+  name           String
+  employees      Int?
+  workstations   Int?
+  location       String?
+  notes          String?
+
+  request ProjectRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId])
+  @@index([organizationId])
+}
+
+/// Commentaire de projet (Phase 2). Les annotations positionnées sur le canvas arrivent en Phase 10.
+model ProjectComment {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  projectId      String   @db.Uuid
+  authorId       String   @db.Uuid
+  body           String
+  createdAt      DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([organizationId])
 }
 
 // ---------------------------------------------------------------------------

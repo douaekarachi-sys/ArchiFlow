@@ -2,11 +2,11 @@ import { Body, Controller, Delete, Get, HttpCode, Param, Post, Query } from '@ne
 import {
   PROJECT_STATUSES,
   createAssignmentSchema,
-  createProjectSchema,
+  createRequestSchema,
   transitionRequestSchema,
   type AuthContext,
   type CreateAssignmentInput,
-  type CreateProjectInput,
+  type CreateRequestInput,
   type TransitionRequestInput,
 } from '@archiflow/shared';
 import { z } from 'zod';
@@ -34,7 +34,7 @@ export class ProjectsController {
 
   @Post()
   @RequirePermission('project.create')
-  create(@CurrentUser() ctx: AuthContext, @Body(zod(createProjectSchema)) input: CreateProjectInput) {
+  create(@CurrentUser() ctx: AuthContext, @Body(zod(createRequestSchema)) input: CreateRequestInput) {
     return this.projects.create(ctx, input);
   }
 
