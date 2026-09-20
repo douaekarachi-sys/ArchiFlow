@@ -41,6 +41,17 @@ const ACCOUNTS: { role: Role; email: string; firstName: string; lastName: string
   { role: 'CLIENT', email: 'client@archiflow.local', firstName: 'Omar', lastName: 'El Fassi' },
 ];
 
+/**
+ * Deux sociétés clientes supplémentaires (en plus de « Groupe Atlas Services », propriétaire du
+ * scénario complet ci-dessous) : la démonstration doit prouver l'isolation entre sociétés
+ * clientes d'un même locataire (D-09) à l'écran, pas seulement dans les tests. Chacune a son
+ * propre compte CLIENT et ses propres projets — jamais partagés avec « Groupe Atlas Services ».
+ */
+const OTHER_CLIENT_ACCOUNTS: { email: string; firstName: string; lastName: string; jobTitle: string }[] = [
+  { email: 'client2@archiflow.local', firstName: 'Sanae', lastName: 'Belmokhtar', jobTitle: 'Responsable infrastructure' },
+  { email: 'client3@archiflow.local', firstName: 'Hicham', lastName: 'Ouazzani', jobTitle: 'Directeur technique' },
+];
+
 /** Chemin nominal, suivi pour donner à chaque projet un historique cohérent. */
 const HAPPY_PATH: ProjectStatus[] = [
   'DRAFT',
@@ -207,8 +218,11 @@ async function main(): Promise<void> {
   const rabat = await prisma.clientCompany.create({
     data: { organizationId: org.id, name: 'Groupe Atlas Services', city: 'Rabat', country: 'MA' },
   });
-  await prisma.clientCompany.create({
+  const casablanca = await prisma.clientCompany.create({
     data: { organizationId: org.id, name: 'Maghreb Logistique', city: 'Casablanca', country: 'MA' },
+  });
+  const tanger = await prisma.clientCompany.create({
+    data: { organizationId: org.id, name: 'Atlas Négoce', city: 'Tanger', country: 'MA' },
   });
 
   let modelCount = 0;
@@ -264,51 +278,131 @@ async function main(): Promise<void> {
   });
 
   const day = 86_400_000;
-  for (const [index, status] of PROJECT_STATUSES.entries()) {
-    const steps = pathTo(status);
-    const start = Date.now() - (steps.length + 2) * day;
-    const project = await prisma.project.create({
-      data: {
-        organizationId: org.id,
-        clientCompanyId: rabat.id,
-        name: PROJECT_NAMES[status],
-        description: 'Projet de démonstration (DEMO DATA).',
-        status,
-        createdById: users.CLIENT,
-        createdAt: new Date(start - index * 1000),
-      },
-    });
-    // Équipe affectée dès que le projet a franchi l'étape d'affectation.
-    if (steps.includes('ASSIGNED')) {
-      for (const role of ['PROJECT_MANAGER', 'ENGINEER', 'ARCHITECT', 'SALES'] as const) {
-        await prisma.projectAssignment.create({
-          data: { organizationId: org.id, projectId: project.id, userId: users[role], role, assignedById: users.ADMIN },
+
+  /**
+   * Crée les projets d'une société cliente, avec un historique de transitions plausible.
+   * `clientUserId` remplace `users.CLIENT` pour les transitions dont l'acteur est le client
+   * (soumission, approbation…) : chaque société avance SES projets avec SON compte, jamais
+   * celui d'une autre — c'est justement ce que la démonstration doit rendre visible à l'écran.
+   */
+  async function seedCompanyProjects(
+    clientCompanyId: string,
+    clientUserId: string,
+    projects: { status: ProjectStatus; name: string }[],
+    dateOffsetDays: number,
+  ): Promise<void> {
+    const actorUsers = { ...users, CLIENT: clientUserId };
+    for (const [index, { status, name }] of projects.entries()) {
+      const steps = pathTo(status);
+      const start = Date.now() - (steps.length + 2 + dateOffsetDays) * day;
+      const project = await prisma.project.create({
+        data: {
+          organizationId: org.id,
+          clientCompanyId,
+          name,
+          description: 'Projet de démonstration (DEMO DATA).',
+          status,
+          createdById: clientUserId,
+          createdAt: new Date(start - index * 1000),
+        },
+      });
+      // Équipe affectée dès que le projet a franchi l'étape d'affectation.
+      if (steps.includes('ASSIGNED')) {
+        for (const role of ['PROJECT_MANAGER', 'ENGINEER', 'ARCHITECT', 'SALES'] as const) {
+          await prisma.projectAssignment.create({
+            data: { organizationId: org.id, projectId: project.id, userId: users[role], role, assignedById: users.ADMIN },
+          });
+        }
+      }
+      for (let i = 1; i < steps.length; i++) {
+        const from = steps[i - 1] as ProjectStatus;
+        const to = steps[i] as ProjectStatus;
+        const actor = actorFor(from, to, actorUsers);
+        await prisma.projectStatusHistory.create({
+          data: {
+            organizationId: org.id,
+            projectId: project.id,
+            fromStatus: from,
+            toStatus: to,
+            actorId: actor.id,
+            reason: actor.reverse ? 'Le client demande une redondance du lien Internet (démonstration).' : null,
+            createdAt: new Date(start + i * day),
+          },
         });
       }
     }
-    for (let i = 1; i < steps.length; i++) {
-      const from = steps[i - 1] as ProjectStatus;
-      const to = steps[i] as ProjectStatus;
-      const actor = actorFor(from, to, users);
-      await prisma.projectStatusHistory.create({
-        data: {
-          organizationId: org.id,
-          projectId: project.id,
-          fromStatus: from,
-          toStatus: to,
-          actorId: actor.id,
-          reason: actor.reverse ? 'Le client demande une redondance du lien Internet (démonstration).' : null,
-          createdAt: new Date(start + i * day),
-        },
-      });
-    }
   }
+
+  // Société 1 — scénario complet : un projet par statut du workflow (chemin nominal + détours).
+  await seedCompanyProjects(
+    rabat.id,
+    users.CLIENT,
+    PROJECT_STATUSES.map((status) => ({ status, name: PROJECT_NAMES[status] })),
+    0,
+  );
+
+  // Sociétés 2 et 3 — chacune avec son propre compte CLIENT et ses propres projets, JAMAIS ceux
+  // de « Groupe Atlas Services » : c'est ce qui rend l'isolation entre sociétés clientes visible
+  // à l'écran (D-09), pas seulement prouvée par les tests d'intégration.
+  const [client2, client3] = OTHER_CLIENT_ACCOUNTS;
+  const clientUserId2 = await prisma.user
+    .create({
+      data: {
+        organizationId: org.id,
+        clientCompanyId: casablanca.id,
+        email: client2!.email,
+        firstName: client2!.firstName,
+        lastName: client2!.lastName,
+        passwordHash,
+        role: 'CLIENT',
+      },
+    })
+    .then((u) => u.id);
+  await prisma.clientProfile.create({ data: { userId: clientUserId2, jobTitle: client2!.jobTitle } });
+  await seedCompanyProjects(
+    casablanca.id,
+    clientUserId2,
+    [
+      { status: 'SUBMITTED', name: 'Entrepôt Nouaceur' },
+      { status: 'ENGINEERING', name: 'Plateforme Zenata' },
+    ],
+    1,
+  );
+
+  const clientUserId3 = await prisma.user
+    .create({
+      data: {
+        organizationId: org.id,
+        clientCompanyId: tanger.id,
+        email: client3!.email,
+        firstName: client3!.firstName,
+        lastName: client3!.lastName,
+        passwordHash,
+        role: 'CLIENT',
+      },
+    })
+    .then((u) => u.id);
+  await prisma.clientProfile.create({ data: { userId: clientUserId3, jobTitle: client3!.jobTitle } });
+  await seedCompanyProjects(
+    tanger.id,
+    clientUserId3,
+    [
+      { status: 'DRAFT', name: 'Boutique Tanger Med' },
+      { status: 'CLIENT_REVIEW', name: 'Show-room Tétouan' },
+    ],
+    2,
+  );
 
   console.log('Seed terminé.');
   console.log(`  Organisation : ${org.name}`);
   console.log(`  Comptes (mot de passe « ${DEMO_PASSWORD} ») :`);
-  for (const a of ACCOUNTS) console.log(`    ${a.role.padEnd(16)} ${a.email}`);
-  console.log(`  Projets : ${PROJECT_STATUSES.length}, un par statut du workflow.`);
+  for (const a of ACCOUNTS) console.log(`    ${a.role.padEnd(16)} ${a.email}  (${rabat.name})`);
+  console.log(`    CLIENT           ${client2!.email}  (${casablanca.name})`);
+  console.log(`    CLIENT           ${client3!.email}  (${tanger.name})`);
+  console.log(
+    `  Projets : ${PROJECT_STATUSES.length + 4} — ${PROJECT_STATUSES.length} pour ${rabat.name} (un par statut du workflow), 2 pour ${casablanca.name}, 2 pour ${tanger.name}.`,
+  );
+  console.log(`  Sociétés clientes : ${rabat.name}, ${casablanca.name}, ${tanger.name} — chacune isolée (D-09).`);
   console.log(`  Catalogue : ${CATALOG.length} fabricants, ${modelCount} modèles (DEMO DATA).`);
 }
 

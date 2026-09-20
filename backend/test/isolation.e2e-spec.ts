@@ -179,6 +179,20 @@ describe('suite 2 — entre sociétés clientes d’un même locataire', () => {
     expect(res.body.data.map((p: { id: string }) => p.id)).toEqual([w.projectA2]);
   });
 
+  it('même avec de nombreux projets dans une autre société du même locataire, aucun ne fuite', async () => {
+    // Reproduit le symptôme observé : une société cliente très active (13 projets, comme le
+    // seed de démonstration) ne doit jamais apparaître dans la liste d'une autre société, même
+    // du même locataire. Un filtre `clientCompanyId` absent ou mal appliqué se verrait ici.
+    for (let i = 0; i < 13; i++) {
+      await t.prisma.system.project.create({
+        data: { organizationId: w.orgA, clientCompanyId: w.companyA1, name: `Projet A1 supplémentaire #${i}`, status: 'DRAFT', createdById: w.users.adminA.id },
+      });
+    }
+    const res = await server().get(`${API}/projects`).set(clientA2.auth);
+    expect(res.body.total).toBe(1);
+    expect(res.body.data.map((p: { id: string }) => p.id)).toEqual([w.projectA2]);
+  });
+
   it('un CLIENT ne consulte ni les utilisateurs, ni les sociétés, ni l’audit', async () => {
     for (const path of ['/users', '/client-companies', '/audit-logs']) {
       expect((await server().get(API + path).set(clientA2.auth)).status, path).toBe(403);

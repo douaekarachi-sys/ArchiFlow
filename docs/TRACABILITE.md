@@ -189,6 +189,16 @@ Statut :
 | ENF-04 | Disponibilité | Taux de disponibilité cible de 99,5 % ; sauvegardes régulières et plan de reprise d'activité. | 🔨 Phases 1 et 14 — sauvegarde chiffrée, rotation GFS, restauration vérifiée le 18/09/2026, supervision /health ; test chronométré en conditions réelles en Phase 14 | `backend/scripts/`, `docs/RUNBOOK-RESTAURATION.md` |
 | ENF-05 | Compatibilité | Support des navigateurs récents (Chrome, Firefox, Edge, Safari) ; usage bureautique prioritaire, tablette en option. | 🔨 Phases 1 et 14 — vérifié sur Edge (bureau et mobile) ; Chrome, Firefox, Safari en Phase 14 | — |
 | ENF-06 | Évolutivité | Architecture modulaire permettant la montée en charge et l'ajout de nouveaux modules ; mode multi-organisations. | 🔨 Phase 1 — multi-organisations livré et testé (deux suites d’isolation, filet Prisma) ; montée en charge mesurée en Phase 14 | `backend/src/core/prisma/org-scope.ts` — tests `isolation.e2e-spec.ts` |
+>
+> **Alerte levée et refermée (20/09/2026).** Connecté en `client@archiflow.local`, 13 projets
+> d'autres sociétés semblaient visibles. Cause réelle : le **seed** de démonstration, pas le
+> filtre serveur — tous les projets démo étaient rattachés à la même société cliente
+> (« Groupe Atlas Services »), la seconde société créée restait vide. Le filtre
+> `clientCompanyId` (`ProjectsService.scope`) était déjà correct et déjà couvert par
+> `isolation.e2e-spec.ts` (« sa liste ne contient que les projets de sa société »). Corrections :
+> seed peuplant **trois** sociétés clientes distinctes avec comptes CLIENT et projets séparés
+> (`backend/prisma/seed/index.ts`), et test renforcé reproduisant le symptôme observé (13 projets
+> supplémentaires dans une autre société, toujours 0 fuite).
 | ENF-07 | Traçabilité | Journalisation des actions (audit) et historisation des versions de projet. | 🔨 Phases 1 et 10 — journal d’audit et historique des statuts livrés et testés ; historisation des versions d’architecture en Phase 10 | `backend/src/modules/audit/`, `ProjectStatusHistory` |
 
 ---
