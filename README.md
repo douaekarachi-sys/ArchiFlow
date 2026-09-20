@@ -13,7 +13,7 @@ Prisma 7, PostgreSQL 16), `frontend` (React 19, Vite 7, Tailwind 4). Architectur
 Prérequis : Node ≥ 22.12 (`.nvmrc`), PostgreSQL 16 (Docker, instance locale ou hébergée).
 
 ```bash
-npm install
+npm install                     # génère aussi le client Prisma (postinstall backend)
 cp .env.example .env            # puis renseigner les secrets (voir les commentaires)
 npm run build --workspace=@archiflow/shared
 
@@ -31,6 +31,11 @@ npm run dev:web                 # http://localhost:5173
 Comptes de démonstration (mot de passe affiché par le seed, `Demo-ArchiFlow-2026` par
 défaut) : `admin@`, `pm@`, `engineer@`, `architect@`, `sales@`, `client@archiflow.local`.
 Il n'y a pas d'inscription publique : l'administrateur crée les comptes (ADR 0010).
+
+Le client Prisma (`backend/src/generated/prisma`) est généré automatiquement par le script
+`postinstall` de `backend/package.json` — sur un clone neuf, `npm install` suffit, pas besoin de
+lancer `prisma generate` à la main. Si le dossier venait à manquer (ex. `node_modules` réinstallé
+sans passer par `npm install` à la racine) : `npm run db:generate --workspace=@archiflow/backend`.
 
 ## Vérifier
 

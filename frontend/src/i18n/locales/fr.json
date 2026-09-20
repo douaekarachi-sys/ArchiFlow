@@ -275,7 +275,22 @@
       "forbidden": "Un compte interne ne se rattache pas à une société cliente"
     },
     "country": { "length": "Code pays sur deux lettres" },
-    "reason": { "required": "Indiquez le motif du retour en arrière" }
+    "reason": { "required": "Indiquez le motif du retour en arrière" },
+    "capacity": {
+      "unsizedModel": "Modèle non renseigné : le calcul de capacité est ignoré pour cet élément.",
+      "portOverflow": "{{used}} connexions pour {{capacity}} ports disponibles : capacité dépassée.",
+      "poeBudgetExceeded": "Consommation PoE estimée à {{draw}} W pour un budget de {{budget}} W : budget dépassé."
+    },
+    "compatibility": {
+      "portTypeMismatch": "Liaison fibre raccordée à un port {{portType}}, qui ne supporte pas la fibre.",
+      "wirelessCategoryMismatch": "Liaison sans fil entre deux équipements qui ne sont ni point d'accès, ni contrôleur Wi-Fi, ni poste client.",
+      "throughputMismatch": "Débit du lien ({{linkSpeed}} Mb/s) supérieur au débit supporté par l'équipement ({{supported}} Mb/s)."
+    },
+    "anomaly": {
+      "isolatedElement": "Élément sans aucune connexion dans le plan.",
+      "loopDetected": "Boucle détectée : ces liens forment un cycle dans le réseau.",
+      "singlePointOfFailure": "Point de défaillance unique : sa perte isolerait une partie du réseau, faute de chemin redondant."
+    }
   },
   "errors": {
     "INVALID_CREDENTIALS": "Identifiants incorrects",
@@ -514,21 +529,8 @@
       "compatible": "Compatible",
       "incompatible": "Incompatible",
       "unknown": "Élément non identifié",
-      "capacity": {
-        "unsizedModel": "Modèle non renseigné",
-        "portOverflow": "Dépassement de capacité des ports",
-        "poeBudgetExceeded": "Budget PoE dépassé"
-      },
-      "compatibility": {
-        "portTypeMismatch": "Type de port incompatible avec le lien",
-        "wirelessCategoryMismatch": "Lien sans fil hors catégorie réseau",
-        "throughputMismatch": "Débit du lien supérieur à la capacité supportée"
-      },
-      "anomaly": {
-        "isolatedElement": "Élément isolé sans connexion",
-        "loopDetected": "Boucle détectée dans le graphe",
-        "singlePointOfFailure": "Point de défaillance unique"
-      }
+      "more_one": "{{count}} autre anomalie non affichée",
+      "more_other": "{{count}} autres anomalies non affichées"
     }
   }
 }

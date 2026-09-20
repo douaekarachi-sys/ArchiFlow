@@ -4,6 +4,7 @@
   "private": true,
   "description": "API ArchiFlow — NestJS + Prisma",
   "scripts": {
+    "postinstall": "prisma generate",
     "build": "prisma generate && nest build",
     "typecheck": "prisma generate && tsc -p tsconfig.check.json",
     "start": "node dist/main.js",

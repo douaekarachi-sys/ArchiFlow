@@ -116,6 +116,10 @@ function ValidationPanel({
     },
     { CRITICAL: 0, WARNING: 0, INFO: 0 } as Record<AnomalySeverity, number>,
   );
+  // Triées par sévérité : une CRITICAL ne doit jamais rester masquée derrière des WARNING/INFO plus nombreuses.
+  const sorted = [...anomalies].sort((a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity));
+  const visible = sorted.slice(0, 5);
+  const hiddenCount = sorted.length - visible.length;
 
   return (
     <div className={cn('border-t border-line bg-surface px-4 py-3', className)}>
@@ -141,7 +145,7 @@ function ValidationPanel({
       </div>
 
       <ul className="mt-3 space-y-2">
-        {anomalies.slice(0, 5).map((anomaly) => (
+        {visible.map((anomaly) => (
           <li
             key={`${anomaly.code}-${anomaly.elementIds.join('-')}-${anomaly.connectionIds.join('-')}`}
             className="flex gap-2 rounded-md border border-line bg-inset px-2.5 py-2"
@@ -151,7 +155,7 @@ function ValidationPanel({
               aria-hidden="true"
             />
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium text-fg">{t(`designer.validation.${anomaly.code.replace('validation.', '')}`, anomaly.params ?? {})}</p>
+              <p className="text-xs font-medium text-fg">{t(anomaly.code, anomaly.params ?? {})}</p>
               <p className="mt-0.5 text-[11px] text-fg-muted">
                 {anomaly.severity} ·{' '}
                 {anomaly.elementIds.length > 0 ? anomaly.elementIds.join(', ') : anomaly.connectionIds.join(', ') || t('designer.validation.unknown')}
@@ -160,6 +164,9 @@ function ValidationPanel({
           </li>
         ))}
       </ul>
+      {hiddenCount > 0 && (
+        <p className="mt-2 text-[11px] text-fg-muted">{t('designer.validation.more', { count: hiddenCount })}</p>
+      )}
     </div>
   );
 }

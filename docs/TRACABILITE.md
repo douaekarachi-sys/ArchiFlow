@@ -1,6 +1,6 @@
 # Traçabilité au cahier des charges
 
-**Statut : version 7 — demande client structurée, tranche Phase 2 (18/09/2026).** Colonne *Lot* : ADR 0009.
+**Statut : version 8 — moteurs de capacité/compatibilité/anomalies, tranche T4 (20/09/2026).** Colonne *Lot* : ADR 0009.
 
 Les libellés de la colonne *Exigence* sont repris **mot pour mot** du cahier des charges
 (tableaux 3.1 à 3.5 et 5). Ils ne doivent pas être reformulés lors des mises à jour.
@@ -95,15 +95,28 @@ Statut :
 | Réf. | Exigence | Priorité | Lot | Statut | Où c'est implémenté |
 |---|---|---|---|---|---|
 | EF-201 | Catalogue de composants référençant des marques et modèles réels (fabricant, référence, caractéristiques techniques). | Élevée | MVP | ✅ T1 — lecture (liste paginée, recherche, filtre par catégorie, portée locataire) et écriture (fabricant/marque idempotents, modèle, modification) testées ; seed 6 fabricants réels, 22 modèles DEMO DATA | `backend/src/modules/catalog/`, `frontend/src/features/admin/catalog-page.tsx` — tests `backend/test/catalog.e2e-spec.ts` |
-| EF-202 | Calcul automatique de capacité : bande passante, nombre de ports, puissance électrique, charge estimée. | Élevée | V1 ⚠ | 🕓 Phase 4 | — |
-| EF-203 | Vérification automatique de compatibilité entre équipements (interfaces, protocoles, versions). | Élevée | V1 ⚠ | 🕓 Phase 7 | — |
-| EF-204 | Détection des anomalies de conception : boucles, sous-dimensionnement, points uniques de défaillance (SPOF). | Moyenne | V2 ⚠ | 🕓 Phase 7 | — |
+| EF-202 | Calcul automatique de capacité : bande passante, nombre de ports, puissance électrique, charge estimée. | Élevée | V1 ⚠ | ✅ T4 | `packages/shared/src/architecture/validation.ts` (`checkCapacity`) — ports disponibles vs utilisés, budget PoE vs consommation des équipements reliés, modèle non renseigné ; branché en direct dans le designer |
+| EF-203 | Vérification automatique de compatibilité entre équipements (interfaces, protocoles, versions). | Élevée | V1 ⚠ | ✅ T4 | `packages/shared/src/architecture/validation.ts` (`checkCompatibility`) — type de port vs type de lien (fibre), catégorie vs lien sans fil, débit du lien vs débit supporté |
+| EF-204 | Détection des anomalies de conception : boucles, sous-dimensionnement, points uniques de défaillance (SPOF). | Moyenne | V2 ⚠ | 🔨 T4 | `packages/shared/src/architecture/validation.ts` (`checkGraphAnomalies`) — boucles (DFS), SPOF (points d'articulation, Tarjan), éléments isolés ; sous-dimensionnement couvert par EF-202. Anomalies physiques (Phase 6, racks/étages) hors périmètre : pas encore de construction physique |
 | EF-205 | Génération de diagrammes détaillés : schéma logique, schéma physique, plan d'adressage. | Élevée | MVP (§3) | 🕓 Phases 5, 6 et 8 | — |
 | EF-206 | Bibliothèque de modèles d'architectures types (PME, datacenter, multi-sites) réutilisables. | Moyenne | V2 ⚠ | 🕓 Post-Phase 10 | — |
 | EF-207 | Attribution et gestion du plan d'adressage IP (sous-réseaux, VLAN). | Moyenne | V1 (§3) | 🕓 Phase 8 | — |
 
 > **EF-205** couvre à lui seul les trois vues du designer, en priorité **Élevée** et donc en
 > lot MVP. Il s'étale sur trois phases et ne peut être clos avant la fin de la Phase 8.
+>
+> **T4 — validation locale (second volet de l'ADR 0003).** Fonctions pures testées (19 tests,
+> `validation.spec.ts`) : `checkCapacity` (EF-202), `checkCompatibility` (EF-203),
+> `checkGraphAnomalies` (EF-204), combinées par `validateArchitecture`. Branchées en direct dans
+> `DesignerCanvas` (recalcul à chaque changement du document, `EquipmentIndex` construit depuis
+> le catalogue déjà chargé pour la palette) : aucun aller-retour réseau, conforme à ENF-01.
+> Panneau d'anomalies (`ValidationPanel`) : compteurs CRITICAL/WARNING/INFO, tri par sévérité
+> (une CRITICAL ne reste jamais masquée derrière des WARNING/INFO plus nombreuses), explication
+> en français avec les chiffres concrets (ex. « 2 connexions pour 1 ports disponibles »),
+> élément ou connexion concernée. **Écart assumé à ce stade** : la revalidation **côté serveur**
+> à la sauvegarde (deuxième moitié de l'ADR 0003 — « une sauvegarde peut être refusée même si
+> l'interface affichait compatible ») n'est pas encore câblée sur `PUT /projects/:id/architecture` ;
+> `validateArchitecture` n'y est pas encore appelée. À faire avant de clore l'ADR 0003.
 
 ---
 

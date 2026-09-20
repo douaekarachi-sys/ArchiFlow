@@ -132,4 +132,54 @@ describe('DesignerPage', () => {
     expect((await screen.findAllByText('DMZ')).length).toBeGreaterThan(0);
     expect(screen.getAllByLabelText('DMZ').length).toBeGreaterThan(0);
   });
+
+  it('valide la capacité en direct (EF-202) et affiche une anomalie CRITICAL avec les chiffres concrets', async () => {
+    setArchitectSession();
+    vi.mocked(catalogApi.equipment).mockResolvedValue({
+      data: [
+        {
+          id: 'model-sw',
+          name: 'Switch 1 port',
+          reference: 'SW-1',
+          description: null,
+          portCount: 1,
+          portType: 'RJ45',
+          throughputMbps: 1000,
+          poeBudgetW: null,
+          powerDrawW: null,
+          rackUnits: null,
+          indicativePrice: null,
+          currency: null,
+          licenseInfo: null,
+          availability: null,
+          imageUrl: null,
+          isDemoData: true,
+          archivedAt: null,
+          brand: { id: 'b1', name: 'Marque', manufacturer: { id: 'm1', name: 'Fabricant' } },
+          category: { id: 'c1', code: 'switch', labelKey: 'equipment.category.switch' },
+        },
+      ],
+      total: 1,
+      page: 1,
+      pageSize: 500,
+    });
+    vi.mocked(architectureApi.get).mockResolvedValue({
+      elements: [
+        { id: 'sw', type: 'switch', equipmentModelId: 'model-sw', label: 'Switch', position: { x: 0, y: 0 }, config: {} },
+        { id: 'a', type: 'server', equipmentModelId: null, label: 'Serveur A', position: { x: 100, y: 0 }, config: {} },
+        { id: 'b', type: 'server', equipmentModelId: null, label: 'Serveur B', position: { x: 200, y: 0 }, config: {} },
+      ],
+      connections: [
+        { id: 'l1', from: 'sw', to: 'a', linkType: 'copper' },
+        { id: 'l2', from: 'sw', to: 'b', linkType: 'copper' },
+      ],
+      zones: [],
+    });
+
+    renderDesigner();
+
+    expect(await screen.findByText('Incompatible')).toBeInTheDocument();
+    expect(screen.getByText('CRITICAL 1')).toBeInTheDocument();
+    expect(screen.getByText('2 connexions pour 1 ports disponibles : capacité dépassée.')).toBeInTheDocument();
+  });
 });
