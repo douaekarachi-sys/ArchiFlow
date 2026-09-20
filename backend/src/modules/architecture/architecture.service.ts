@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { EMPTY_DOCUMENT, type ArchitectureDocument, type AuthContext } from '@archiflow/shared';
-import { notFound } from '../../common/errors/app-error';
+import { EMPTY_DOCUMENT, validateArchitecture, type ArchitectureDocument, type AuthContext, type EquipmentIndex } from '@archiflow/shared';
+import { AppError, notFound } from '../../common/errors/app-error';
 import { PrismaService } from '../../core/prisma/prisma.service';
 import { Prisma } from '../../generated/prisma/client';
 import { AuditService } from '../audit/audit.service';
@@ -78,17 +78,38 @@ export class ArchitectureService {
    * Remplacement intégral du document (ADR 0003 : le client valide en local, une seule
    * sauvegarde traverse le réseau). Pas de diff granulaire — l'architecture d'un projet reste de
    * taille modeste, et la co-édition temps réel (EF-404) est explicitement hors périmètre V1.
+   *
+   * Second volet de l'ADR 0003 : le serveur REVALIDE et FAIT AUTORITÉ. L'interface peut avoir
+   * affiché « compatible » avec un catalogue devenu obsolète (modèle modifié ou archivé depuis
+   * le chargement de la page, édition concurrente) — la sauvegarde est refusée dans ce cas, elle
+   * ne l'enregistre jamais silencieusement.
    */
   async save(ctx: AuthContext, projectId: string, input: ArchitectureDocument): Promise<ArchitectureDocument> {
     await this.projects.get(ctx, projectId);
 
     const modelIds = [...new Set(input.elements.map((e) => e.equipmentModelId).filter((id): id is string => id != null))];
+    const index: EquipmentIndex = {};
     if (modelIds.length > 0) {
       const found = await this.prisma.tenant.equipmentModel.findMany({
         where: { id: { in: modelIds }, organizationId: ctx.organizationId },
-        select: { id: true },
+        select: { id: true, portCount: true, portType: true, throughputMbps: true, poeBudgetW: true, powerDrawW: true },
       });
       if (found.length !== modelIds.length) throw notFound('Modèle d’équipement');
+      for (const model of found) {
+        index[model.id] = {
+          portCount: model.portCount,
+          portType: model.portType,
+          throughputMbps: model.throughputMbps,
+          poeBudgetW: model.poeBudgetW,
+          powerDrawW: model.powerDrawW,
+        };
+      }
+    }
+
+    const validation = validateArchitecture(input, index);
+    if (!validation.compatible) {
+      const critical = validation.anomalies.filter((a) => a.severity === 'CRITICAL');
+      throw new AppError('ARCHITECTURE_INCOMPATIBLE', 'Architecture incompatible : anomalie critique détectée', { anomalies: critical });
     }
 
     const architecture = await this.getOrCreate(ctx, projectId);

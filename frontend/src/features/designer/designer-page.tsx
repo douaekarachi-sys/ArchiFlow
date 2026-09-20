@@ -27,6 +27,7 @@ import { LayoutDashboard, Monitor, Redo2, Save, Undo2 } from 'lucide-react';
 import { type DragEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
+import { ApiError } from '@/api/client';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states';
@@ -348,7 +349,16 @@ function DesignerCanvas({ projectId }: { projectId: string }) {
           </header>
           {save.isError && (
             <Alert tone="critical" className="m-3">
-              {errorMessage(t, save.error)}
+              <p>{errorMessage(t, save.error)}</p>
+              {save.error instanceof ApiError && save.error.code === 'ARCHITECTURE_INCOMPATIBLE' && (
+                <ul className="mt-2 flex flex-col gap-1 text-xs">
+                  {((save.error.details as { anomalies?: Anomaly[] } | undefined)?.anomalies ?? []).map((anomaly) => (
+                    <li key={`${anomaly.code}-${anomaly.elementIds.join('-')}-${anomaly.connectionIds.join('-')}`}>
+                      {t(anomaly.code, anomaly.params)}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </Alert>
           )}
           <div className="flex flex-1 overflow-hidden">

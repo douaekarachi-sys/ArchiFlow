@@ -99,6 +99,61 @@ describe('conception d’architecture (EF-101 à EF-107, architecture.edit) — 
     expect(res.status).toBe(400);
   });
 
+  it('revalide côté serveur (ADR 0003) : une boucle envoyée directement à l’API, sans passer par l’interface, est refusée et rien n’est enregistré', async () => {
+    // Document invalide construit à la main (jamais par le designer) : trois éléments reliés en
+    // triangle forment une boucle, anomalie CRITICAL détectée par checkGraphAnomalies. Le serveur
+    // doit refuser même si aucun client n'a jamais affiché ce document comme « compatible ».
+    const loop: ArchitectureDocument = {
+      elements: [
+        { id: 'a', type: 'switch', equipmentModelId: null, label: 'A', position: { x: 0, y: 0 }, config: {} },
+        { id: 'b', type: 'switch', equipmentModelId: null, label: 'B', position: { x: 100, y: 0 }, config: {} },
+        { id: 'c', type: 'switch', equipmentModelId: null, label: 'C', position: { x: 50, y: 100 }, config: {} },
+      ],
+      connections: [
+        { id: 'l1', from: 'a', to: 'b', linkType: 'copper' },
+        { id: 'l2', from: 'b', to: 'c', linkType: 'copper' },
+        { id: 'l3', from: 'c', to: 'a', linkType: 'copper' },
+      ],
+      zones: [],
+    };
+
+    const res = await server().put(`${API}/projects/${w.projectA1}/architecture`).set(architect.auth).send(loop);
+    expect(res.status).toBe(422);
+    expect(res.body.error.code).toBe('ARCHITECTURE_INCOMPATIBLE');
+    expect(res.body.error.details.anomalies).toContainEqual(
+      expect.objectContaining({ severity: 'CRITICAL', code: 'validation.anomaly.loopDetected' }),
+    );
+
+    const reloaded = await server().get(`${API}/projects/${w.projectA1}/architecture`).set(architect.auth);
+    expect(reloaded.body).toEqual({ elements: [], connections: [], zones: [] });
+  });
+
+  it('revalide la capacité côté serveur (ADR 0003) : un dépassement de ports est refusé même si le client ne l’a jamais vu', async () => {
+    const switchModelId = await createModel('switch');
+    // Le catalogue donne 1 seul port à ce modèle (createModel n'en fixe aucun) : on le force via
+    // une modification directe pour reproduire un dépassement de capacité déterministe.
+    await t.prisma.system.equipmentModel.update({ where: { id: switchModelId }, data: { portCount: 1 } });
+
+    const overflow: ArchitectureDocument = {
+      elements: [
+        { id: 'sw', type: 'switch', equipmentModelId: switchModelId, label: 'Switch 1 port', position: { x: 0, y: 0 }, config: {} },
+        { id: 'a', type: 'server', equipmentModelId: null, label: 'Serveur A', position: { x: 100, y: 0 }, config: {} },
+        { id: 'b', type: 'server', equipmentModelId: null, label: 'Serveur B', position: { x: 200, y: 0 }, config: {} },
+      ],
+      connections: [
+        { id: 'l1', from: 'sw', to: 'a', linkType: 'copper' },
+        { id: 'l2', from: 'sw', to: 'b', linkType: 'copper' },
+      ],
+      zones: [],
+    };
+
+    const res = await server().put(`${API}/projects/${w.projectA1}/architecture`).set(architect.auth).send(overflow);
+    expect(res.status).toBe(422);
+    expect(res.body.error.details.anomalies).toContainEqual(
+      expect.objectContaining({ severity: 'CRITICAL', code: 'validation.capacity.portOverflow' }),
+    );
+  });
+
   it('refuse un equipmentModelId d’une autre organisation', async () => {
     const adminB = await login(t, w.users.adminB.email);
     const manufacturerB = await server().post(`${API}/catalog/manufacturers`).set(adminB.auth).send({ name: 'Fabricant B' });

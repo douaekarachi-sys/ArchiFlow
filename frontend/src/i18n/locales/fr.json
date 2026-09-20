@@ -325,6 +325,7 @@
     "TRANSITION_REFUSED": "Cette étape n'est pas possible maintenant.",
     "VALIDATION_FAILED": "Certaines informations sont invalides.",
     "UNPROCESSABLE": "L'opération n'est pas possible dans ces conditions.",
+    "ARCHITECTURE_INCOMPATIBLE": "Le serveur a détecté au moins une anomalie critique : la sauvegarde est refusée.",
     "RATE_LIMITED": "Trop de tentatives. Patientez une minute avant de réessayer.",
     "NETWORK": "Le serveur ne répond pas. Vérifiez votre connexion et réessayez.",
     "INTERNAL": "Une erreur inattendue s'est produite. Réessayez dans un instant."

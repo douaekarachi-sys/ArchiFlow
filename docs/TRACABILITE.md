@@ -113,10 +113,17 @@ Statut :
 > Panneau d'anomalies (`ValidationPanel`) : compteurs CRITICAL/WARNING/INFO, tri par sévérité
 > (une CRITICAL ne reste jamais masquée derrière des WARNING/INFO plus nombreuses), explication
 > en français avec les chiffres concrets (ex. « 2 connexions pour 1 ports disponibles »),
-> élément ou connexion concernée. **Écart assumé à ce stade** : la revalidation **côté serveur**
-> à la sauvegarde (deuxième moitié de l'ADR 0003 — « une sauvegarde peut être refusée même si
-> l'interface affichait compatible ») n'est pas encore câblée sur `PUT /projects/:id/architecture` ;
-> `validateArchitecture` n'y est pas encore appelée. À faire avant de clore l'ADR 0003.
+> élément ou connexion concernée.
+>
+> **ADR 0003 close (20/09/2026).** La revalidation côté serveur est câblée sur
+> `PUT /projects/:id/architecture` (`ArchitectureService.save`) : `validateArchitecture` y est
+> réexécuté avec un `EquipmentIndex` reconstruit depuis le catalogue en base (jamais celui envoyé
+> par le client). Une anomalie CRITICAL rejette la sauvegarde (422, code
+> `ARCHITECTURE_INCOMPATIBLE`, `details.anomalies`) **avant** la transaction — rien n'est écrit.
+> Le designer affiche les anomalies renvoyées avec la même traduction que le panneau local.
+> Tests : deux scénarios envoient une architecture invalide **directement à l'API**, sans passer
+> par l'interface (boucle CRITICAL, dépassement de ports CRITICAL) et vérifient le rejet **et**
+> l'absence d'écriture.
 >
 > **Portail ingénieur (20/09/2026).** Le portail était vide : « Catalogue », « Analyse du
 > besoin » et « Calculs de capacité » restaient des entrées de menu grisées (« Phase 4 »), alors
