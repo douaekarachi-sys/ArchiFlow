@@ -1,0 +1,46 @@
+import type { ArchitectureDocument } from '@archiflow/shared';
+import { describe, expect, it } from 'vitest';
+import { fromFlow, toFlow } from './document-adapter';
+
+const SAMPLE: ArchitectureDocument = {
+  elements: [
+    { id: 'fw-01', type: 'firewall', equipmentModelId: 'model-1', label: 'Pare-feu', position: { x: 0, y: 0 }, config: {} },
+    { id: 'sw-01', type: 'switch', equipmentModelId: null, label: 'Switch', position: { x: 200, y: 50 }, config: { note: 'test' } },
+  ],
+  connections: [{ id: 'link-01', from: 'fw-01', to: 'sw-01', linkType: 'copper', speedMbps: 1000, protocol: 'IP' }],
+  zones: [{ id: 'zone-dmz', type: 'DMZ', label: 'DMZ', elementIds: ['fw-01'] }],
+};
+
+describe('toFlow / fromFlow', () => {
+  it('un aller-retour préserve le document (React Flow n’est jamais la vérité)', () => {
+    expect(fromFlow(toFlow(SAMPLE))).toEqual(SAMPLE);
+  });
+
+  it('reporte l’appartenance et le type de zone sur le nœud correspondant', () => {
+    const { nodes } = toFlow(SAMPLE);
+    const fw = nodes.find((n) => n.id === 'fw-01');
+    expect(fw?.data.zoneId).toBe('zone-dmz');
+    expect(fw?.data.zoneType).toBe('DMZ');
+    const sw = nodes.find((n) => n.id === 'sw-01');
+    expect(sw?.data.zoneId).toBeNull();
+    expect(sw?.data.zoneType).toBeNull();
+  });
+
+  it('un élément sans zone associée ne produit aucune zone à la reconstruction', () => {
+    const document: ArchitectureDocument = { elements: SAMPLE.elements, connections: [], zones: [] };
+    const rebuilt = fromFlow(toFlow(document));
+    expect(rebuilt.zones).toEqual([]);
+  });
+
+  it('reconstruit elementIds à partir de zoneId même si l’ordre des nœuds change', () => {
+    const view = toFlow(SAMPLE);
+    const reordered = { ...view, nodes: [...view.nodes].reverse() };
+    expect(fromFlow(reordered).zones[0]?.elementIds).toEqual(['fw-01']);
+  });
+
+  it('une connexion sans data (arête créée hors adaptateur) retombe sur un type de lien par défaut', () => {
+    const view = toFlow(SAMPLE);
+    const bare = { ...view, edges: [{ id: 'raw', source: 'fw-01', target: 'sw-01', type: 'labeled' as const }] };
+    expect(fromFlow(bare).connections[0]).toMatchObject({ id: 'raw', from: 'fw-01', to: 'sw-01', linkType: 'copper' });
+  });
+});

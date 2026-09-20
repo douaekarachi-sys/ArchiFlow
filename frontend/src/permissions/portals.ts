@@ -16,7 +16,6 @@ import {
   MapPinned,
   MessageSquare,
   MessageSquarePlus,
-  Network,
   Radar,
   Receipt,
   ScrollText,
@@ -109,7 +108,8 @@ export const PORTAL_NAV: Record<Role, RoleNav> = {
     group: {
       key: 'design',
       items: [
-        { key: 'designer', icon: Network, phase: 5 },
+        // Le concepteur 2D est un outil PAR PROJET (ouvert depuis la fiche projet, pas un
+        // destination de rôle) : il n'a jamais eu sa place ici, même « à venir ».
         { key: 'physicalView', icon: MapPinned, phase: 6 },
         { key: 'addressPlan', icon: Waypoints, phase: 8 },
         { key: 'validationCheck', icon: ShieldCheck, phase: 7 },

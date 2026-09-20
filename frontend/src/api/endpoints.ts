@@ -1,4 +1,5 @@
 import type {
+  ArchitectureDocument,
   AuthResult,
   ChangePasswordInput,
   CreateBrandInput,
@@ -165,4 +166,9 @@ export const catalogApi = {
   manufacturers: () => api.get<ManufacturerItem[]>('/catalog/manufacturers'),
   createManufacturer: (input: CreateManufacturerInput) => api.post<ManufacturerItem>('/catalog/manufacturers', input),
   createBrand: (input: CreateBrandInput) => api.post<{ id: string; name: string; manufacturerId: string }>('/catalog/brands', input),
+};
+
+export const architectureApi = {
+  get: (projectId: string) => api.get<ArchitectureDocument>(`/projects/${projectId}/architecture`),
+  save: (projectId: string, input: ArchitectureDocument) => api.put<ArchitectureDocument>(`/projects/${projectId}/architecture`, input),
 };

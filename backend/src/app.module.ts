@@ -8,6 +8,7 @@ import { ENV, type Env } from './core/config/env';
 import { PrismaModule } from './core/prisma/prisma.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ArchitectureModule } from './modules/architecture/architecture.module';
 import { ClientCompaniesModule } from './modules/client-companies/client-companies.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
 import { HealthModule } from './modules/health/health.controller';
@@ -38,6 +39,7 @@ import { WorkersModule } from './workers/retention.worker';
     ClientCompaniesModule,
     CatalogModule,
     ProjectsModule,
+    ArchitectureModule,
     HealthModule,
     WorkersModule,
   ],

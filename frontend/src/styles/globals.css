@@ -73,6 +73,11 @@
   --color-cat-rack: hsl(var(--cat-rack));
   --color-cat-workstation: hsl(var(--cat-workstation));
   --color-cat-internet: hsl(var(--cat-internet));
+
+  --color-zone-dmz: hsl(var(--zone-dmz));
+  --color-zone-lan: hsl(var(--zone-lan));
+  --color-zone-wan: hsl(var(--zone-wan));
+  --color-zone-remote-site: hsl(var(--zone-remote-site));
   --color-transparent: transparent;
   --color-current: currentColor;
 

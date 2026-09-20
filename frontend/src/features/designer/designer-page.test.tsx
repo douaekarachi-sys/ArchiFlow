@@ -1,0 +1,104 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter, Route, Routes } from 'react-router';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { architectureApi, catalogApi } from '@/api/endpoints';
+import { useSession } from '@/auth/session-store';
+import { DesignerPage } from './designer-page';
+
+vi.mock('@/api/endpoints', () => ({
+  architectureApi: { get: vi.fn(), save: vi.fn() },
+  catalogApi: { equipment: vi.fn() },
+}));
+
+function setArchitectSession() {
+  useSession.setState({
+    status: 'authenticated',
+    accessToken: 'token',
+    profile: {
+      id: '11111111-1111-1111-1111-111111111111',
+      firstName: 'Alex',
+      lastName: 'Architecte',
+      email: 'architecte@archiflow.local',
+      role: 'ARCHITECT',
+      organizationId: '22222222-2222-2222-2222-222222222222',
+      clientCompanyId: null,
+      mustChangePassword: false,
+    },
+  });
+}
+
+function renderDesigner() {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  return render(
+    <QueryClientProvider client={client}>
+      <MemoryRouter initialEntries={['/architect/projects/proj-1/design']}>
+        <Routes>
+          <Route path="/architect/projects/:id/design" element={<DesignerPage />} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+}
+
+describe('DesignerPage', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useSession.setState({ status: 'anonymous', accessToken: null, profile: null });
+    vi.stubGlobal('matchMedia', (query: string) =>
+      ({ matches: true, media: query, addEventListener: vi.fn(), removeEventListener: vi.fn() }) as unknown as MediaQueryList,
+    );
+    vi.mocked(catalogApi.equipment).mockResolvedValue({ data: [], total: 0, page: 1, pageSize: 500 });
+  });
+
+  it('charge un plan vide, permet de créer une zone, puis enregistre le document mis à jour', async () => {
+    setArchitectSession();
+    vi.mocked(architectureApi.get).mockResolvedValue({ elements: [], connections: [], zones: [] });
+    vi.mocked(architectureApi.save).mockImplementation(async (_id, doc) => doc);
+
+    renderDesigner();
+
+    expect(await screen.findByText("Concepteur d'architecture")).toBeInTheDocument();
+    expect(screen.getByText('Le plan est vide')).toBeInTheDocument();
+
+    const saveButton = screen.getByRole('button', { name: 'Enregistrer' });
+    expect(saveButton).toBeDisabled();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ajouter une zone' }));
+
+    await waitFor(() => expect(saveButton).toBeEnabled());
+    await userEvent.click(saveButton);
+
+    await waitFor(() => {
+      expect(architectureApi.save).toHaveBeenCalledWith(
+        'proj-1',
+        expect.objectContaining({ zones: [expect.objectContaining({ type: 'LAN', elementIds: [] })] }),
+      );
+    });
+  });
+
+  it('un rôle sans architecture.edit voit le plan en lecture seule, sans palette ni bouton d’enregistrement', async () => {
+    useSession.setState({
+      status: 'authenticated',
+      accessToken: 'token',
+      profile: {
+        id: '33333333-3333-3333-3333-333333333333',
+        firstName: 'Ines',
+        lastName: 'Ingenieure',
+        email: 'engineer@archiflow.local',
+        role: 'ENGINEER',
+        organizationId: '22222222-2222-2222-2222-222222222222',
+        clientCompanyId: null,
+        mustChangePassword: false,
+      },
+    });
+    vi.mocked(architectureApi.get).mockResolvedValue({ elements: [], connections: [], zones: [] });
+
+    renderDesigner();
+
+    expect(await screen.findByText("Lecture seule : vous n'avez pas les droits de modification")).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Enregistrer' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Ajouter une zone' })).not.toBeInTheDocument();
+  });
+});

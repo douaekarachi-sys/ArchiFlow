@@ -7,7 +7,7 @@ import { cn } from '@/utils/cn';
  * construit dynamiquement (`bg-cat-${category}`) ne serait jamais généré. D'où cette table
  * explicite plutôt qu'une interpolation — chaque classe apparaît ici littéralement.
  */
-const APPEARANCE: Record<EquipmentCategory, { bg: string; text: string; dot: string }> = {
+export const CATEGORY_APPEARANCE: Record<EquipmentCategory, { bg: string; text: string; dot: string }> = {
   firewall: { bg: 'bg-cat-firewall/12', text: 'text-cat-firewall', dot: 'bg-cat-firewall' },
   router: { bg: 'bg-cat-router/12', text: 'text-cat-router', dot: 'bg-cat-router' },
   switch: { bg: 'bg-cat-switch/12', text: 'text-cat-switch', dot: 'bg-cat-switch' },
@@ -25,7 +25,7 @@ const APPEARANCE: Record<EquipmentCategory, { bg: string; text: string; dot: str
 /** Pastille + libellé, fond teinté — code couleur constant partout (tokens.css §cat-*). */
 export function CategoryBadge({ category, className }: { category: EquipmentCategory; className?: string }) {
   const { t } = useTranslation();
-  const a = APPEARANCE[category];
+  const a = CATEGORY_APPEARANCE[category];
   return (
     <span className={cn('inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-field px-2 text-xs font-medium', a.bg, a.text, className)}>
       <span className={cn('size-2 shrink-0 rounded-full', a.dot)} aria-hidden="true" />

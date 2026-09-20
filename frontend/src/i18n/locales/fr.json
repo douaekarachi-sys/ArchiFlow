@@ -56,7 +56,6 @@
     "alerts": "Alertes",
     "needAnalysis": "Analyse du besoin",
     "sizing": "Calculs de capacité",
-    "designer": "Designer 2D",
     "physicalView": "Vue physique",
     "addressPlan": "Plan d'adressage",
     "validationCheck": "Validation",
@@ -370,6 +369,7 @@
       ,"assignUser": "Utilisateur à affecter"
       ,"chooseUser": "Choisir un utilisateur"
       ,"assign": "Affecter"
+      ,"openDesigner": "Ouvrir le concepteur"
     },
     "count_one": "{{count}} projet",
     "count_other": "{{count}} projets"
@@ -390,8 +390,9 @@
     "tabs": { "home": "Accueil", "diagram": "Diagramme", "requests": "Demandes", "activity": "Activité" },
     "diagram": "Diagramme",
     "diagramHint": "Vue des relations de l'architecture",
-    "diagramComingSoon": "Le designer 2D arrive en Phase 5. Le schéma de cette architecture s'affichera ici.",
-    "layersComingSoon": "Les calques (logique, sécurité, placement physique, annotations) arrivent avec le designer 2D, en Phase 5.",
+    "diagramComingSoon": "Ouvrez un projet pour accéder à son concepteur d'architecture.",
+    "diagramAction": "Voir mes projets",
+    "layersComingSoon": "Le calque logique est disponible dans le concepteur d'architecture. Sécurité, placement physique et annotations arriveront avec les phases suivantes.",
     "editDiagram": "Modifier le diagramme",
     "expandDiagram": "Agrandir le diagramme",
     "cis": "Éléments",
@@ -460,6 +461,52 @@
       "rack": "Baie",
       "workstation": "Poste client",
       "internet": "Internet"
+    }
+  },
+  "designer": {
+    "title": "Concepteur d'architecture",
+    "readOnly": "Lecture seule : vous n'avez pas les droits de modification",
+    "undo": "Annuler",
+    "redo": "Rétablir",
+    "save": "Enregistrer",
+    "empty": "Le plan est vide",
+    "emptyHintEdit": "Glissez un équipement depuis le catalogue pour commencer.",
+    "emptyHintRead": "Aucun équipement n'a encore été placé sur ce plan.",
+    "palette": {
+      "search": "Rechercher un équipement",
+      "generic": "Élément générique",
+      "empty": "Aucun équipement trouvé",
+      "emptyHint": "Modifiez votre recherche ou complétez le catalogue."
+    },
+    "inspector": {
+      "hint": "Sélectionnez un équipement ou une connexion pour en modifier les propriétés.",
+      "element": "Équipement",
+      "label": "Nom",
+      "category": "Catégorie",
+      "zone": "Zone logique",
+      "noZone": "Aucune zone",
+      "delete": "Supprimer",
+      "connection": "Connexion",
+      "linkType": "Type de lien",
+      "speed": "Débit (Mbps)",
+      "protocol": "Protocole",
+      "zones": "Zones logiques",
+      "noZones": "Aucune zone créée pour l'instant.",
+      "zoneType": "Type de zone",
+      "zoneLabel": "Nom de la zone",
+      "addZone": "Ajouter une zone"
+    },
+    "zoneType": {
+      "DMZ": "DMZ",
+      "LAN": "LAN",
+      "WAN": "WAN",
+      "REMOTE_SITE": "Site distant"
+    },
+    "linkType": {
+      "copper": "Cuivre",
+      "fiber": "Fibre optique",
+      "wireless": "Sans fil",
+      "virtual": "Virtuel"
     }
   }
 }

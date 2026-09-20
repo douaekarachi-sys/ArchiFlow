@@ -1,7 +1,9 @@
-import { ArrowRight, Building2, History, Network, ShieldCheck, Undo2, UserPlus, Users } from 'lucide-react';
+import { ArrowRight, Building2, History, LayoutPanelTop, Network, ShieldCheck, Undo2, UserPlus, Users } from 'lucide-react';
+import { ROLE_HOME } from '@archiflow/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router';
 import type { AvailableTransition, ProjectRequest } from '@/api/endpoints';
 import { projectsApi, usersApi } from '@/api/endpoints';
 import { ProjectStatusBadge } from '@/components/patterns/project-status';
@@ -65,6 +67,11 @@ export function ProjectDetailDialog({ projectId, onClose }: { projectId: string 
                   )}
                 </div>
               </div>
+              {role && role !== 'CLIENT' && (
+                <Button asChild variant="secondary" size="sm" icon={<LayoutPanelTop />} className="self-start">
+                  <Link to={`${ROLE_HOME[role]}/projects/${projectId}/design`}>{t('projects.detail.openDesigner')}</Link>
+                </Button>
+              )}
               <RequestOverview request={project.data.request} />
               {role === 'ADMIN' && <AssignmentActions projectId={projectId} />}
               <TransitionActions projectId={projectId} />

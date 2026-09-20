@@ -8,6 +8,7 @@ import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { usersApi } from '@/api/endpoints';
+import { Button } from '@/components/ui/button';
 import { MultiColumnStat } from '@/components/ui/multi-column-stat';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { useProjects } from '@/hooks/use-projects';
@@ -160,10 +161,12 @@ function ActivityPanel() { const { t } = useTranslation(); return <section class
  */
 function DesignerPlaceholder() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   return <section className="dashboard-map-panel flex min-h-[480px] flex-col items-center justify-center gap-3 overflow-hidden rounded-card border border-[hsl(var(--dashboard-line))] p-6 text-center" aria-label={t('dashboard.diagram')}>
     <Network className="size-8 text-[hsl(var(--dashboard-muted))]" aria-hidden="true" />
     <h2 className="font-medium text-[hsl(var(--dashboard-text))]">{t('dashboard.diagram')}</h2>
     <p className="max-w-xs text-sm text-[hsl(var(--dashboard-muted))]">{t('dashboard.diagramComingSoon')}</p>
+    <Button size="sm" variant="secondary" onClick={() => void navigate('projects')}>{t('dashboard.diagramAction')}</Button>
   </section>;
 }
 

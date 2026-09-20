@@ -106,6 +106,13 @@
   --cat-workstation: 215 20% 65%; /* #94A3B8 */
   --cat-internet: 221 39% 11%; /* #111827 */
 
+  /* Zones logiques du concepteur (EF-107) : mêmes usages que cat-*, teintes distinctes des
+     catégories d'équipement et des couleurs de sévérité pour éviter toute double lecture. */
+  --zone-dmz: 14 80% 45%; /* #CF4217 */
+  --zone-lan: 90 55% 32%; /* #527E25 */
+  --zone-wan: 300 55% 45%; /* #B234B2 */
+  --zone-remote-site: 45 85% 30%; /* #8E6D0B */
+
   /* Rayons */
   --rounded-field: 6px; /* champs, badges */
   --rounded-button: 8px;

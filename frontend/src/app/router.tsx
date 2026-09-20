@@ -20,6 +20,7 @@ const DashboardPage = lazy(() =>
 );
 const RequestPage = lazy(() => import('@/features/request/request-page').then((m) => ({ default: m.RequestPage })));
 const ProjectsPage = lazy(() => import('@/features/projects/projects-page').then((m) => ({ default: m.ProjectsPage })));
+const DesignerPage = lazy(() => import('@/features/designer/designer-page').then((m) => ({ default: m.DesignerPage })));
 const UsersPage = lazy(() => import('@/features/admin/users-page').then((m) => ({ default: m.UsersPage })));
 const AdminRequestsPage = lazy(() => import('@/features/admin/requests-page').then((m) => ({ default: m.AdminRequestsPage })));
 const CatalogPage = lazy(() => import('@/features/admin/catalog-page').then((m) => ({ default: m.CatalogPage })));
@@ -67,6 +68,7 @@ const portalRoute = (role: Role): RouteObject => ({
       ? [{ path: 'request', element: <Lazy><RequestPage /></Lazy> }]
       : [
           { path: 'projects', element: <Lazy><ProjectsPage role={role} /></Lazy> },
+          { path: 'projects/:id/design', element: <Lazy><DesignerPage /></Lazy> },
           ...(role === 'ADMIN'
             ? [
                 { path: 'users', element: <Lazy><UsersPage /></Lazy> },
