@@ -30,6 +30,9 @@ const NeedAnalysisDetailPage = lazy(() => needAnalysis().then((m) => ({ default:
 const sizing = () => import('@/features/engineer/sizing-page');
 const SizingPickerPage = lazy(() => sizing().then((m) => ({ default: m.SizingPickerPage })));
 const SizingDetailPage = lazy(() => sizing().then((m) => ({ default: m.SizingDetailPage })));
+const versions = () => import('@/features/versions/versions-page');
+const VersionsPickerPage = lazy(() => versions().then((m) => ({ default: m.VersionsPickerPage })));
+const VersionsDetailPage = lazy(() => versions().then((m) => ({ default: m.VersionsDetailPage })));
 // `import.meta.env.DEV` est remplacé statiquement à la build : en production, Rollup élimine
 // entièrement cet import dynamique — la page de référence des composants n'existe pas dans
 // dist/, pas seulement hors des routes.
@@ -75,6 +78,10 @@ const portalRoute = (role: Role): RouteObject => ({
       : [
           { path: 'projects', element: <Lazy><ProjectsPage role={role} /></Lazy> },
           { path: 'projects/:id/design', element: <Lazy><DesignerPage /></Lazy> },
+          // Historique des versions (EF-405) : par-projet comme le concepteur, ouvert à tout
+          // rôle interne (architecture.read) — le serveur revérifie.
+          { path: 'versions', element: <Lazy><VersionsPickerPage role={role} /></Lazy> },
+          { path: 'projects/:id/versions', element: <Lazy><VersionsDetailPage /></Lazy> },
           ...(role === 'ADMIN'
             ? [
                 { path: 'users', element: <Lazy><UsersPage /></Lazy> },

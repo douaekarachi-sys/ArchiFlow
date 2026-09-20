@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { ErrorState, Skeleton } from '@/components/ui/states';
 import { useProject } from '@/hooks/use-projects';
 import { errorMessage } from '@/utils/errors';
-import { ProjectPicker } from './project-picker';
+import { ProjectPicker } from '../projects/project-picker';
 
 /** Point d'entrée du menu (EF-202/Phase 4) : la liste des projets affectés, un outil par-projet. */
 export function NeedAnalysisPickerPage() {

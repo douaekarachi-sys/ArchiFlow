@@ -1,6 +1,6 @@
 # Traçabilité au cahier des charges
 
-**Statut : version 8 — moteurs de capacité/compatibilité/anomalies, tranche T4 (20/09/2026).** Colonne *Lot* : ADR 0009.
+**Statut : version 9 — historique et versions d'architecture, tranche T5 (20/09/2026).** Colonne *Lot* : ADR 0009.
 
 Les libellés de la colonne *Exigence* sont repris **mot pour mot** du cahier des charges
 (tableaux 3.1 à 3.5 et 5). Ils ne doivent pas être reformulés lors des mises à jour.
@@ -165,7 +165,7 @@ Statut :
 | EF-402 | Gestion fine des droits d'accès : lecture, commentaire, édition. | Élevée | MVP (§3) ⚑ | 🔨 Phases 1 et 10 — portée par rôle, locataire, société cliente et affectation (testé) ; droits lecture / commentaire / édition par projet en Phase 10 | `packages/shared/src/rbac/`, `backend/src/domain/projects/visibility.ts` |
 | EF-403 | Commentaires et annotations en temps réel, positionnés sur les éléments. | Moyenne | V1 | 🕓 Phase 10 | — |
 | EF-404 | Édition collaborative simultanée avec indication de la présence des utilisateurs. | Moyenne | V2 ⚠ | 🕓 Phase 10 (présence) · post-V2 (co-édition) | — |
-| EF-405 | Historique et gestion des versions : comparaison et restauration d'une version antérieure. | Élevée | V1 ⚠ | 🕓 Phase 10 | — |
+| EF-405 | Historique et gestion des versions : comparaison et restauration d'une version antérieure. | Élevée | V1 ⚠ | ✅ T5 | `backend/src/modules/architecture/architecture.service.ts` (`persist`/`listVersions`/`getVersion`/`diffVersions`/`restoreVersion`), `packages/shared/src/architecture/diff.ts` (`diffArchitecture`) — `frontend/src/features/versions/versions-page.tsx` — tests `backend/test/architecture.e2e-spec.ts`, `diff.spec.ts`, `versions-page.test.tsx` |
 | EF-406 | Notifications lors d'une modification, d'un commentaire ou d'un partage. | Faible | V2 (§3) ⚑ | 🕓 Phase 10 | — |
 
 > **⚑ EF-402** — « Partage simple » est MVP, « collaboration » est V1 ; des droits *fins* relèvent
@@ -175,6 +175,18 @@ Statut :
 > module Collaboration, que §8.1 place en V1. Arbitrage attendu.
 >
 > **EF-404** se scinde : la présence est livrée en Phase 10, la co-édition dépend de D-05.
+>
+> **T5 — versions (ADR 0001).** Chaque sauvegarde de l'architecture (y compris une restauration)
+> crée une nouvelle `ArchitectureVersion`, jamais n'écrase la précédente : snapshot auto-porteur
+> (`frozenSpec` par élément — nom, référence, caractéristiques, **prix et devise au moment du
+> gel**), dans la MÊME transaction que les tables normalisées. `diffArchitecture` compare deux
+> versions par identifiant d'élément stable et regroupe par catégorie (« +2 switches, −1
+> pare-feu » — exemple du brief reproduit littéralement en test) ; un élément déplacé ne compte
+> pour rien, un modèle remplacé compte comme « modifié ». Restaurer rejoue la topologie
+> historique **à travers le même chemin que la sauvegarde** : revalidée contre le catalogue actuel
+> (ADR 0003), figée avec les prix actuels — une restauration est un événement de sauvegarde comme
+> un autre, pas une exception. Accessible depuis le concepteur (bouton « Historique ») et depuis
+> le portail chef de projet (menu « Versions », `phase 10` levé pour cette destination précise).
 
 ---
 

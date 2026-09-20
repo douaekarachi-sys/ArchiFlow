@@ -56,11 +56,13 @@ export const placementSchema = z.object({
  * acceptee par un client deviendrait irreproductible des la premiere mise a jour du catalogue.
  */
 export const frozenModelSpecSchema = z.object({
+  name: z.string(),
   reference: z.string(),
   portCount: z.number().int().min(0).optional(),
   throughputMbps: z.number().int().min(0).optional(),
   rackUnits: z.number().int().min(0).optional(),
   poeBudgetW: z.number().int().min(0).optional(),
+  powerDrawW: z.number().int().min(0).optional(),
   indicativePrice: z.number().min(0).optional(),
   currency: z.string().length(3).optional(),
 });

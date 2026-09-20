@@ -1,4 +1,5 @@
 import type {
+  ArchitectureDiff,
   ArchitectureDocument,
   AuthResult,
   ChangePasswordInput,
@@ -168,7 +169,21 @@ export const catalogApi = {
   createBrand: (input: CreateBrandInput) => api.post<{ id: string; name: string; manufacturerId: string }>('/catalog/brands', input),
 };
 
+export interface ArchitectureVersionSummary {
+  number: number;
+  comment: string | null;
+  restoredFromVersion: number | null;
+  createdAt: string;
+  author: { id: string; firstName: string; lastName: string } | null;
+}
+
 export const architectureApi = {
   get: (projectId: string) => api.get<ArchitectureDocument>(`/projects/${projectId}/architecture`),
   save: (projectId: string, input: ArchitectureDocument) => api.put<ArchitectureDocument>(`/projects/${projectId}/architecture`, input),
+  versions: (projectId: string) => api.get<ArchitectureVersionSummary[]>(`/projects/${projectId}/architecture/versions`),
+  version: (projectId: string, number: number) => api.get<ArchitectureDocument>(`/projects/${projectId}/architecture/versions/${number}`),
+  diff: (projectId: string, from: number, to: number) =>
+    api.get<ArchitectureDiff>(`/projects/${projectId}/architecture/versions/diff`, { from, to }),
+  restore: (projectId: string, number: number) =>
+    api.post<ArchitectureDocument>(`/projects/${projectId}/architecture/versions/${number}/restore`),
 };

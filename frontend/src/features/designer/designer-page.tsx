@@ -1,5 +1,6 @@
 import {
   EMPTY_DOCUMENT,
+  ROLE_HOME,
   type Anomaly,
   type AnomalySeverity,
   type ArchitectureElement,
@@ -23,16 +24,17 @@ import {
   type NodeProps,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { LayoutDashboard, Monitor, Redo2, Save, Undo2 } from 'lucide-react';
+import { History, LayoutDashboard, Monitor, Redo2, Save, Undo2 } from 'lucide-react';
 import { type DragEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 import { ApiError } from '@/api/client';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states';
 import { cn } from '@/utils/cn';
 import { useCan } from '@/permissions/portals';
+import { useSession } from '@/auth/session-store';
 import { errorMessage } from '@/utils/errors';
 import { useTheme } from '@/utils/theme';
 import { applyDesignerAction, type DesignerAction } from './designer-actions';
@@ -186,6 +188,7 @@ function DesignerCanvas({ projectId }: { projectId: string }) {
   const { t } = useTranslation();
   const isDesktop = useIsDesktop();
   const canEdit = useCan('architecture.edit');
+  const role = useSession((s) => s.profile?.role);
   const resolvedTheme = useTheme((s) => s.resolved);
   const query = useArchitecture(projectId);
   const save = useSaveArchitecture(projectId);
@@ -324,6 +327,11 @@ function DesignerCanvas({ projectId }: { projectId: string }) {
               {!canEdit && <p className="text-xs text-fg-muted">{t('designer.readOnly')}</p>}
             </div>
             <div className="flex items-center gap-2">
+              {role && (
+                <Button asChild variant="ghost" size="sm" icon={<History />}>
+                  <Link to={`${ROLE_HOME[role]}/projects/${projectId}/versions`}>{t('designer.history')}</Link>
+                </Button>
+              )}
               {canEdit && (
                 <>
                   <Button variant="ghost" size="icon-sm" icon={<Undo2 />} aria-label={t('designer.undo')} disabled={!history.canUndo} onClick={() => history.undo()} />

@@ -522,6 +522,27 @@
       "power": { "title": "Puissance électrique", "subtitle": "Dimensionnement" }
     }
   },
+  "versions": {
+    "pickerDescription": "Choisissez un projet pour consulter l'historique de ses versions d'architecture.",
+    "detailDescription": "Historique, comparaison et restauration — chaque sauvegarde fige une version auto-porteuse (caractéristiques et prix compris).",
+    "empty": "Aucune version enregistrée",
+    "emptyHint": "La première sauvegarde du concepteur créera la version 1.",
+    "compareTitle": "Comparer deux versions",
+    "compareFrom": "Depuis",
+    "compareTo": "Jusqu'à",
+    "origin": "Origine (vide)",
+    "versionLabel": "Version {{number}}",
+    "noDiff": "Aucune différence entre ces deux versions.",
+    "changedCount_one": "{{count}} modifié",
+    "changedCount_other": "{{count}} modifiés",
+    "connections": "Connexions",
+    "zones": "Zones logiques",
+    "historyTitle": "Historique",
+    "restoredFrom": "Restaurée depuis la version {{number}}",
+    "restoreAction": "Restaurer",
+    "restoreTarget": "la version {{number}}",
+    "restoreConsequence": "Une nouvelle version sera créée à partir de celle-ci, revalidée contre le catalogue actuel. L'historique existant reste intact."
+  },
   "equipment": {
     "category": {
       "firewall": "Pare-feu",
@@ -544,6 +565,7 @@
     "undo": "Annuler",
     "redo": "Rétablir",
     "save": "Enregistrer",
+    "history": "Historique",
     "empty": "Le plan est vide",
     "emptyHintEdit": "Glissez un équipement depuis le catalogue pour commencer.",
     "emptyHintRead": "Aucun équipement n'a encore été placé sur ce plan.",

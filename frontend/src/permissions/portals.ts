@@ -81,7 +81,7 @@ export const PORTAL_NAV: Record<Role, RoleNav> = {
         { key: 'kanban', icon: KanbanSquare, phase: 10 },
         { key: 'costs', icon: Receipt, phase: 11 },
         { key: 'risks', icon: AlertTriangle, phase: 10 },
-        { key: 'versions', icon: GitBranch, phase: 10 },
+        { key: 'versions', icon: GitBranch, path: '/pm/versions' },
       ],
     },
   },

@@ -8,10 +8,10 @@ import { useProjects } from '@/hooks/use-projects';
 import { errorMessage } from '@/utils/errors';
 
 /**
- * Sélecteur de projet pour un outil ingénieur par-projet (analyse du besoin, dimensionnement) :
- * ces outils n'ont de sens que pour un projet donné (comme le concepteur 2D), mais doivent
- * rester des destinations réelles du menu — pas de lien mort. `useProjects` ne renvoie déjà que
- * les projets affectés à l'ingénieur (ADR 0006 / visibilité par rôle).
+ * Sélecteur de projet pour un outil par-projet (analyse du besoin, dimensionnement, historique
+ * des versions) : ces outils n'ont de sens que pour un projet donné (comme le concepteur 2D),
+ * mais doivent rester des destinations réelles du menu — pas de lien mort. `useProjects` ne
+ * renvoie déjà que les projets visibles par le rôle (ADR 0006).
  */
 export function ProjectPicker({
   title,

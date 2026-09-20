@@ -173,6 +173,108 @@ describe('conception d’architecture (EF-101 à EF-107, architecture.edit) — 
   });
 });
 
+describe('versions (EF-405, ADR 0001) — snapshot auto-porteur, historique, diff, restauration', () => {
+  it('chaque sauvegarde crée une nouvelle version, jamais n’écrase la précédente', async () => {
+    const firewallModelId = await createModel('firewall');
+    const switchModelId = await createModel('switch');
+    await server().put(`${API}/projects/${w.projectA1}/architecture`).set(architect.auth).send(sampleDocument(firewallModelId, switchModelId));
+    await server()
+      .put(`${API}/projects/${w.projectA1}/architecture`)
+      .set(architect.auth)
+      .send({ elements: [], connections: [], zones: [] });
+
+    const versions = await server().get(`${API}/projects/${w.projectA1}/architecture/versions`).set(architect.auth);
+    expect(versions.status).toBe(200);
+    expect(versions.body.map((v: { number: number }) => v.number)).toEqual([2, 1]); // la plus récente d'abord
+    expect(versions.body[0].author).toMatchObject({ id: w.users.architectA.id });
+  });
+
+  it('le snapshot fige les caractéristiques ET le prix du modèle au moment de la sauvegarde (ADR 0001)', async () => {
+    const firewallModelId = await createModel('firewall');
+    const switchModelId = await createModel('switch');
+    await server()
+      .patch(`${API}/catalog/equipment/${switchModelId}`)
+      .set(admin.auth)
+      .send({ portCount: 24, indicativePrice: 41000, currency: 'MAD' });
+    await server().put(`${API}/projects/${w.projectA1}/architecture`).set(architect.auth).send(sampleDocument(firewallModelId, switchModelId));
+
+    // Le catalogue évolue APRÈS la sauvegarde : le snapshot ne doit pas bouger.
+    await server().patch(`${API}/catalog/equipment/${switchModelId}`).set(admin.auth).send({ indicativePrice: 99999 });
+
+    const snapshot = await server().get(`${API}/projects/${w.projectA1}/architecture/versions/1`).set(architect.auth);
+    expect(snapshot.status).toBe(200);
+    const sw = snapshot.body.elements.find((e: { id: string }) => e.id === 'sw-01');
+    expect(sw.frozenSpec).toMatchObject({ portCount: 24, indicativePrice: 41000, currency: 'MAD' });
+  });
+
+  it('compare deux versions et restitue le diff sémantique (+switches, -pare-feu)', async () => {
+    const firewallModelId = await createModel('firewall');
+    const switchModelId = await createModel('switch');
+    await server().put(`${API}/projects/${w.projectA1}/architecture`).set(architect.auth).send(sampleDocument(firewallModelId, switchModelId));
+    await server()
+      .put(`${API}/projects/${w.projectA1}/architecture`)
+      .set(architect.auth)
+      .send({
+        elements: [
+          { id: 'sw-01', type: 'switch', equipmentModelId: switchModelId, label: 'Switch', position: { x: 0, y: 0 }, config: {} },
+          { id: 'sw-02', type: 'switch', equipmentModelId: switchModelId, label: 'Switch 2', position: { x: 10, y: 0 }, config: {} },
+        ],
+        connections: [],
+        zones: [],
+      });
+
+    const diff = await server().get(`${API}/projects/${w.projectA1}/architecture/versions/diff?from=1&to=2`).set(architect.auth);
+    expect(diff.status).toBe(200);
+    expect(diff.body.elements).toEqual(
+      expect.arrayContaining([
+        { category: 'firewall', added: 0, removed: 1, changed: 0 },
+        { category: 'switch', added: 1, removed: 0, changed: 0 },
+      ]),
+    );
+  });
+
+  it('restaure une version ancienne : crée une NOUVELLE version, ne réécrase jamais l’historique', async () => {
+    const firewallModelId = await createModel('firewall');
+    const switchModelId = await createModel('switch');
+    const v1 = sampleDocument(firewallModelId, switchModelId);
+    await server().put(`${API}/projects/${w.projectA1}/architecture`).set(architect.auth).send(v1);
+    await server()
+      .put(`${API}/projects/${w.projectA1}/architecture`)
+      .set(architect.auth)
+      .send({ elements: [], connections: [], zones: [] });
+
+    const restore = await server().post(`${API}/projects/${w.projectA1}/architecture/versions/1/restore`).set(architect.auth);
+    expect(restore.status).toBe(201);
+    expect(restore.body.elements).toHaveLength(2);
+
+    const versions = await server().get(`${API}/projects/${w.projectA1}/architecture/versions`).set(architect.auth);
+    expect(versions.body.map((v: { number: number; restoredFromVersion: number | null }) => [v.number, v.restoredFromVersion])).toEqual([
+      [3, 1],
+      [2, null],
+      [1, null],
+    ]);
+
+    const current = await server().get(`${API}/projects/${w.projectA1}/architecture`).set(architect.auth);
+    expect(current.body.elements).toHaveLength(2);
+  });
+
+  it('une version d’un autre projet (portée, ADR 0006) répond 404', async () => {
+    const res = await server().get(`${API}/projects/${w.projectA2}/architecture/versions/1`).set(architect.auth);
+    expect(res.status).toBe(404);
+  });
+
+  it('l’ingénieur consulte l’historique mais ne peut pas restaurer', async () => {
+    const firewallModelId = await createModel('firewall');
+    const switchModelId = await createModel('switch');
+    await server().put(`${API}/projects/${w.projectA1}/architecture`).set(architect.auth).send(sampleDocument(firewallModelId, switchModelId));
+
+    const list = await server().get(`${API}/projects/${w.projectA1}/architecture/versions`).set(engineer.auth);
+    expect(list.status).toBe(200);
+    const restore = await server().post(`${API}/projects/${w.projectA1}/architecture/versions/1/restore`).set(engineer.auth);
+    expect(restore.status).toBe(403);
+  });
+});
+
 describe('permissions (ADR 0004) — l’ingénieur dimensionne, il ne conçoit pas', () => {
   it('l’ingénieur lit l’architecture mais ne peut pas la modifier', async () => {
     const read = await server().get(`${API}/projects/${w.projectA1}/architecture`).set(engineer.auth);
