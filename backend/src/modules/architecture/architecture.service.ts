@@ -191,7 +191,7 @@ export class ArchitectureService {
     if (modelIds.length > 0) {
       const found = await this.prisma.tenant.equipmentModel.findMany({
         where: { id: { in: modelIds }, organizationId: ctx.organizationId },
-        select: { id: true, name: true, reference: true, portCount: true, portType: true, throughputMbps: true, poeBudgetW: true, powerDrawW: true, rackUnits: true, indicativePrice: true, currency: true },
+        select: { id: true, name: true, reference: true, portCount: true, portType: true, throughputMbps: true, poeBudgetW: true, powerDrawW: true, rackUnits: true, indicativePrice: true, currency: true, licenseAnnualCost: true },
       });
       if (found.length !== modelIds.length) throw notFound('Modèle d’équipement');
       for (const model of found) {

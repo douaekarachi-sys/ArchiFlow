@@ -65,6 +65,8 @@ export const frozenModelSpecSchema = z.object({
   powerDrawW: z.number().int().min(0).optional(),
   indicativePrice: z.number().min(0).optional(),
   currency: z.string().length(3).optional(),
+  /** Coût de licence/support ANNUEL figé au moment du gel (EF-303) — distinct du prix matériel. */
+  licenseAnnualCost: z.number().min(0).optional(),
 });
 export type FrozenModelSpec = z.infer<typeof frozenModelSpecSchema>;
 

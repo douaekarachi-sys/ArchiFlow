@@ -37,6 +37,8 @@ export const createEquipmentModelSchema = z.object({
   indicativePrice: z.coerce.number().min(0).max(100_000_000).optional(),
   currency: z.string().trim().length(3).optional().or(z.literal('')),
   licenseInfo: z.string().trim().max(500).optional().or(z.literal('')),
+  /** Coût de licence/support ANNUEL (EF-303), distinct du prix matériel — absent si aucune licence. */
+  licenseAnnualCost: z.coerce.number().min(0).max(100_000_000).optional(),
   /** Jamais presente comme reelle (brief §3, Phase 3) : le seed la pose systematiquement. */
   isDemoData: z.boolean().optional(),
 });

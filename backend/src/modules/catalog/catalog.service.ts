@@ -26,6 +26,7 @@ const EQUIPMENT_VIEW = {
   indicativePrice: true,
   currency: true,
   licenseInfo: true,
+  licenseAnnualCost: true,
   availability: true,
   imageUrl: true,
   isDemoData: true,
@@ -153,6 +154,7 @@ export class CatalogService {
         indicativePrice: input.indicativePrice,
         currency: input.currency || null,
         licenseInfo: input.licenseInfo || null,
+        licenseAnnualCost: input.licenseAnnualCost,
         isDemoData: input.isDemoData ?? false,
       },
       select: EQUIPMENT_VIEW,
@@ -178,6 +180,7 @@ export class CatalogService {
         ...(input.indicativePrice !== undefined ? { indicativePrice: input.indicativePrice } : {}),
         ...(input.currency !== undefined ? { currency: input.currency || null } : {}),
         ...(input.licenseInfo !== undefined ? { licenseInfo: input.licenseInfo || null } : {}),
+        ...(input.licenseAnnualCost !== undefined ? { licenseAnnualCost: input.licenseAnnualCost } : {}),
       },
       select: EQUIPMENT_VIEW,
     });

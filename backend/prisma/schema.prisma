@@ -428,6 +428,8 @@ model EquipmentModel {
   indicativePrice Decimal?  @db.Decimal(12, 2)
   currency        String?   @db.Char(3)
   licenseInfo     String?
+  /// Coût de licence/support ANNUEL, distinct du prix matériel (EF-303) — null si aucune licence.
+  licenseAnnualCost Decimal? @db.Decimal(12, 2)
   availability    String?
   imageUrl        String?
   /// Caractéristiques extensibles sans migration (ajout d'une marque, d'un attribut).
