@@ -61,6 +61,15 @@ describe('RequestPage', () => {
     await userEvent.type(screen.getByLabelText('Nom du projet'), 'Nouveau siège Rabat');
     await userEvent.type(screen.getByLabelText('Localisation'), 'Rabat');
     await userEvent.click(screen.getByRole('button', { name: 'Suivant' }));
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ajouter un bâtiment' }));
+    await userEvent.type(screen.getByLabelText('Nom du bâtiment'), 'Bâtiment A');
+    await userEvent.type(screen.getByLabelText('Surface (m²)'), '500');
+    await userEvent.type(screen.getByLabelText('Étages'), '3');
+    await userEvent.click(screen.getByRole('button', { name: 'Ajouter un département' }));
+    await userEvent.type(screen.getByLabelText('Nom du département'), 'IT');
+    await userEvent.click(screen.getByRole('button', { name: 'Suivant' }));
+
     await userEvent.type(screen.getByLabelText('Employés'), '200');
     await userEvent.type(screen.getByLabelText('Expression libre du besoin'), 'Le besoin est le suivant : je veux du Wi-Fi pour 200 employés');
     await userEvent.click(screen.getByRole('button', { name: 'Suivant' }));
@@ -77,6 +86,8 @@ describe('RequestPage', () => {
         freeTextNeed: 'Le besoin est le suivant : je veux du Wi-Fi pour 200 employés',
         wifi: true,
         clientCompanyId: '33333333-3333-3333-3333-333333333333',
+        buildings: [{ name: 'Bâtiment A', areaM2: 500, floors: 3, description: null }],
+        departments: [{ name: 'IT', employees: null, workstations: null, location: null, notes: null }],
       }));
     });
 

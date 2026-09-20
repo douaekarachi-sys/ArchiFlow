@@ -196,7 +196,7 @@ aucune exigence du CDC. Numérotation proposée, à valider :
 | Réf. proposée | Exigence proposée | Priorité proposée | Lot proposé | Statut |
 |---|---|---|---|---|
 | EF-506 | Cycle de vie d'un projet piloté par une machine à états, avec transitions contrôlées par rôle, retours en arrière nommés et motivés. | Élevée | MVP | ✅ Phase 1 — `packages/shared/src/workflow/`, `ProjectsService.applyTransition`, dialogue de projet |
-| EF-507 | Portail client d'expression du besoin : formulaire multi-étapes, sauvegarde en brouillon, soumission. | Élevée | V1 | 🔨 Phase 2 — cadrage, capacité, réseau et sécurité structurés ; sauvegarde locale et transaction ProjectRequest livrées ; bâtiments/départements et reprise serveur à enrichir | `frontend/src/features/request/request-page.tsx`, `backend/src/modules/projects/projects.service.ts` — test `request-page.test.tsx` |
+| EF-507 | Portail client d'expression du besoin : formulaire multi-étapes, sauvegarde en brouillon, soumission. | Élevée | V1 | 🔨 T2 — cadrage, bâtiments/départements (`useFieldArray`), capacité, réseau et sécurité structurés ; sauvegarde en brouillon locale (par profil) et transaction ProjectRequest (buildings/departments inclus) livrées ; reprise de brouillon **côté serveur** (multi-appareil) sciemment différée — `updateRequestSchema` existe déjà côté `packages/shared` mais n'est câblé à aucune route ; à faire quand un besoin réel de reprise multi-appareil apparaît | `frontend/src/features/request/request-page.tsx`, `backend/src/modules/projects/projects.service.ts` — test `request-page.test.tsx` |
 | EF-508 | Consultation, commentaire et validation d'une version publiée par le client. | Moyenne | V1 | 🕓 Phase 11 |
 
 ### 4. Chatbot d'assistance client — hors périmètre initial

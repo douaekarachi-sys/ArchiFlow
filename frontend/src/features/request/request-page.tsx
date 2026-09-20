@@ -1,9 +1,17 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { EMPTY_NEED, createRequestSchema, type CreateRequestInput } from '@archiflow/shared';
 import { useMutation } from '@tanstack/react-query';
-import { CheckCircle2, FilePlus2, MapPin, NotebookPen, Server, ShieldCheck, Wifi } from 'lucide-react';
+import { Building2, CheckCircle2, FilePlus2, MapPin, NotebookPen, Plus, Server, ShieldCheck, Trash2, Users, Wifi } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
-import { useForm, type UseFormRegister, type UseFormRegisterReturn } from 'react-hook-form';
+import {
+  useFieldArray,
+  useForm,
+  type FieldArrayWithId,
+  type UseFormRegister,
+  type UseFormRegisterReturn,
+  type UseFormReturn,
+} from 'react-hook-form';
+import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 import { useSession } from '@/auth/session-store';
@@ -18,7 +26,7 @@ import { errorMessage, validationMessage } from '@/utils/errors';
 type RequestFormValues = z.input<typeof createRequestSchema>;
 type RequestField = keyof RequestFormValues;
 const draftKey = (profileId: string) => `archiflow:request-draft:${profileId}`;
-const steps = ['general', 'needs', 'technical'] as const;
+const steps = ['general', 'sites', 'needs', 'technical'] as const;
 
 /** Stockage indisponible (navigation privée, quota, environnement de test) : brouillon perdu, jamais un crash. */
 function readDraft(key: string): string | null {
@@ -41,6 +49,15 @@ function clearDraft(key: string): void {
   } catch {
     // Rien à faire si le stockage n'est déjà pas disponible.
   }
+}
+
+/**
+ * Un champ jamais touché (valeur par défaut `null`, par ex. après reprise d'un brouillon ou
+ * ajout d'une ligne de tableau) transmet `null` directement à `setValueAs`, pas la chaîne vide :
+ * `Number(null)` vaut 0, il faut donc écarter `null`/`undefined` en plus de `''`.
+ */
+function toNullableNumber(value: unknown): number | null {
+  return value === '' || value === null || value === undefined ? null : Number(value);
 }
 
 export function RequestPage() {
@@ -70,6 +87,9 @@ export function RequestPage() {
     return () => subscription.unsubscribe();
   }, [form, profile]);
 
+  const buildings = useFieldArray({ control: form.control, name: 'buildings' });
+  const departments = useFieldArray({ control: form.control, name: 'departments' });
+
   const mutation = useMutation({ mutationFn: (values: CreateRequestInput) => projectsApi.create(values) });
   const onSubmit = form.handleSubmit(async (values) => {
     if (!profile?.clientCompanyId) return;
@@ -80,12 +100,13 @@ export function RequestPage() {
   const next = async () => {
     const fields: Array<RequestField[]> = [
       ['name', 'location', 'projectType', 'siteCount'],
+      ['buildings', 'departments'],
       ['totalEmployees', 'workstationCount', 'concurrentUsers', 'serverCount', 'freeTextNeed'],
       ['networkNotes', 'securityNotes', 'vendorNotes'],
     ];
     if (await form.trigger(fields[step])) setStep((current) => Math.min(current + 1, steps.length - 1));
   };
-  const numberRegister = (name: RequestField) => form.register(name, { setValueAs: (value) => (value === '' ? null : Number(value)) });
+  const numberRegister = (name: RequestField) => form.register(name, { setValueAs: toNullableNumber });
 
   if (!profile) return null;
 
@@ -106,12 +127,16 @@ export function RequestPage() {
             <Field label={t('request.fields.siteCount')}><Input type="number" min="1" {...numberRegister('siteCount')} /></Field>
             <Field label={t('request.fields.description')} className="md:col-span-2"><textarea rows={4} className="w-full rounded-field border border-line bg-inset px-3 py-2 text-sm text-fg" placeholder={t('request.fields.descriptionPlaceholder')} {...form.register('description')} /></Field>
           </div>}
-          {step === 1 && <div className="flex flex-col gap-5">
+          {step === 1 && <div className="flex flex-col gap-6">
+            <BuildingsSection form={form} fields={buildings.fields} onAdd={() => buildings.append({ name: '', areaM2: null, floors: null, description: null })} onRemove={buildings.remove} t={t} />
+            <DepartmentsSection form={form} fields={departments.fields} onAdd={() => departments.append({ name: '', employees: null, workstations: null, location: null, notes: null })} onRemove={departments.remove} t={t} />
+          </div>}
+          {step === 2 && <div className="flex flex-col gap-5">
             <div className="grid gap-4 md:grid-cols-3"><MetricField label={t('request.fields.employees')} register={numberRegister('totalEmployees')} /><MetricField label={t('request.fields.workstations')} register={numberRegister('workstationCount')} /><MetricField label={t('request.fields.concurrentUsers')} register={numberRegister('concurrentUsers')} /></div>
             <div className="grid gap-4 md:grid-cols-3"><MetricField label={t('request.fields.servers')} register={numberRegister('serverCount')} /><MetricField label={t('request.fields.wifiApCount')} register={numberRegister('wifiApCount')} /><Field label={t('request.fields.storage')}><Input {...form.register('storageNeed')} /></Field></div>
             <Field label={t('request.fields.freeText')} error={validationMessage(t, errors.freeTextNeed?.message)}><textarea rows={5} className="w-full rounded-field border border-line bg-inset px-3 py-2 text-sm text-fg" placeholder={t('request.fields.freeTextPlaceholder')} {...form.register('freeTextNeed')} /></Field>
           </div>}
-          {step === 2 && <div className="flex flex-col gap-5">
+          {step === 3 && <div className="flex flex-col gap-5">
             <ToggleGroup icon={<Wifi />} title={t('request.fields.networkTitle')} items={['wifi', 'voip', 'cctv', 'internetAccess', 'vpn', 'remoteSites', 'lan', 'wan', 'dmz']} register={form.register} t={t} />
             <ToggleGroup icon={<ShieldCheck />} title={t('request.fields.securityTitle')} items={['firewall', 'idsIps', 'segmentation', 'vlan', 'accessControl', 'haSecurity']} register={form.register} t={t} />
             <div className="grid gap-4 md:grid-cols-2"><Field label={t('request.fields.networkNotes')}><Input {...form.register('networkNotes')} /></Field><Field label={t('request.fields.securityNotes')}><Input {...form.register('securityNotes')} /></Field></div>
@@ -127,6 +152,78 @@ export function RequestPage() {
 
 function MetricField({ label, register }: { label: string; register: UseFormRegisterReturn }) {
   return <Field label={label}><Input type="number" min="0" {...register} /></Field>;
+}
+
+function BuildingsSection({
+  form,
+  fields,
+  onAdd,
+  onRemove,
+  t,
+}: {
+  form: UseFormReturn<RequestFormValues>;
+  fields: FieldArrayWithId<RequestFormValues, 'buildings'>[];
+  onAdd: () => void;
+  onRemove: (index: number) => void;
+  t: TFunction;
+}) {
+  const numberField = (index: number, name: 'areaM2' | 'floors') =>
+    form.register(`buildings.${index}.${name}`, { setValueAs: toNullableNumber });
+  const errors = form.formState.errors.buildings;
+  return (
+    <fieldset className="flex flex-col gap-3 rounded-card border border-line p-4">
+      <legend className="flex items-center gap-2 px-2 text-sm font-medium text-fg"><Building2 className="size-4" />{t('request.fields.buildingsTitle')}</legend>
+      <p className="text-xs text-fg-muted">{t('request.fields.buildingsHint')}</p>
+      {fields.length === 0 && <p className="text-sm text-fg-muted">{t('request.fields.noBuildings')}</p>}
+      {fields.map((field, index) => (
+        <div key={field.id} className="grid items-end gap-3 rounded-field border border-line bg-inset p-3 sm:grid-cols-[1fr_140px_100px_auto]">
+          <Field label={t('request.fields.buildingName')} error={validationMessage(t, errors?.[index]?.name?.message)}>
+            <Input {...form.register(`buildings.${index}.name`)} />
+          </Field>
+          <Field label={t('request.fields.areaM2')}><Input type="number" min="0" {...numberField(index, 'areaM2')} /></Field>
+          <Field label={t('request.fields.floors')}><Input type="number" min="0" {...numberField(index, 'floors')} /></Field>
+          <Button type="button" variant="ghost" size="icon-sm" icon={<Trash2 />} aria-label={t('common.remove')} onClick={() => onRemove(index)} />
+        </div>
+      ))}
+      <Button type="button" variant="secondary" size="sm" icon={<Plus />} className="self-start" onClick={onAdd}>{t('request.fields.addBuilding')}</Button>
+    </fieldset>
+  );
+}
+
+function DepartmentsSection({
+  form,
+  fields,
+  onAdd,
+  onRemove,
+  t,
+}: {
+  form: UseFormReturn<RequestFormValues>;
+  fields: FieldArrayWithId<RequestFormValues, 'departments'>[];
+  onAdd: () => void;
+  onRemove: (index: number) => void;
+  t: TFunction;
+}) {
+  const numberField = (index: number, name: 'employees' | 'workstations') =>
+    form.register(`departments.${index}.${name}`, { setValueAs: toNullableNumber });
+  const errors = form.formState.errors.departments;
+  return (
+    <fieldset className="flex flex-col gap-3 rounded-card border border-line p-4">
+      <legend className="flex items-center gap-2 px-2 text-sm font-medium text-fg"><Users className="size-4" />{t('request.fields.departmentsTitle')}</legend>
+      <p className="text-xs text-fg-muted">{t('request.fields.departmentsHint')}</p>
+      {fields.length === 0 && <p className="text-sm text-fg-muted">{t('request.fields.noDepartments')}</p>}
+      {fields.map((field, index) => (
+        <div key={field.id} className="grid items-end gap-3 rounded-field border border-line bg-inset p-3 sm:grid-cols-[1fr_140px_140px_auto]">
+          <Field label={t('request.fields.departmentName')} error={validationMessage(t, errors?.[index]?.name?.message)}>
+            <Input {...form.register(`departments.${index}.name`)} />
+          </Field>
+          <Field label={t('request.fields.employees')}><Input type="number" min="0" {...numberField(index, 'employees')} /></Field>
+          <Field label={t('request.fields.workstations')}><Input type="number" min="0" {...numberField(index, 'workstations')} /></Field>
+          <Button type="button" variant="ghost" size="icon-sm" icon={<Trash2 />} aria-label={t('common.remove')} onClick={() => onRemove(index)} />
+        </div>
+      ))}
+      <Button type="button" variant="secondary" size="sm" icon={<Plus />} className="self-start" onClick={onAdd}>{t('request.fields.addDepartment')}</Button>
+    </fieldset>
+  );
 }
 
 function ToggleGroup({ icon, title, items, register, t }: { icon: ReactNode; title: string; items: string[]; register: UseFormRegister<RequestFormValues>; t: (key: string) => string }) {
