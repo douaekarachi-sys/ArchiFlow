@@ -9,3 +9,4 @@ export * from './organization/client-company.schema.js';
 export * from './projects/project.schema.js';
 export * from './requests/request.schema.js';
 export * from './catalog/catalog.schema.js';
+export * from './sizing/engineering-sizing.js';

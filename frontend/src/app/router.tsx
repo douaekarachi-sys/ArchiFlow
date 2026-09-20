@@ -24,6 +24,12 @@ const DesignerPage = lazy(() => import('@/features/designer/designer-page').then
 const UsersPage = lazy(() => import('@/features/admin/users-page').then((m) => ({ default: m.UsersPage })));
 const AdminRequestsPage = lazy(() => import('@/features/admin/requests-page').then((m) => ({ default: m.AdminRequestsPage })));
 const CatalogPage = lazy(() => import('@/features/admin/catalog-page').then((m) => ({ default: m.CatalogPage })));
+const needAnalysis = () => import('@/features/engineer/need-analysis-page');
+const NeedAnalysisPickerPage = lazy(() => needAnalysis().then((m) => ({ default: m.NeedAnalysisPickerPage })));
+const NeedAnalysisDetailPage = lazy(() => needAnalysis().then((m) => ({ default: m.NeedAnalysisDetailPage })));
+const sizing = () => import('@/features/engineer/sizing-page');
+const SizingPickerPage = lazy(() => sizing().then((m) => ({ default: m.SizingPickerPage })));
+const SizingDetailPage = lazy(() => sizing().then((m) => ({ default: m.SizingDetailPage })));
 // `import.meta.env.DEV` est remplacé statiquement à la build : en production, Rollup élimine
 // entièrement cet import dynamique — la page de référence des composants n'existe pas dans
 // dist/, pas seulement hors des routes.
@@ -74,6 +80,17 @@ const portalRoute = (role: Role): RouteObject => ({
                 { path: 'users', element: <Lazy><UsersPage /></Lazy> },
                 { path: 'requests', element: <Lazy><AdminRequestsPage /></Lazy> },
                 { path: 'catalog', element: <Lazy><CatalogPage /></Lazy> },
+              ]
+            : []),
+          // Outils par-projet du portail ingénieur (EF-202, Phase 4) : comme le concepteur 2D,
+          // ils n'existent qu'appliqués à un projet — un sélecteur les précède depuis le menu.
+          ...(role === 'ENGINEER'
+            ? [
+                { path: 'catalog', element: <Lazy><CatalogPage /></Lazy> },
+                { path: 'need-analysis', element: <Lazy><NeedAnalysisPickerPage /></Lazy> },
+                { path: 'projects/:id/need-analysis', element: <Lazy><NeedAnalysisDetailPage /></Lazy> },
+                { path: 'sizing', element: <Lazy><SizingPickerPage /></Lazy> },
+                { path: 'projects/:id/sizing', element: <Lazy><SizingDetailPage /></Lazy> },
               ]
             : []),
         ]),

@@ -14,12 +14,14 @@ import { ConfirmDestructive } from '@/components/ui/confirm-destructive';
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { useCan } from '@/permissions/portals';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states';
 import { errorMessage, validationMessage } from '@/utils/errors';
 
 export function CatalogPage() {
   const { t } = useTranslation();
+  const canManage = useCan('catalog.manage');
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<'all' | EquipmentCategory>('all');
   const query = useQuery({
@@ -41,7 +43,7 @@ export function CatalogPage() {
             <span className="sr-only">{t('catalog.search')}</span>
             <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t('catalog.search')} className="min-w-0 flex-1 bg-transparent text-sm outline-none" />
           </label>
-          <CreateModelDialog />
+          {canManage && <CreateModelDialog />}
         </div>
       </header>
 
@@ -68,14 +70,20 @@ export function CatalogPage() {
         <EmptyState icon={<Cpu />} title={t('catalog.empty')} description={t('catalog.emptyHint')} />
       ) : (
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {query.data.data.map((equipment) => <EquipmentCard key={equipment.id} equipment={equipment} />)}
+          {query.data.data.map((equipment) => <EquipmentCard key={equipment.id} equipment={equipment} canManage={canManage} />)}
         </div>
       )}
     </div>
   );
 }
 
-function EquipmentCard({ equipment }: { equipment: Awaited<ReturnType<typeof catalogApi.equipment>>['data'][number] }) {
+function EquipmentCard({
+  equipment,
+  canManage,
+}: {
+  equipment: Awaited<ReturnType<typeof catalogApi.equipment>>['data'][number];
+  canManage: boolean;
+}) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const archive = useMutation({
@@ -102,19 +110,21 @@ function EquipmentCard({ equipment }: { equipment: Awaited<ReturnType<typeof cat
         <span>{t('catalog.power')}: <strong className="text-[hsl(var(--dashboard-text))]">{equipment.powerDrawW ? `${equipment.powerDrawW} W` : '-'}</strong></span>
         <span>{equipment.isDemoData ? t('catalog.demo') : (equipment.availability ?? '-')}</span>
       </div>
-      <div className="mt-3 flex items-center justify-between border-t border-[hsl(var(--dashboard-line))] pt-3">
-        {equipment.archivedAt ? (
-          <Badge tone="neutral">{t('catalog.archived')}</Badge>
-        ) : (
-          <ConfirmDestructive
-            action={t('catalog.archiveAction')}
-            target={equipment.name}
-            consequence={t('catalog.archiveConsequence')}
-            trigger={<Button variant="ghost" size="sm" icon={<Archive />}>{t('catalog.archiveAction')}</Button>}
-            onConfirm={() => archive.mutateAsync()}
-          />
-        )}
-      </div>
+      {(equipment.archivedAt || canManage) && (
+        <div className="mt-3 flex items-center justify-between border-t border-[hsl(var(--dashboard-line))] pt-3">
+          {equipment.archivedAt ? (
+            <Badge tone="neutral">{t('catalog.archived')}</Badge>
+          ) : (
+            <ConfirmDestructive
+              action={t('catalog.archiveAction')}
+              target={equipment.name}
+              consequence={t('catalog.archiveConsequence')}
+              trigger={<Button variant="ghost" size="sm" icon={<Archive />}>{t('catalog.archiveAction')}</Button>}
+              onConfirm={() => archive.mutateAsync()}
+            />
+          )}
+        </div>
+      )}
     </article>
   );
 }

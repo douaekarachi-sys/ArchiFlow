@@ -95,7 +95,7 @@ Statut :
 | Réf. | Exigence | Priorité | Lot | Statut | Où c'est implémenté |
 |---|---|---|---|---|---|
 | EF-201 | Catalogue de composants référençant des marques et modèles réels (fabricant, référence, caractéristiques techniques). | Élevée | MVP | ✅ T1 — lecture (liste paginée, recherche, filtre par catégorie, portée locataire) et écriture (fabricant/marque idempotents, modèle, modification) testées ; seed 6 fabricants réels, 22 modèles DEMO DATA | `backend/src/modules/catalog/`, `frontend/src/features/admin/catalog-page.tsx` — tests `backend/test/catalog.e2e-spec.ts` |
-| EF-202 | Calcul automatique de capacité : bande passante, nombre de ports, puissance électrique, charge estimée. | Élevée | V1 ⚠ | ✅ T4 | `packages/shared/src/architecture/validation.ts` (`checkCapacity`) — ports disponibles vs utilisés, budget PoE vs consommation des équipements reliés, modèle non renseigné ; branché en direct dans le designer |
+| EF-202 | Calcul automatique de capacité : bande passante, nombre de ports, puissance électrique, charge estimée. | Élevée | V1 ⚠ | ✅ T4 | `packages/shared/src/architecture/validation.ts` (`checkCapacity`, capacité d'une architecture déjà posée) ; `packages/shared/src/sizing/engineering-sizing.ts` (`calculateSizing`, proposition chiffrée à partir du besoin client — ports, switches, bande passante, points d'accès, puissance) branché sur le portail ingénieur, `frontend/src/features/engineer/sizing-page.tsx` |
 | EF-203 | Vérification automatique de compatibilité entre équipements (interfaces, protocoles, versions). | Élevée | V1 ⚠ | ✅ T4 | `packages/shared/src/architecture/validation.ts` (`checkCompatibility`) — type de port vs type de lien (fibre), catégorie vs lien sans fil, débit du lien vs débit supporté |
 | EF-204 | Détection des anomalies de conception : boucles, sous-dimensionnement, points uniques de défaillance (SPOF). | Moyenne | V2 ⚠ | 🔨 T4 | `packages/shared/src/architecture/validation.ts` (`checkGraphAnomalies`) — boucles (DFS), SPOF (points d'articulation, Tarjan), éléments isolés ; sous-dimensionnement couvert par EF-202. Anomalies physiques (Phase 6, racks/étages) hors périmètre : pas encore de construction physique |
 | EF-205 | Génération de diagrammes détaillés : schéma logique, schéma physique, plan d'adressage. | Élevée | MVP (§3) | 🕓 Phases 5, 6 et 8 | — |
@@ -117,6 +117,17 @@ Statut :
 > à la sauvegarde (deuxième moitié de l'ADR 0003 — « une sauvegarde peut être refusée même si
 > l'interface affichait compatible ») n'est pas encore câblée sur `PUT /projects/:id/architecture` ;
 > `validateArchitecture` n'y est pas encore appelée. À faire avant de clore l'ADR 0003.
+>
+> **Portail ingénieur (20/09/2026).** Le portail était vide : « Catalogue », « Analyse du
+> besoin » et « Calculs de capacité » restaient des entrées de menu grisées (« Phase 4 »), alors
+> que le rôle qui dimensionne dans le CDC n'avait aucun outil. Corrections : `catalog.read` (déjà
+> accordé à l'ingénieur par la matrice de permissions) donne maintenant un accès réel en
+> consultation (`/engineer/catalog`, actions d'administration masquées via `catalog.manage`) ;
+> « Analyse du besoin » affiche le besoin client en lecture pour un projet affecté
+> (`need-analysis-page.tsx`, réutilise `RequestOverview` du détail projet) ; « Calculs de
+> capacité » expose `calculateSizing` avec, pour chaque carte, la trace complète du calcul
+> (`sizing-page.tsx`) — jamais un chiffre seul. Les deux derniers sont des outils **par projet**
+> (comme le concepteur 2D) : un sélecteur de projet précède l'écran de calcul.
 
 ---
 

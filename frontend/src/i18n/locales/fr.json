@@ -292,6 +292,28 @@
       "singlePointOfFailure": "Point de défaillance unique : sa perte isolerait une partie du réseau, faute de chemin redondant."
     }
   },
+  "sizing": {
+    "ports": {
+      "formula": "{{workstations}} postes + {{growthPercent}}% de croissance = {{totalPorts}} ports → {{switchCount}} switches {{switchCapacity}} ports",
+      "noData": "Aucun poste renseigné dans le besoin : le calcul de ports ne peut pas démarrer."
+    },
+    "bandwidth": {
+      "formula": "{{workstations}} postes × {{perWorkstation}} Mb/s recommandés = {{totalMbps}} Mb/s de bande passante agrégée",
+      "noData": "Aucun poste renseigné dans le besoin : la bande passante ne peut pas être estimée."
+    },
+    "accessPoints": {
+      "formula": "{{users}} utilisateurs ÷ {{perAccessPoint}} par point d'accès = {{accessPoints}} points d'accès (arrondi supérieur)",
+      "notRequested": "Wi-Fi non demandé dans le besoin client : aucun point d'accès proposé.",
+      "noData": "Wi-Fi demandé, mais ni effectif ni nombre de postes renseignés : le calcul ne peut pas démarrer."
+    },
+    "power": {
+      "workstations": "{{count}} postes × {{unitWatts}} W = {{subtotalWatts}} W",
+      "switches": "{{count}} switches × {{unitWatts}} W = {{subtotalWatts}} W",
+      "accessPoints": "{{count}} points d'accès × {{unitWatts}} W = {{subtotalWatts}} W",
+      "servers": "{{count}} serveurs × {{unitWatts}} W = {{subtotalWatts}} W",
+      "noData": "Aucun équipement à dimensionner : la puissance électrique ne peut pas être estimée."
+    }
+  },
   "errors": {
     "INVALID_CREDENTIALS": "Identifiants incorrects",
     "UNAUTHENTICATED": "Votre session a expiré. Reconnectez-vous.",
@@ -385,6 +407,8 @@
       ,"chooseUser": "Choisir un utilisateur"
       ,"assign": "Affecter"
       ,"openDesigner": "Ouvrir le concepteur"
+      ,"openNeedAnalysis": "Analyser le besoin"
+      ,"openSizing": "Calculer le dimensionnement"
     },
     "count_one": "{{count}} projet",
     "count_other": "{{count}} projets"
@@ -461,6 +485,30 @@
   "desktopOnly": {
     "title": "Écran trop étroit",
     "description": "Le designer d'architecture est conçu pour un écran d'ordinateur. Agrandissez la fenêtre ou utilisez un poste de travail."
+  },
+  "engineer": {
+    "needAnalysis": {
+      "pickerDescription": "Choisissez un projet affecté pour consulter le besoin exprimé par le client.",
+      "detailDescription": "Besoin exprimé par le client, en lecture seule — c'est le point de départ du dimensionnement."
+    },
+    "sizing": {
+      "pickerDescription": "Choisissez un projet affecté pour calculer sa proposition de dimensionnement.",
+      "detailDescription": "Proposition de dimensionnement calculée à partir du besoin exprimé par le client (EF-202).",
+      "ports": {
+        "title": "Ports et switches",
+        "subtitle": "Dimensionnement",
+        "valueLabel_one": "switch recommandé",
+        "valueLabel_other": "switches recommandés"
+      },
+      "bandwidth": { "title": "Bande passante", "subtitle": "Dimensionnement" },
+      "accessPoints": {
+        "title": "Points d'accès Wi-Fi",
+        "subtitle": "Dimensionnement",
+        "valueLabel_one": "point d'accès recommandé",
+        "valueLabel_other": "points d'accès recommandés"
+      },
+      "power": { "title": "Puissance électrique", "subtitle": "Dimensionnement" }
+    }
   },
   "equipment": {
     "category": {

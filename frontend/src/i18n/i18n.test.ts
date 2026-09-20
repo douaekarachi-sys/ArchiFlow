@@ -68,6 +68,20 @@ describe('traductions (ENF-03)', () => {
     expect(keys.filter((k) => !has(k))).toEqual([]);
   });
 
+  it('chaque code de dimensionnement (EF-202) est une clé traduite', () => {
+    // Même piège que pour `validation.*` : le domaine (packages/shared) émet une clé i18n
+    // stable (`Anomaly.code`, `SizingStep.key`), jamais un texte en dur — mais rien ne garantit
+    // que la traduction existe si elle n'est vérifiée qu'à l'usage. Voir la correction T4.
+    // `sizing\.\w+\.` (deux segments minimum) exclut les permissions RBAC `sizing.read` / `sizing.edit`,
+    // qui partagent le préfixe sans être des clés i18n.
+    const sharedSrc = resolve(src, '..', '..', 'packages', 'shared', 'src');
+    const keys = sourceFiles(sharedSrc).flatMap((f) =>
+      [...readFileSync(f, 'utf8').matchAll(/'(sizing\.\w+\.[\w.]+)'/g)].map((m) => m[1]!),
+    );
+    expect(keys.length).toBeGreaterThan(5);
+    expect(keys.filter((k) => !has(k))).toEqual([]);
+  });
+
   it('chaque code d’erreur de l’API a un message', () => {
     const backendErrors = readFileSync(resolve(src, '..', '..', 'backend', 'src', 'common', 'errors', 'app-error.ts'), 'utf8');
     const block = backendErrors.slice(backendErrors.indexOf('ERROR_CODES'), backendErrors.indexOf('} as const'));

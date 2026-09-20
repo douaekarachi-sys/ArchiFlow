@@ -1,10 +1,10 @@
-import { ArrowRight, Building2, History, LayoutPanelTop, Network, ShieldCheck, Undo2, UserPlus, Users } from 'lucide-react';
+import { ArrowRight, Calculator, ClipboardList, History, LayoutPanelTop, Undo2, UserPlus } from 'lucide-react';
 import { ROLE_HOME } from '@archiflow/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
-import type { AvailableTransition, ProjectRequest } from '@/api/endpoints';
+import type { AvailableTransition } from '@/api/endpoints';
 import { projectsApi, usersApi } from '@/api/endpoints';
 import { ProjectStatusBadge } from '@/components/patterns/project-status';
 import { Alert } from '@/components/ui/alert';
@@ -15,6 +15,7 @@ import { ErrorState, Skeleton } from '@/components/ui/states';
 import { useApplyTransition, useAvailableTransitions, useProject, useProjectHistory } from '@/hooks/use-projects';
 import { useSession } from '@/auth/session-store';
 import { errorMessage } from '@/utils/errors';
+import { RequestOverview } from './request-overview';
 
 const dateTime = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
 
@@ -68,9 +69,21 @@ export function ProjectDetailDialog({ projectId, onClose }: { projectId: string 
                 </div>
               </div>
               {role && role !== 'CLIENT' && (
-                <Button asChild variant="secondary" size="sm" icon={<LayoutPanelTop />} className="self-start">
-                  <Link to={`${ROLE_HOME[role]}/projects/${projectId}/design`}>{t('projects.detail.openDesigner')}</Link>
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button asChild variant="secondary" size="sm" icon={<LayoutPanelTop />}>
+                    <Link to={`${ROLE_HOME[role]}/projects/${projectId}/design`}>{t('projects.detail.openDesigner')}</Link>
+                  </Button>
+                  {role === 'ENGINEER' && (
+                    <>
+                      <Button asChild variant="secondary" size="sm" icon={<ClipboardList />}>
+                        <Link to={`${ROLE_HOME[role]}/projects/${projectId}/need-analysis`}>{t('projects.detail.openNeedAnalysis')}</Link>
+                      </Button>
+                      <Button asChild variant="secondary" size="sm" icon={<Calculator />}>
+                        <Link to={`${ROLE_HOME[role]}/projects/${projectId}/sizing`}>{t('projects.detail.openSizing')}</Link>
+                      </Button>
+                    </>
+                  )}
+                </div>
               )}
               <RequestOverview request={project.data.request} />
               {role === 'ADMIN' && <AssignmentActions projectId={projectId} />}
@@ -99,23 +112,6 @@ function AssignmentActions({ projectId }: { projectId: string }) {
   });
   const candidates = users.data?.data ?? [];
   return <section className="flex flex-col gap-3 rounded-card border border-line bg-inset p-4"><h3 className="flex items-center gap-2 text-sm font-semibold text-fg"><UserPlus className="size-4 text-primary" />{t('projects.detail.assignTitle')}</h3><div className="grid gap-3 sm:grid-cols-[170px_1fr_auto]"><select aria-label={t('projects.detail.assignRole')} className="h-9 rounded-field border border-line bg-surface px-2 text-sm text-fg" value={role} onChange={(event) => { setRole(event.target.value as typeof role); setUserId(''); }}><option value="ENGINEER">{t('roles.ENGINEER')}</option><option value="ARCHITECT">{t('roles.ARCHITECT')}</option><option value="PROJECT_MANAGER">{t('roles.PROJECT_MANAGER')}</option><option value="SALES">{t('roles.SALES')}</option></select><select aria-label={t('projects.detail.assignUser')} className="h-9 rounded-field border border-line bg-surface px-2 text-sm text-fg" value={userId} onChange={(event) => setUserId(event.target.value)} disabled={users.isPending}><option value="">{users.isPending ? t('common.loading') : t('projects.detail.chooseUser')}</option>{candidates.map((user) => <option key={user.id} value={user.id}>{user.firstName} {user.lastName}</option>)}</select><Button size="sm" icon={<UserPlus />} disabled={!userId} loading={assign.isPending} onClick={() => void assign.mutateAsync()}>{t('projects.detail.assign')}</Button></div>{users.isError && <Alert tone="critical">{t('errors.INTERNAL')}</Alert>}{assign.isError && <Alert tone="critical">{errorMessage(t, assign.error)}</Alert>}</section>;
-}
-
-function RequestOverview({ request }: { request: ProjectRequest | null }) {
-  const { t } = useTranslation();
-  if (!request) return <Alert tone="info">{t('projects.detail.noRequest')}</Alert>;
-  const yesNo = (value: boolean | null) => value === true ? t('common.yes') : value === false ? t('common.no') : t('common.none');
-  return <section className="flex flex-col gap-4 rounded-card border border-line bg-inset p-4">
-    <div className="flex items-center justify-between gap-3"><h3 className="flex items-center gap-2 text-sm font-semibold text-fg"><Network className="size-4 text-primary" />{t('projects.detail.requestTitle')}</h3><span className="text-xs text-fg-muted">{request.location ?? t('common.none')}</span></div>
-    <div className="grid gap-3 text-sm sm:grid-cols-3"><RequestMetric icon={<Users />} label={t('request.fields.employees')} value={request.totalEmployees ?? '-'} /><RequestMetric icon={<Users />} label={t('request.fields.workstations')} value={request.workstationCount ?? '-'} /><RequestMetric icon={<Network />} label={t('request.fields.siteCount')} value={request.siteCount ?? '-'} /></div>
-    <div className="grid gap-3 text-sm sm:grid-cols-2"><div className="flex items-center justify-between border-t border-line pt-2"><span className="text-fg-secondary">{t('request.fields.wifi')}</span><span className="font-medium text-fg">{yesNo(request.wifi)}</span></div><div className="flex items-center justify-between border-t border-line pt-2"><span className="text-fg-secondary">{t('request.fields.vpn')}</span><span className="font-medium text-fg">{yesNo(request.vpn)}</span></div><div className="flex items-center justify-between border-t border-line pt-2"><span className="text-fg-secondary">{t('request.fields.firewall')}</span><span className="font-medium text-fg">{yesNo(request.firewall)}</span></div><div className="flex items-center justify-between border-t border-line pt-2"><span className="text-fg-secondary">{t('request.fields.vlan')}</span><span className="font-medium text-fg">{yesNo(request.vlan)}</span></div></div>
-    {(request.buildings.length > 0 || request.departments.length > 0) && <div className="grid gap-3 border-t border-line pt-3 sm:grid-cols-2"><div><h4 className="mb-2 flex items-center gap-2 text-xs font-semibold text-fg"><Building2 className="size-3.5" />{t('projects.detail.buildings')}</h4><ul className="flex flex-col gap-1 text-xs text-fg-secondary">{request.buildings.map((building) => <li key={building.id}>{building.name}{building.floors ? ` · ${building.floors} ${t('projects.detail.floors')}` : ''}</li>)}</ul></div><div><h4 className="mb-2 flex items-center gap-2 text-xs font-semibold text-fg"><ShieldCheck className="size-3.5" />{t('projects.detail.departments')}</h4><ul className="flex flex-col gap-1 text-xs text-fg-secondary">{request.departments.map((department) => <li key={department.id}>{department.name}{department.employees ? ` · ${department.employees} ${t('request.fields.employees').toLowerCase()}` : ''}</li>)}</ul></div></div>}
-    {request.freeTextNeed && <p className="border-t border-line pt-3 text-sm text-fg-secondary">{request.freeTextNeed}</p>}
-  </section>;
-}
-
-function RequestMetric({ icon, label, value }: { icon: ReactNode; label: string; value: number | string }) {
-  return <div className="flex items-center gap-2 rounded-field border border-line bg-surface p-2.5"><span className="text-primary">{icon}</span><span className="min-w-0"><span className="block truncate text-xs text-fg-muted">{label}</span><strong className="text-fg">{value}</strong></span></div>;
 }
 
 function TransitionActions({ projectId }: { projectId: string }) {

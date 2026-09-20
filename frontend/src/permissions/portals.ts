@@ -94,9 +94,11 @@ export const PORTAL_NAV: Record<Role, RoleNav> = {
     group: {
       key: 'sizingGroup',
       items: [
-        { key: 'needAnalysis', icon: ClipboardList, phase: 4 },
-        { key: 'sizing', icon: Calculator, phase: 4 },
-        { key: 'catalog', icon: BookOpen, phase: 4 },
+        // Outils par-projet (comme le concepteur 2D) : la destination est un sélecteur de
+        // projet, pas un écran unique — voir router.tsx.
+        { key: 'needAnalysis', icon: ClipboardList, path: '/engineer/need-analysis' },
+        { key: 'sizing', icon: Calculator, path: '/engineer/sizing' },
+        { key: 'catalog', icon: BookOpen, path: '/engineer/catalog' },
       ],
     },
   },
