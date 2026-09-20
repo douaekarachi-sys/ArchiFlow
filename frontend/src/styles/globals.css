@@ -9,7 +9,10 @@
 @theme inline {
   --color-*: initial;
 
-  --color-base: hsl(var(--bg-base));
+  /* « page », pas « base » : --text-base (échelle typographique, plus bas) générerait sinon
+     une classe `text-base` en collision — Tailwind ne peut pas choisir entre taille et couleur,
+     et la couleur gagnait silencieusement partout où `text-base` ne servait qu'à la taille. */
+  --color-page: hsl(var(--bg-base));
   --color-surface: hsl(var(--bg-surface));
   --color-elevated: hsl(var(--bg-elevated));
   --color-inset: hsl(var(--bg-inset));
@@ -23,6 +26,7 @@
   --color-primary: hsl(var(--primary));
   --color-primary-hover: hsl(var(--primary-hover));
   --color-primary-active: hsl(var(--primary-active));
+  --color-primary-soft: hsl(var(--primary-soft));
   --color-primary-text: hsl(var(--primary-text));
   --color-primary-solid: hsl(var(--primary-solid));
   --color-primary-solid-hover: hsl(var(--primary-solid-hover));
@@ -32,16 +36,30 @@
 
   --color-success: hsl(var(--success));
   --color-warning: hsl(var(--warning));
+  --color-high: hsl(var(--high));
   --color-critical: hsl(var(--critical));
   --color-info: hsl(var(--info));
   --color-success-text: hsl(var(--success-text));
   --color-warning-text: hsl(var(--warning-text));
+  --color-high-text: hsl(var(--high-text));
   --color-critical-text: hsl(var(--critical-text));
   --color-info-text: hsl(var(--info-text));
   --color-danger-solid: hsl(var(--danger-solid));
   --color-danger-solid-hover: hsl(var(--danger-solid-hover));
   --color-danger-solid-active: hsl(var(--danger-solid-active));
   --color-on-solid: hsl(var(--on-solid));
+
+  --color-auth-bg-start: hsl(var(--auth-bg-start));
+  --color-auth-bg-end: hsl(var(--auth-bg-end));
+  --color-auth-glass: hsl(var(--auth-glass));
+  --color-auth-glass-border: hsl(var(--auth-glass-border));
+  --color-auth-text: hsl(var(--auth-text));
+  --color-auth-text-muted: hsl(var(--auth-text-muted));
+  --color-auth-panel-text: hsl(var(--auth-panel-text));
+  --color-auth-panel-text-muted: hsl(var(--auth-panel-text-muted));
+  --color-auth-led-online: hsl(var(--auth-led-online));
+  --color-auth-led-activity: hsl(var(--auth-led-activity));
+  --color-auth-fiber-glow: hsl(var(--auth-fiber-glow));
 
   --color-cat-firewall: hsl(var(--cat-firewall));
   --color-cat-router: hsl(var(--cat-router));

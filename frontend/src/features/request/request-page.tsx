@@ -20,6 +20,29 @@ type RequestField = keyof RequestFormValues;
 const draftKey = (profileId: string) => `archiflow:request-draft:${profileId}`;
 const steps = ['general', 'needs', 'technical'] as const;
 
+/** Stockage indisponible (navigation privée, quota, environnement de test) : brouillon perdu, jamais un crash. */
+function readDraft(key: string): string | null {
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+function writeDraft(key: string, value: string): void {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // Ignoré : la sauvegarde en brouillon est un confort, pas une garantie.
+  }
+}
+function clearDraft(key: string): void {
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    // Rien à faire si le stockage n'est déjà pas disponible.
+  }
+}
+
 export function RequestPage() {
   const { t } = useTranslation();
   const profile = useSession((s) => s.profile);
@@ -32,18 +55,18 @@ export function RequestPage() {
 
   useEffect(() => {
     if (!profile) return;
-    const saved = window.localStorage.getItem(draftKey(profile.id));
+    const saved = readDraft(draftKey(profile.id));
     if (!saved) return;
     try {
       form.reset({ ...form.getValues(), ...(JSON.parse(saved) as Partial<RequestFormValues>) });
     } catch {
-      window.localStorage.removeItem(draftKey(profile.id));
+      clearDraft(draftKey(profile.id));
     }
   }, [form, profile]);
 
   useEffect(() => {
     if (!profile) return;
-    const subscription = form.watch((values) => window.localStorage.setItem(draftKey(profile.id), JSON.stringify(values)));
+    const subscription = form.watch((values) => writeDraft(draftKey(profile.id), JSON.stringify(values)));
     return () => subscription.unsubscribe();
   }, [form, profile]);
 
@@ -51,7 +74,7 @@ export function RequestPage() {
   const onSubmit = form.handleSubmit(async (values) => {
     if (!profile?.clientCompanyId) return;
     await mutation.mutateAsync({ ...values, clientCompanyId: profile.clientCompanyId } as CreateRequestInput);
-    window.localStorage.removeItem(draftKey(profile.id));
+    clearDraft(draftKey(profile.id));
   });
 
   const next = async () => {

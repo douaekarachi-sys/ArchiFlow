@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
 import { ApiError } from '@/api/client';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 /**
  * État serveur : TanStack Query (ARCHITECTURE-CIBLE §6.3). Une erreur 4xx n'est pas réessayée :
@@ -22,5 +23,9 @@ export function createQueryClient(): QueryClient {
 
 export function Providers({ children }: { children: ReactNode }) {
   const [client] = useState(createQueryClient);
-  return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={client}>
+      <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
+    </QueryClientProvider>
+  );
 }

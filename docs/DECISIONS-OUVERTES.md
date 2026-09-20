@@ -25,6 +25,7 @@ quatre restent ouverts.*
 | D-18 | Palette et contraste WCAG AA | ✅ Tranché — jetons ajoutés là où la palette échoue | [0012](ADR/0012-ajustements-contraste-palette.md) | — |
 | D-19 | Versions de la stack | ✅ Tranché — NestJS 11, Prisma 7.10, Tailwind 4 | [0013](ADR/0013-versions-de-la-stack.md) | — |
 | D-20 | Mot de passe et sessions | ✅ Tranché — 12 caractères, rotation, détection de réutilisation | [0014](ADR/0014-politique-mot-de-passe-et-sessions.md) | — |
+| D-21 | Thème par défaut et couleur d'action | ✅ Tranché — clair par défaut, violet unique | [0015](ADR/0015-theme-clair-par-defaut-accent-violet.md) | — |
 
 **Aucune décision ne bloque la Phase 1.** Restent D-11 (Phase 5), D-05 (Phase 10), D-12
 (Phase 13) et D-17 (environnement de développement, non bloquant pour le code).

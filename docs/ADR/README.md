@@ -20,6 +20,7 @@ remplace et on marque l'ancien « Remplacé par ADR NNNN ».
 | [0012](0012-ajustements-contraste-palette.md) | Ajustements de la palette imposés par WCAG AA | D-18 | Accepté |
 | [0013](0013-versions-de-la-stack.md) | Versions de la stack imposée | D-19 | Accepté |
 | [0014](0014-politique-mot-de-passe-et-sessions.md) | Politique de mot de passe et de session | D-20 | Accepté |
+| [0015](0015-theme-clair-par-defaut-accent-violet.md) | Thème clair par défaut, accent violet unique | D-21 | Accepté |
 
 Décisions encore ouvertes, sans ADR à ce stade : **D-05** (périmètre du temps réel),
 **D-11** (génération du PDF), **D-12** (fournisseur LLM), **D-17** (base de développement).

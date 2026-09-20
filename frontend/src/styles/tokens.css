@@ -6,126 +6,70 @@
  *    l'enveloppe hsl(var(--x)) conserve les modificateurs d'opacité Tailwind (bg-primary/10) ;
  *  - aucune couleur en dur dans un composant : uniquement ces jetons ;
  *  - tout texte respecte WCAG AA — vérifié automatiquement par src/styles/tokens.test.ts.
- *    Les rares écarts à la palette du brief imposés par AA sont justifiés dans l'ADR 0012.
+ *    Les écarts à la palette imposés par AA sont justifiés en commentaire, dans la continuité
+ *    de l'ADR 0012.
  *
- * Thème sombre par défaut ; thème clair complet sous [data-theme='light'].
+ * Thème CLAIR par défaut, accent violet unique — tranché par l'ADR 0015, qui remplace la
+ * direction « sombre par défaut » de la Phase 1. Le thème sombre est une transposition fidèle,
+ * pas une interface différente : mêmes jetons, mêmes usages, valeurs inversées.
+ *
+ * Cascade des trois états du sélecteur (clair / sombre / système) :
+ *   1. `:root`                                    → CLAIR, valeur par défaut ;
+ *   2. `@media (prefers-color-scheme: dark)`       → SOMBRE si l'OS le demande et qu'aucun
+ *      `:root:not([data-theme='light'])`             choix explicite « clair » n'a été fait ;
+ *   3. `:root[data-theme='dark']`                  → SOMBRE si choisi explicitement, quel que
+ *                                                     soit le réglage de l'OS.
+ *   Les blocs 2 et 3 portent EXACTEMENT les mêmes valeurs (commentaire « synchroniser » sur
+ *   chacun) : la duplication est le prix d'un `prefers-color-scheme` en CSS pur, sans JS.
  */
 
 /* ----------------------------------------------------------------------------------------- */
-/* Thème sombre (défaut)                                                                     */
+/* Thème clair — par défaut (ADR 0015)                                                       */
 /* ----------------------------------------------------------------------------------------- */
-:root,
-[data-theme='dark'] {
-  color-scheme: dark;
-
-  /* Fonds */
-  --bg-base: 221 44% 7%; /* #0A0F1A — fond application / canvas */
-  --bg-surface: 221 39% 11%; /* #111827 — cartes, panneaux */
-  --bg-elevated: 221 38% 15%; /* #172033 — modales, menus, popovers */
-  --bg-inset: 220 46% 5%; /* #070B13 — zones creusées (code, grille du canvas) */
-
-  /* Bordures */
-  --border: 221 34% 21%; /* #243049 */
-  --border-strong: 219 32% 29%; /* #334463 */
-
-  /* Texte */
-  --text-primary: 219 59% 94%; /* #E8EEF9 */
-  --text-secondary: 217 31% 71%; /* #9FB0CC */
-  --text-muted: 218 21% 57%; /* #7A8BA8 — brief #6B7C99 éclairci : 4,20 < 4,5 (ADR 0012) */
-
-  /* Superposition de survol : blanc en sombre (bg-overlay/5 = rgba(255,255,255,.05)) */
-  --overlay: 0 0% 100%; /* #FFFFFF */
-
-  /* Action principale */
-  --primary: 220 100% 62%; /* #3D7DFF — liens actifs, sélection, indicateurs */
-  --primary-hover: 220 100% 68%; /* #5A91FF */
-  --primary-active: 221 69% 51%; /* #2C63D9 */
-  --primary-text: 221 100% 71%; /* #6B9BFF — primaire employé comme TEXTE (AA sur toutes les surfaces) */
-
-  /* Remplissage des boutons primaires : texte blanc AA (ADR 0012) */
-  --primary-solid: 221 83% 53%; /* #2563EB — 5,17:1 avec le blanc */
-  --primary-solid-hover: 224 76% 48%; /* #1D4ED8 — 6,70:1 */
-  --primary-solid-active: 226 71% 40%; /* #1E40AF — 8,72:1 */
-
-  /* Données, arêtes actives du canvas, sélection */
-  --accent: 188 86% 53%; /* #22D3EE */
-  --focus: 188 86% 53%; /* #22D3EE — anneau de focus clavier */
-
-  /* Sémantique — remplissages (icônes, pastilles, bordures) */
-  --success: 142 71% 45%; /* #22C55E */
-  --warning: 38 92% 50%; /* #F59E0B */
-  --critical: 0 84% 60%; /* #EF4444 */
-  --info: 198 93% 60%; /* #38BDF8 */
-
-  /* Sémantique — employées comme TEXTE */
-  --success-text: 142 71% 45%; /* #22C55E — 7,79:1 sur surface */
-  --warning-text: 38 92% 50%; /* #F59E0B — 8,26:1 */
-  --critical-text: 0 91% 71%; /* #F87171 */
-  --info-text: 198 93% 60%; /* #38BDF8 — 8,28:1 */
-
-  /* Bouton destructif : texte blanc AA (ADR 0012) */
-  --danger-solid: 0 72% 51%; /* #DC2626 — 4,83:1 */
-  --danger-solid-hover: 0 74% 42%; /* #B91C1C */
-  --danger-solid-active: 0 70% 35%; /* #991B1B */
-
-  /* Texte posé sur un remplissage plein */
-  --on-solid: 0 0% 100%; /* #FFFFFF */
-
-  /* Élévation : en sombre, pas d'ombre noire diffuse — superposition de fond + bordure */
-  --elevation: none;
-
-  /* Console de cartographie : mêmes surfaces que l'application sombre, sans panneau clair isolé. */
-  --dashboard-bg: 221 44% 7%; /* #0A0F1A */
-  --dashboard-sidebar: 221 39% 11%; /* #111827 */
-  --dashboard-panel: 221 39% 11%; /* #111827 */
-  --dashboard-line: 221 34% 21%; /* #243049 */
-  --dashboard-text: 219 59% 94%; /* #E8EEF9 */
-  --dashboard-muted: 217 31% 71%; /* #9FB0CC */
-  --dashboard-purple: 220 100% 68%; /* #5A91FF */
-  --dashboard-blue: 188 86% 53%; /* #22D3EE */
-}
-
-/* ----------------------------------------------------------------------------------------- */
-/* Thème clair                                                                               */
-/* ----------------------------------------------------------------------------------------- */
-[data-theme='light'] {
+:root {
   color-scheme: light;
 
-  --bg-base: 220 43% 97%; /* #F5F7FB */
-  --bg-surface: 0 0% 100%; /* #FFFFFF */
+  --bg-base: 220 20% 97%; /* #F6F7F9 — fond de page */
+  --bg-surface: 0 0% 100%; /* #FFFFFF — surface / carte */
   --bg-elevated: 0 0% 100%; /* #FFFFFF */
-  --bg-inset: 216 42% 95%; /* #EEF2F8 */
+  --bg-inset: 216 22% 95%; /* #F1F3F6 — surface creusée : barre de filtres, en-têtes de tableau */
 
-  --border: 216 33% 91%; /* #E1E7F0 */
-  --border-strong: 216 32% 83%; /* #C7D2E2 */
+  --border: 220 14% 91%; /* #E6E8EC */
+  --border-strong: 217 16% 84%; /* #D0D5DD */
 
-  --text-primary: 218 49% 10%; /* #0D1626 */
-  --text-secondary: 215 19% 35%; /* #475569 */
-  --text-muted: 216 18% 43%; /* #5A6B82 — brief #7A8CA3 assombri : 3,44 < 4,5 (ADR 0012) */
+  --text-primary: 221 39% 11%; /* #111827 */
+  --text-secondary: 215 14% 34%; /* #4B5563 */
+  --text-muted: 215 12% 40%; /* #5A6472 — brief #6B7280 assombri : 4,35 < 4,5 sur bg-inset (ADR 0012) */
 
-  --overlay: 218 49% 10%; /* #0D1626 — survol assombrissant en clair */
+  --overlay: 221 39% 11%; /* #111827 — survol assombrissant en clair */
 
-  --primary: 220 100% 62%; /* #3D7DFF */
-  --primary-hover: 220 100% 68%; /* #5A91FF */
-  --primary-active: 221 69% 51%; /* #2C63D9 */
-  --primary-text: 222 71% 49%; /* #2459D6 */
+  --primary: 263 70% 50%; /* #6D28D9 — 7,10:1 avec le blanc : sert aussi de texte (liens, icônes) */
+  --primary-hover: 263 69% 42%; /* #5B21B6 */
+  --primary-active: 264 67% 35%; /* #4C1D95 */
+  --primary-soft: 258 100% 96%; /* #F1EBFF — fond de l'entrée active de la barre latérale, sélections */
+  --primary-text: 263 70% 50%; /* #6D28D9 — identique à --primary, déjà ≥ 4,5:1 partout */
 
-  --primary-solid: 221 83% 53%; /* #2563EB */
-  --primary-solid-hover: 224 76% 48%; /* #1D4ED8 */
-  --primary-solid-active: 226 71% 40%; /* #1E40AF */
+  --primary-solid: 263 70% 50%; /* #6D28D9 */
+  --primary-solid-hover: 263 69% 42%; /* #5B21B6 */
+  --primary-solid-active: 264 67% 35%; /* #4C1D95 */
 
-  --accent: 188 86% 53%; /* #22D3EE */
-  --focus: 192 91% 36%; /* #0891B2 — le cyan du brief n'atteint pas 3:1 sur fond blanc (ADR 0012) */
+  --accent: 192 91% 36%; /* #0891B2 */
+  --focus: 258 90% 66%; /* #8B5CF6 — anneau de focus, 4,23:1 sur blanc (≥3:1) */
 
-  --success: 142 71% 45%; /* #22C55E */
+  /* Sévérité — remplissages (icônes, pastilles, bordures, non-texte) */
+  --success: 142 76% 36%; /* #16A34A */
   --warning: 38 92% 50%; /* #F59E0B */
-  --critical: 0 84% 60%; /* #EF4444 */
-  --info: 198 93% 60%; /* #38BDF8 */
+  --high: 21 90% 48%; /* #E8590C — sévérité « élevée », distincte de critique et moyenne */
+  --critical: 4 74% 49%; /* #D92D20 */
+  --info: 221 83% 53%; /* #2563EB */
 
-  --success-text: 142 72% 29%; /* #15803D */
-  --warning-text: 26 90% 37%; /* #B45309 */
-  --critical-text: 0 74% 42%; /* #B91C1C */
-  --info-text: 201 96% 32%; /* #0369A1 */
+  /* Sévérité — employées comme TEXTE : la teinte brute du brief échoue l'AA pour trois niveaux
+     sur cinq (2,15 à 3,58:1) ; jetons assombris dédiés, dans la continuité de l'ADR 0012. */
+  --success-text: 142 72% 29%; /* #15803D — 5,02:1 (brut #16A34A : 3,30) */
+  --warning-text: 26 90% 37%; /* #B45309 — 5,02:1 (brut #F59E0B : 2,15) */
+  --high-text: 20 85% 39%; /* #B8460F — 5,36:1 (brut #E8590C : 3,58) */
+  --critical-text: 4 74% 49%; /* #D92D20 — 4,83:1, déjà conforme */
+  --info-text: 221 83% 53%; /* #2563EB — 5,17:1, déjà conforme */
 
   --danger-solid: 0 72% 51%; /* #DC2626 */
   --danger-solid-hover: 0 74% 42%; /* #B91C1C */
@@ -133,36 +77,34 @@
 
   --on-solid: 0 0% 100%; /* #FFFFFF */
 
-  --elevation: 0 1px 2px rgb(13 22 38 / 0.06), 0 4px 12px rgb(13 22 38 / 0.08);
-}
+  --elevation: 0 1px 2px rgb(17 24 39 / 0.05); /* carte : bordure 1px + ombre très légère (brief) */
 
-/* ----------------------------------------------------------------------------------------- */
-/* Communs aux deux thèmes                                                                   */
-/* ----------------------------------------------------------------------------------------- */
-:root {
-  /* Catégories d'équipement : un code couleur constant partout (palette, nœuds 2D, 3D, BOM, PDF) */
-  --cat-firewall: 350 89% 60%; /* #F43F5E */
-  --cat-router: 255 92% 76%; /* #A78BFA */
-  --cat-switch: 198 93% 60%; /* #38BDF8 */
-  --cat-access-point: 188 86% 53%; /* #22D3EE */
-  --cat-wifi-controller: 172 66% 50%; /* #2DD4BF — hors brief, ajouté avec la catégorie */
-  --cat-server: 158 64% 52%; /* #34D399 */
-  --cat-storage: 43 96% 56%; /* #FBBF24 */
-  --cat-load-balancer: 329 86% 70%; /* #F472B6 */
-  --cat-ups: 215 20% 65%; /* #94A3B8 */
-  --cat-rack: 215 16% 47%; /* #64748B */
-  --cat-workstation: 212 96% 78%; /* #93C5FD — hors brief, ajouté avec la catégorie */
-  --cat-internet: 219 59% 94%; /* #E8EEF9 */
-
-  /* Surface de la console de cartographie, inspirée des outils CMDB visuels. */
-  --dashboard-bg: 240 33% 97%; /* #F5F5FA */
-  --dashboard-sidebar: 255 35% 18%; /* #261E3E */
+  /* Console (tableau de bord, catalogue, file des demandes) — transposition du thème clair.
+     Mêmes jetons que le reste de l'application, pas une seconde palette : c'était le bug qui
+     figeait ces écrans en clair quel que soit le thème choisi (redéfinition inconditionnelle
+     écrasant silencieusement les deux thèmes, corrigé ici). */
+  --dashboard-bg: 220 20% 97%; /* #F6F7F9 */
+  --dashboard-sidebar: 0 0% 100%; /* #FFFFFF */
   --dashboard-panel: 0 0% 100%; /* #FFFFFF */
-  --dashboard-line: 230 20% 90%; /* #E0E2EB */
-  --dashboard-text: 224 20% 22%; /* #2D3343 */
-  --dashboard-muted: 220 10% 55%; /* #818998 */
-  --dashboard-purple: 254 52% 58%; /* #765CCC */
-  --dashboard-blue: 205 64% 56%; /* #479BD6 */
+  --dashboard-line: 220 14% 91%; /* #E6E8EC */
+  --dashboard-text: 221 39% 11%; /* #111827 */
+  --dashboard-muted: 215 12% 40%; /* #5A6472 */
+  --dashboard-purple: 263 70% 50%; /* #6D28D9 */
+  --dashboard-blue: 192 91% 36%; /* #0891B2 */
+
+  /* Catégories d'équipement : un code couleur constant partout (palette, nœuds 2D, 3D, BOM, PDF) */
+  --cat-firewall: 347 77% 50%; /* #E11D48 */
+  --cat-router: 262 83% 58%; /* #7C3AED */
+  --cat-switch: 200 98% 39%; /* #0284C7 */
+  --cat-access-point: 192 91% 36%; /* #0891B2 */
+  --cat-wifi-controller: 175 84% 32%; /* #0D9488 */
+  --cat-server: 161 94% 30%; /* #059669 */
+  --cat-storage: 32 95% 44%; /* #D97706 */
+  --cat-load-balancer: 333 71% 51%; /* #DB2777 */
+  --cat-ups: 215 16% 47%; /* #64748B */
+  --cat-rack: 215 19% 35%; /* #475569 */
+  --cat-workstation: 215 20% 65%; /* #94A3B8 */
+  --cat-internet: 221 39% 11%; /* #111827 */
 
   /* Rayons */
   --rounded-field: 6px; /* champs, badges */
@@ -179,6 +121,150 @@
   /* Canvas (Phase 5) */
   --canvas-grid: 24px;
   --canvas-snap: 8px;
+
+  /* Écran de connexion — volontairement IDENTIQUE dans les deux thèmes (écran vitrine, brief
+     de refonte) : le panneau plein écran et la carte en verre ne suivent pas le thème choisi.
+     Seule exception au principe « chaque couleur vient d'un jeton de thème » : ces jetons
+     existent précisément pour que la règle « aucune couleur en dur » reste vraie ici aussi. */
+  --auth-bg-start: 264 67% 35%; /* #4C1D95 — dégradé, coin violet */
+  --auth-bg-end: 244 47% 20%; /* #1E1B4B — dégradé, coin indigo profond */
+  --auth-glass: 0 0% 100%; /* #FFFFFF — carte en verre dépoli, appliquée avec /90 d'opacité */
+  --auth-glass-border: 0 0% 100%; /* #FFFFFF — bordure fine, appliquée avec /25 d'opacité */
+  --auth-text: 221 39% 11%; /* #111827 — texte sur la carte, fixe (identique à text-primary clair) */
+  --auth-text-muted: 215 14% 34%; /* #4B5563 */
+  --auth-panel-text: 258 100% 97%; /* #F5F3FF — texte sur le dégradé (logo, bascule de thème) */
+  --auth-panel-text-muted: 253 63% 84%; /* #C7BCF0 */
+  --auth-led-online: 142 69% 58%; /* #4ADE80 — LED « en ligne » */
+  --auth-led-activity: 252 95% 85%; /* #C4B5FD — LED / port « activité » */
+  --auth-fiber-glow: 188 86% 53%; /* #22D3EE — extrémité de fibre optique */
+}
+
+/* ----------------------------------------------------------------------------------------- */
+/* Thème sombre — explicite                                                                  */
+/* ----------------------------------------------------------------------------------------- */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg-base: 226 49% 8%; /* #0B1020 */
+  --bg-surface: 224 39% 12%; /* #121829 */
+  --bg-elevated: 221 38% 15%; /* #172033 */
+  --bg-inset: 224 44% 10%; /* #0E1424 */
+
+  --border: 223 29% 19%; /* #232B40 */
+  --border-strong: 224 32% 29%; /* #334063 */
+
+  --text-primary: 222 39% 94%; /* #E8ECF5 */
+  --text-secondary: 219 20% 70%; /* #A3AEC2 */
+  --text-muted: 219 15% 56%; /* #7E8AA0 — 4,67:1 sur bg-elevated, la surface sombre la plus claire */
+
+  --overlay: 0 0% 100%; /* #FFFFFF — survol éclaircissant en sombre */
+
+  --primary: 258 90% 66%; /* #8B5CF6 — liens, icônes actives, sélection */
+  --primary-hover: 255 92% 76%; /* #A78BFA */
+  --primary-active: 252 95% 85%; /* #C4B5FD */
+  --primary-soft: 251 45% 19%; /* #221A45 */
+  --primary-text: 255 92% 76%; /* #A78BFA — violet employé comme TEXTE (AA sur toutes les surfaces) */
+
+  --primary-solid: 263 70% 50%; /* #6D28D9 — le même violet qu'en clair passe déjà l'AA (7,10:1) */
+  --primary-solid-hover: 263 69% 42%; /* #5B21B6 */
+  --primary-solid-active: 264 67% 35%; /* #4C1D95 */
+
+  --accent: 188 86% 53%; /* #22D3EE */
+  --focus: 258 90% 66%; /* #8B5CF6 — 4,17:1 sur les surfaces (≥3:1) */
+
+  --success: 142 69% 58%; /* #4ADE80 */
+  --warning: 43 96% 56%; /* #FBBF24 */
+  --high: 27 96% 61%; /* #FB923C */
+  --critical: 0 91% 71%; /* #F87171 */
+  --info: 213 94% 68%; /* #60A5FA */
+
+  --success-text: 142 69% 58%; /* #4ADE80 — déjà ≥ 4,5:1 sur les surfaces sombres */
+  --warning-text: 43 96% 56%; /* #FBBF24 */
+  --high-text: 27 96% 61%; /* #FB923C */
+  --critical-text: 0 91% 71%; /* #F87171 */
+  --info-text: 213 94% 68%; /* #60A5FA */
+
+  --danger-solid: 0 72% 51%; /* #DC2626 */
+  --danger-solid-hover: 0 74% 42%; /* #B91C1C */
+  --danger-solid-active: 0 70% 35%; /* #991B1B */
+
+  --on-solid: 0 0% 100%; /* #FFFFFF */
+
+  --elevation: none; /* pas d'ombre noire diffuse en sombre : fond + bordure suffisent */
+
+  --dashboard-bg: 226 49% 8%; /* #0B1020 */
+  --dashboard-sidebar: 224 39% 12%; /* #121829 */
+  --dashboard-panel: 224 39% 12%; /* #121829 */
+  --dashboard-line: 223 29% 19%; /* #232B40 */
+  --dashboard-text: 222 39% 94%; /* #E8ECF5 */
+  --dashboard-muted: 218 14% 55%; /* #7B879C */
+  --dashboard-purple: 258 90% 66%; /* #8B5CF6 */
+  --dashboard-blue: 188 86% 53%; /* #22D3EE */
+}
+
+/* Même bloc, déclenché par l'OS plutôt que par un choix explicite — à garder identique au
+   bloc `:root[data-theme='dark']` ci-dessus. `:not([data-theme='light'])` laisse un choix
+   « clair » explicite gagner même quand l'OS est en sombre. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --bg-base: 226 49% 8%; /* #0B1020 */
+    --bg-surface: 224 39% 12%; /* #121829 */
+    --bg-elevated: 221 38% 15%; /* #172033 */
+    --bg-inset: 224 44% 10%; /* #0E1424 */
+
+    --border: 223 29% 19%; /* #232B40 */
+    --border-strong: 224 32% 29%; /* #334063 */
+
+    --text-primary: 222 39% 94%; /* #E8ECF5 */
+    --text-secondary: 219 20% 70%; /* #A3AEC2 */
+    --text-muted: 219 15% 56%; /* #7E8AA0 — 4,67:1 sur bg-elevated, la surface sombre la plus claire */
+
+    --overlay: 0 0% 100%; /* #FFFFFF */
+
+    --primary: 258 90% 66%; /* #8B5CF6 */
+    --primary-hover: 255 92% 76%; /* #A78BFA */
+    --primary-active: 252 95% 85%; /* #C4B5FD */
+    --primary-soft: 251 45% 19%; /* #221A45 */
+    --primary-text: 255 92% 76%; /* #A78BFA */
+
+    --primary-solid: 263 70% 50%; /* #6D28D9 */
+    --primary-solid-hover: 263 69% 42%; /* #5B21B6 */
+    --primary-solid-active: 264 67% 35%; /* #4C1D95 */
+
+    --accent: 188 86% 53%; /* #22D3EE */
+    --focus: 258 90% 66%; /* #8B5CF6 */
+
+    --success: 142 69% 58%; /* #4ADE80 */
+    --warning: 43 96% 56%; /* #FBBF24 */
+    --high: 27 96% 61%; /* #FB923C */
+    --critical: 0 91% 71%; /* #F87171 */
+    --info: 213 94% 68%; /* #60A5FA */
+
+    --success-text: 142 69% 58%; /* #4ADE80 */
+    --warning-text: 43 96% 56%; /* #FBBF24 */
+    --high-text: 27 96% 61%; /* #FB923C */
+    --critical-text: 0 91% 71%; /* #F87171 */
+    --info-text: 213 94% 68%; /* #60A5FA */
+
+    --danger-solid: 0 72% 51%; /* #DC2626 */
+    --danger-solid-hover: 0 74% 42%; /* #B91C1C */
+    --danger-solid-active: 0 70% 35%; /* #991B1B */
+
+    --on-solid: 0 0% 100%; /* #FFFFFF */
+
+    --elevation: none;
+
+    --dashboard-bg: 226 49% 8%; /* #0B1020 */
+    --dashboard-sidebar: 224 39% 12%; /* #121829 */
+    --dashboard-panel: 224 39% 12%; /* #121829 */
+    --dashboard-line: 223 29% 19%; /* #232B40 */
+    --dashboard-text: 222 39% 94%; /* #E8ECF5 */
+    --dashboard-muted: 218 14% 55%; /* #7B879C */
+    --dashboard-purple: 258 90% 66%; /* #8B5CF6 */
+    --dashboard-blue: 188 86% 53%; /* #22D3EE */
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -187,4 +273,44 @@
     --duration-base: 0ms;
     --duration-slow: 0ms;
   }
+}
+
+/*
+ * Carte de connexion — force les jetons CLAIRS sur ce sous-arbre, quel que soit le thème de
+ * l'application. Ce n'est pas un troisième thème : c'est la conséquence directe de « l'écran
+ * est identique en clair et en sombre » (brief de refonte) — la carte en verre reste claire,
+ * donc le texte des champs et boutons qu'elle contient doit rester lisible dessus dans tous
+ * les cas, y compris quand l'application entière est en sombre. Les custom properties CSS
+ * héritent normalement : cette classe redéclare uniquement ce que consomment Input, Button,
+ * Field, Alert et PasswordInput — pas la totalité de la palette. Valeurs identiques au bloc
+ * `:root` clair ci-dessus (source de vérité) ; à garder synchronisées si celui-ci évolue.
+ */
+.auth-card {
+  color-scheme: light;
+  --bg-inset: 216 22% 95%; /* #F1F3F6 */
+  --border: 220 14% 91%; /* #E6E8EC */
+  --border-strong: 217 16% 84%; /* #D0D5DD */
+  --text-primary: 221 39% 11%; /* #111827 */
+  --text-secondary: 215 14% 34%; /* #4B5563 */
+  --text-muted: 215 12% 40%; /* #5A6472 */
+  --overlay: 221 39% 11%; /* #111827 */
+  --primary: 263 70% 50%; /* #6D28D9 */
+  --primary-text: 263 70% 50%; /* #6D28D9 */
+  --primary-solid: 263 70% 50%; /* #6D28D9 */
+  --primary-solid-hover: 263 69% 42%; /* #5B21B6 */
+  --primary-solid-active: 264 67% 35%; /* #4C1D95 */
+  --critical: 4 74% 49%; /* #D92D20 */
+  --critical-text: 4 74% 49%; /* #D92D20 */
+  --focus: 258 90% 66%; /* #8B5CF6 */
+  --on-solid: 0 0% 100%; /* #FFFFFF */
+}
+
+/* Même principe pour le logo et le sélecteur de thème posés directement sur le dégradé (hors
+   de la carte) : ils ont besoin d'un texte clair fixe, pas du texte ambiant du thème actif. */
+.auth-panel-chrome {
+  color-scheme: dark;
+  --text-primary: 258 100% 97%; /* #F5F3FF */
+  --text-secondary: 253 63% 84%; /* #C7BCF0 */
+  --overlay: 0 0% 100%; /* #FFFFFF */
+  --focus: 188 86% 53%; /* #22D3EE — contraste sur fond sombre */
 }

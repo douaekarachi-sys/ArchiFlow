@@ -3,7 +3,7 @@ import { Search, UserCheck, UserX, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usersApi } from '@/api/endpoints';
-import { ProjectStatusBadge } from '@/components/patterns/project-status';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Panel } from '@/components/ui/panel';
@@ -61,7 +61,11 @@ export function UsersPage() {
                     <Td><div className="font-medium text-fg">{user.firstName} {user.lastName}</div><div className="text-xs text-fg-muted">{user.email}</div></Td>
                     <Td><span className="text-sm text-fg-secondary">{t(`roles.${user.role}`)}</span></Td>
                     <Td className="hidden text-sm text-fg-secondary md:table-cell">{user.lastLoginAt ? dateFormat.format(new Date(user.lastLoginAt)) : t('users.never')}</Td>
-                    <Td><ProjectStatusBadge status={active ? 'ASSIGNED' : 'DRAFT'} /></Td>
+                    <Td>
+                      <Badge tone={active ? 'success' : 'neutral'} icon={active ? <UserCheck /> : <UserX />}>
+                        {active ? t('users.state.active') : t('users.state.inactive')}
+                      </Badge>
+                    </Td>
                     <Td className="text-right"><Button variant="ghost" size="sm" icon={active ? <UserX /> : <UserCheck />} loading={lifecycle.isPending} onClick={() => void lifecycle.mutateAsync({ id: user.id, active })}>{active ? t('users.deactivate') : t('users.reactivate')}</Button></Td>
                   </Tr>
                 );

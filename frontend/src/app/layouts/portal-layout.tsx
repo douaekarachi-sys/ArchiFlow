@@ -4,23 +4,21 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ChevronDown, LogOut, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { NavLink, Outlet, useNavigate } from 'react-router';
+import { Outlet, useNavigate } from 'react-router';
 import { authApi } from '@/api/endpoints';
 import { useSession } from '@/auth/session-store';
 import { Brand } from '@/components/patterns/brand';
 import { ThemeToggle } from '@/components/patterns/theme-toggle';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PORTAL_NAV, type NavItem } from '@/permissions/portals';
-import { cn } from '@/utils/cn';
+import { Sidebar } from '@/components/ui/sidebar';
 
-/** Coquille commune aux six portails : navigation propre au rôle, barre supérieure, compte. */
+/** Coquille commune aux six portails : barre latérale labellisée, barre du haut minimale. */
 export function PortalLayout({ role }: { role: Role }) {
   const { t } = useTranslation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="flex min-h-dvh">
+    <div className="flex min-h-dvh bg-page">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-button focus:bg-elevated focus:px-3 focus:py-2"
@@ -28,15 +26,17 @@ export function PortalLayout({ role }: { role: Role }) {
         {t('nav.skipToContent')}
       </a>
 
-      <aside className="hidden w-[84px] shrink-0 flex-col border-r border-[hsl(var(--dashboard-sidebar))] bg-[hsl(var(--dashboard-sidebar))] md:flex">
-        <div className="flex h-14 items-center justify-center border-b border-white/10 px-4">
-          <Brand compact className="text-white" />
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-line bg-surface md:flex">
+        <div className="flex h-14 items-center border-b border-line px-5">
+          <Brand />
         </div>
-        <PortalNav role={role} />
+        <div className="flex-1 overflow-y-auto">
+          <Sidebar role={role} />
+        </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-line bg-base/90 px-4 backdrop-blur">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-line bg-surface/90 px-4 backdrop-blur">
           <Button
             variant="ghost"
             size="icon"
@@ -57,7 +57,7 @@ export function PortalLayout({ role }: { role: Role }) {
 
         {mobileOpen && (
           <div className="border-b border-line bg-surface md:hidden">
-            <PortalNav role={role} onNavigate={() => setMobileOpen(false)} />
+            <Sidebar role={role} onNavigate={() => setMobileOpen(false)} />
           </div>
         )}
 
@@ -66,53 +66,6 @@ export function PortalLayout({ role }: { role: Role }) {
         </main>
       </div>
     </div>
-  );
-}
-
-function PortalNav({ role, onNavigate }: { role: Role; onNavigate?: () => void }) {
-  const { t } = useTranslation();
-  return (
-    <nav aria-label={t('nav.main')} className="flex flex-col gap-2 p-3">
-      {PORTAL_NAV[role].map((item) => (
-        <NavEntry key={item.key} item={item} onNavigate={onNavigate} />
-      ))}
-    </nav>
-  );
-}
-
-function NavEntry({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
-  const { t } = useTranslation();
-  const Icon = item.icon;
-  const base = 'group relative flex h-12 items-center justify-center rounded-button px-2 text-sm transition-colors';
-
-  if (!item.path) {
-    // Section d'une phase ultérieure : visible, datée, non cliquable.
-    return (
-      <span className={cn(base, 'cursor-not-allowed text-white/45')} aria-disabled="true" title={t(`nav.${item.key}`)}>
-        <Icon className="size-5" aria-hidden="true" />
-        <span className="sr-only">{t(`nav.${item.key}`)}</span>
-        <Badge className="absolute right-1 top-1 h-3 min-w-3 px-0.5 text-[8px]">{item.phase}</Badge>
-      </span>
-    );
-  }
-  return (
-    <NavLink
-      to={item.path}
-      end
-      onClick={onNavigate}
-      title={t(`nav.${item.key}`)}
-      className={({ isActive }) =>
-        cn(
-          base,
-          isActive
-            ? 'bg-white/15 font-medium text-white shadow-[inset_3px_0_0_hsl(var(--accent))]'
-            : 'text-white/55 hover:bg-white/10 hover:text-white',
-        )
-      }
-    >
-      <Icon className="size-5" aria-hidden="true" />
-      <span className="sr-only">{t(`nav.${item.key}`)}</span>
-    </NavLink>
   );
 }
 

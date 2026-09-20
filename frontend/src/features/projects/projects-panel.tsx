@@ -52,9 +52,9 @@ export function ProjectsPanel({ role, search }: { role: Role; search?: string })
 function ProjectRow({ project, onOpen }: { project: ProjectSummary; onOpen: () => void }) {
   return <button type="button" onClick={onOpen} className="dashboard-project-row group grid w-full items-center gap-4 px-5 py-4 text-left md:grid-cols-[minmax(260px,1.7fr)_minmax(160px,0.9fr)_minmax(150px,0.8fr)_140px_24px]">
     <span className="min-w-0"><span className="block truncate text-sm font-semibold text-[hsl(var(--dashboard-text))]">{project.name}</span><span className="mt-1 block truncate text-xs text-[hsl(var(--dashboard-muted))] md:hidden">{project.clientCompany.name}</span></span>
-    <span className="hidden truncate text-sm text-[hsl(var(--dashboard-blue))] md:block">{project.clientCompany.name}</span>
+    <span className="hidden truncate text-sm text-[hsl(var(--dashboard-text))] md:block">{project.clientCompany.name}</span>
     <span><ProjectStatusBadge status={project.status} /></span>
-    <span className="hidden text-sm tabular text-[hsl(var(--dashboard-blue))] lg:block">{dateFormat.format(new Date(project.updatedAt))}</span>
+    <span className="hidden text-sm tabular text-[hsl(var(--dashboard-muted))] lg:block">{dateFormat.format(new Date(project.updatedAt))}</span>
     <ChevronRight className="size-4 text-[hsl(var(--dashboard-muted))] transition-transform group-hover:translate-x-1 group-hover:text-[hsl(var(--dashboard-purple))]" aria-hidden="true" />
   </button>;
 }

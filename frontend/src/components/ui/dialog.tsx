@@ -25,7 +25,7 @@ export function DialogContent({ title, description, footer, hideClose, className
   const { t } = useTranslation();
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-base/75 backdrop-blur-[2px] data-[state=open]:animate-[fade-in_var(--duration-slow)_var(--easing-out)]" />
+      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-page/75 backdrop-blur-[2px] data-[state=open]:animate-[fade-in_var(--duration-slow)_var(--easing-out)]" />
       <DialogPrimitive.Content
         className={cn(
           'fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2',

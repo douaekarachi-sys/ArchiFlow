@@ -19,9 +19,16 @@ const DashboardPage = lazy(() =>
   import('@/features/dashboard/dashboard-page').then((m) => ({ default: m.DashboardPage })),
 );
 const RequestPage = lazy(() => import('@/features/request/request-page').then((m) => ({ default: m.RequestPage })));
+const ProjectsPage = lazy(() => import('@/features/projects/projects-page').then((m) => ({ default: m.ProjectsPage })));
 const UsersPage = lazy(() => import('@/features/admin/users-page').then((m) => ({ default: m.UsersPage })));
 const AdminRequestsPage = lazy(() => import('@/features/admin/requests-page').then((m) => ({ default: m.AdminRequestsPage })));
 const CatalogPage = lazy(() => import('@/features/admin/catalog-page').then((m) => ({ default: m.CatalogPage })));
+// `import.meta.env.DEV` est remplacé statiquement à la build : en production, Rollup élimine
+// entièrement cet import dynamique — la page de référence des composants n'existe pas dans
+// dist/, pas seulement hors des routes.
+const DevUiPage = import.meta.env.DEV
+  ? lazy(() => import('@/features/dev/dev-ui-page').then((m) => ({ default: m.DevUiPage })))
+  : null;
 
 function Lazy({ children }: { children: ReactNode }) {
   return (
@@ -58,13 +65,16 @@ const portalRoute = (role: Role): RouteObject => ({
     { index: true, element: <Lazy><DashboardPage role={role} /></Lazy> },
     ...(role === 'CLIENT'
       ? [{ path: 'request', element: <Lazy><RequestPage /></Lazy> }]
-      : role === 'ADMIN'
-        ? [
-            { path: 'users', element: <Lazy><UsersPage /></Lazy> },
-            { path: 'requests', element: <Lazy><AdminRequestsPage /></Lazy> },
-            { path: 'catalog', element: <Lazy><CatalogPage /></Lazy> },
-          ]
-      : []),
+      : [
+          { path: 'projects', element: <Lazy><ProjectsPage role={role} /></Lazy> },
+          ...(role === 'ADMIN'
+            ? [
+                { path: 'users', element: <Lazy><UsersPage /></Lazy> },
+                { path: 'requests', element: <Lazy><AdminRequestsPage /></Lazy> },
+                { path: 'catalog', element: <Lazy><CatalogPage /></Lazy> },
+              ]
+            : []),
+        ]),
   ],
 });
 
@@ -72,6 +82,8 @@ export const routes: RouteObject[] = [
   { path: '/login', element: publicPage(<LoginPage />) },
   { path: '/forgot-password', element: publicPage(<ForgotPasswordPage />) },
   { path: '/reset-password', element: publicPage(<ResetPasswordPage />) },
+  // Page de référence des composants — développement uniquement, absente du bundle de production.
+  ...(DevUiPage ? [{ path: '/dev/ui', element: <Lazy><DevUiPage /></Lazy> }] : []),
   {
     element: <RequireAuth />,
     children: [

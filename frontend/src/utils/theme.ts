@@ -1,36 +1,67 @@
 import { create } from 'zustand';
 
-export type Theme = 'dark' | 'light';
+/** Préférence choisie par l'utilisateur ; « système » suit prefers-color-scheme (ADR 0015). */
+export type ThemePreference = 'light' | 'dark' | 'system';
+export type ResolvedTheme = 'light' | 'dark';
+
 const STORAGE_KEY = 'archiflow.theme';
 
-/** Préférence d'affichage : localStorage est admis ici, jamais pour une donnée métier. */
-function readTheme(): Theme {
+/** Stockage indisponible (navigation privée, quota) : on se comporte comme « système ». */
+function readPreference(): ThemePreference {
   try {
-    return localStorage.getItem(STORAGE_KEY) === 'light' ? 'light' : 'dark';
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved === 'light' || saved === 'dark') return saved;
   } catch {
-    return 'dark';
+    // Ignoré : préférence « système » par défaut.
   }
+  return 'system';
 }
 
-function applyTheme(theme: Theme): void {
-  document.documentElement.dataset['theme'] = theme;
-  try {
-    localStorage.setItem(STORAGE_KEY, theme);
-  } catch {
-    // Stockage indisponible (navigation privée) : le thème vaut pour la session.
-  }
+function systemPrefersDark(): boolean {
+  return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+function resolve(preference: ThemePreference): ResolvedTheme {
+  return preference === 'system' ? (systemPrefersDark() ? 'dark' : 'light') : preference;
+}
+
+function apply(resolved: ResolvedTheme): void {
+  document.documentElement.dataset['theme'] = resolved;
 }
 
 interface ThemeState {
-  theme: Theme;
-  toggle(): void;
+  preference: ThemePreference;
+  resolved: ResolvedTheme;
+  setPreference(preference: ThemePreference): void;
 }
 
-export const useTheme = create<ThemeState>((set, get) => ({
-  theme: readTheme(),
-  toggle: () => {
-    const next: Theme = get().theme === 'dark' ? 'light' : 'dark';
-    applyTheme(next);
-    set({ theme: next });
-  },
-}));
+export const useTheme = create<ThemeState>((set, get) => {
+  const preference = readPreference();
+  const resolved = resolve(preference);
+  if (typeof document !== 'undefined') apply(resolved);
+
+  if (typeof window !== 'undefined') {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (get().preference !== 'system') return;
+      const next = resolve('system');
+      apply(next);
+      set({ resolved: next });
+    });
+  }
+
+  return {
+    preference,
+    resolved,
+    setPreference: (next) => {
+      try {
+        if (next === 'system') localStorage.removeItem(STORAGE_KEY);
+        else localStorage.setItem(STORAGE_KEY, next);
+      } catch {
+        // Stockage indisponible : le choix vaut pour la session en cours seulement.
+      }
+      const resolvedNext = resolve(next);
+      apply(resolvedNext);
+      set({ preference: next, resolved: resolvedNext });
+    },
+  };
+});

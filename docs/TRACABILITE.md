@@ -88,7 +88,7 @@ Statut :
 
 | Réf. | Exigence | Priorité | Lot | Statut | Où c'est implémenté |
 |---|---|---|---|---|---|
-| EF-201 | Catalogue de composants référençant des marques et modèles réels (fabricant, référence, caractéristiques techniques). | Élevée | MVP | 🕓 Phase 3 | — |
+| EF-201 | Catalogue de composants référençant des marques et modèles réels (fabricant, référence, caractéristiques techniques). | Élevée | MVP | 🔨 Phase 3 — lecture seule livrée (liste paginée, recherche, filtre par catégorie, portée locataire), sans test ; aucune donnée de démonstration semée, aucune écriture (ajout/import/archivage — EF-505) | `backend/src/modules/catalog/`, `frontend/src/features/admin/catalog-page.tsx` |
 | EF-202 | Calcul automatique de capacité : bande passante, nombre de ports, puissance électrique, charge estimée. | Élevée | V1 ⚠ | 🕓 Phase 4 | — |
 | EF-203 | Vérification automatique de compatibilité entre équipements (interfaces, protocoles, versions). | Élevée | V1 ⚠ | 🕓 Phase 7 | — |
 | EF-204 | Détection des anomalies de conception : boucles, sous-dimensionnement, points uniques de défaillance (SPOF). | Moyenne | V2 ⚠ | 🕓 Phase 7 | — |

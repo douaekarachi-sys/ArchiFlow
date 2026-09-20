@@ -5,7 +5,9 @@
  *
  *  1. chaque triplet HSL correspond à la valeur hexadécimale annoncée en commentaire (ADR 0007) ;
  *  2. chaque paire texte / fond de chaque thème atteint WCAG AA (4,5:1) ;
- *  3. l'anneau de focus atteint 3:1 sur les fonds (WCAG 1.4.11).
+ *  3. l'anneau de focus atteint 3:1 sur les fonds (WCAG 1.4.11) ;
+ *  4. le bloc `@media (prefers-color-scheme: dark)` reste identique au bloc sombre explicite
+ *     (ADR 0015) — sans ce test, les deux peuvent diverger silencieusement au fil des éditions.
  */
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -27,10 +29,15 @@ function parseBlock(selector: string): Tokens {
   return tokens;
 }
 
-const shared = parseBlock(':root {\n  /* Catégories');
+// Le thème clair est la valeur par défaut de `:root` : ce bloc porte aussi les jetons partagés
+// (catégories d'équipement, rayons, écran de connexion). Le thème sombre ne redéclare que ce
+// qui change ; le reste passe par la cascade normale des custom properties, reproduite ici par
+// une fusion `{ ...clair, ...sombre }`.
+const light = parseBlock(':root {');
+const darkExplicit = parseBlock(":root[data-theme='dark'] {");
 const themes = {
-  sombre: { ...shared, ...parseBlock(":root,\n[data-theme='dark']") },
-  clair: { ...shared, ...parseBlock("[data-theme='light']") },
+  clair: light,
+  sombre: { ...light, ...darkExplicit },
 };
 
 function hslToRgb([h, s, l]: [number, number, number]): [number, number, number] {
@@ -59,7 +66,7 @@ export function contrast(a: string, b: string): number {
 
 const BACKGROUNDS = ['bg-base', 'bg-surface', 'bg-elevated', 'bg-inset'];
 const TEXTS = ['text-primary', 'text-secondary', 'text-muted'];
-const SEMANTIC_TEXTS = ['primary-text', 'success-text', 'warning-text', 'critical-text', 'info-text'];
+const SEMANTIC_TEXTS = ['primary-text', 'success-text', 'warning-text', 'high-text', 'critical-text', 'info-text'];
 const SOLIDS = [
   'primary-solid',
   'primary-solid-hover',
@@ -104,13 +111,33 @@ describe.each(Object.entries(themes))('thème %s', (_name, tokens) => {
   it.each(['bg-base', 'bg-surface', 'bg-elevated'])('anneau de focus sur %s ≥ 3:1', (bg) => {
     expect(contrast(hex('focus'), hex(bg))).toBeGreaterThanOrEqual(3);
   });
+
+  it('primary employé comme texte sur primary-soft ≥ 4,5:1 (entrée active de la barre latérale)', () => {
+    expect(contrast(hex('primary-text'), hex('primary-soft'))).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+describe('bascule système (prefers-color-scheme)', () => {
+  it('le bloc media sombre reste identique au bloc [data-theme=\'dark\'] explicite (ADR 0015)', () => {
+    const mediaStart = css.indexOf('@media (prefers-color-scheme: dark) {');
+    expect(mediaStart, 'bloc media sombre introuvable').toBeGreaterThan(-1);
+    const bodyStart = css.indexOf(":root:not([data-theme='light']) {", mediaStart);
+    const body = css.slice(css.indexOf('{', bodyStart) + 1, css.indexOf('\n  }', bodyStart));
+    const tokens: Tokens = {};
+    const re = /--([\w-]+):\s*(\d+)\s+(\d+)%\s+(\d+)%;\s*\/\*\s*(#[0-9A-Fa-f]{6})/g;
+    for (const m of body.matchAll(re)) {
+      tokens[m[1]!] = { hsl: [Number(m[2]), Number(m[3]), Number(m[4])], hex: m[5]!.toUpperCase() };
+    }
+    expect(Object.keys(tokens).length, 'le bloc media semble vide — sélecteur mal détecté').toBeGreaterThan(10);
+    expect(tokens).toEqual(darkExplicit);
+  });
 });
 
 describe('couleurs de catégorie', () => {
   it('définit une couleur pour chaque catégorie du document d’architecture', async () => {
     const { EQUIPMENT_CATEGORIES } = await import('@archiflow/shared');
     for (const category of EQUIPMENT_CATEGORIES) {
-      expect(shared[`cat-${category}`], category).toBeDefined();
+      expect(light[`cat-${category}`], category).toBeDefined();
     }
   });
 });
