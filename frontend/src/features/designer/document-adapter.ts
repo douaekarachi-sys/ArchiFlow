@@ -20,6 +20,12 @@ export interface EquipmentNodeData extends Record<string, unknown> {
 }
 export type EquipmentFlowNode = Node<EquipmentNodeData, 'equipment'>;
 
+export interface ZoneNodeData extends Record<string, unknown> {
+  zoneType: ZoneType;
+  label: string;
+}
+export type ZoneFlowNode = Node<ZoneNodeData, 'zone'>;
+
 export interface LabeledEdgeData extends Record<string, unknown> {
   linkType: LinkType;
   speedMbps?: number;
@@ -36,10 +42,38 @@ export interface DesignerZone {
   label?: string;
 }
 
+export type FlowNode = EquipmentFlowNode | ZoneFlowNode;
+
 export interface FlowView {
-  nodes: EquipmentFlowNode[];
+  nodes: FlowNode[];
   edges: LabeledFlowEdge[];
   zones: DesignerZone[];
+}
+
+const zoneLabel = (type: ZoneType): string =>
+  ({ DMZ: 'DMZ', LAN: 'LAN', WAN: 'WAN', REMOTE_SITE: 'Site distant' } as const)[type];
+
+function zoneBounds(zone: ArchitectureZone, elementMap: Map<string, ArchitectureElement>) {
+  const members = zone.elementIds
+    .map((elementId) => elementMap.get(elementId))
+    .filter((element): element is ArchitectureElement => element !== undefined);
+
+  if (members.length === 0) {
+    return { x: 0, y: 0, width: 260, height: 180 };
+  }
+
+  const positions = members.map((element) => ({ x: element.position.x, y: element.position.y }));
+  const minX = Math.min(...positions.map((position) => position.x));
+  const minY = Math.min(...positions.map((position) => position.y));
+  const maxX = Math.max(...positions.map((position) => position.x));
+  const maxY = Math.max(...positions.map((position) => position.y));
+
+  const padX = 120;
+  const padY = 110;
+  const width = Math.max(260, maxX - minX + padX * 2);
+  const height = Math.max(180, maxY - minY + padY * 2);
+
+  return { x: minX - padX, y: minY - padY, width, height };
 }
 
 /**
@@ -50,13 +84,33 @@ export interface FlowView {
  * document, jamais `node.data`.
  */
 export function toFlow(document: ArchitectureDocument): FlowView {
+  const elementMap = new Map(document.elements.map((element) => [element.id, element]));
   const zoneByElementId = new Map<string, ArchitectureZone>();
   for (const zone of document.zones) {
     for (const elementId of zone.elementIds) zoneByElementId.set(elementId, zone);
   }
 
-  return {
-    nodes: document.elements.map((el) => ({
+  const zoneNodes: ZoneFlowNode[] = document.zones.map((zone) => {
+    const bounds = zoneBounds(zone, elementMap);
+    return {
+      id: `zone-${zone.id}`,
+      type: 'zone',
+      position: { x: bounds.x, y: bounds.y },
+      data: {
+        zoneType: zone.type,
+        label: zone.label?.trim() || zoneLabel(zone.type),
+      },
+      draggable: false,
+      selectable: false,
+      connectable: false,
+      focusable: false,
+      style: { width: bounds.width, height: bounds.height },
+      zIndex: 0,
+    } satisfies ZoneFlowNode;
+  });
+
+  const nodes: FlowNode[] = [
+    ...document.elements.map((el): EquipmentFlowNode => ({
       id: el.id,
       type: 'equipment',
       position: el.position,
@@ -69,6 +123,11 @@ export function toFlow(document: ArchitectureDocument): FlowView {
         zoneType: zoneByElementId.get(el.id)?.type ?? null,
       },
     })),
+    ...zoneNodes,
+  ];
+
+  return {
+    nodes,
     edges: document.connections.map((c) => ({
       id: c.id,
       type: 'labeled',
@@ -82,14 +141,16 @@ export function toFlow(document: ArchitectureDocument): FlowView {
 
 /** Reconstruit le document depuis l'état d'édition courant — appelé à chaque point de commit. */
 export function fromFlow(view: FlowView): ArchitectureDocument {
-  const elements: ArchitectureElement[] = view.nodes.map((n) => ({
-    id: n.id,
-    type: n.data.category,
-    equipmentModelId: n.data.equipmentModelId,
-    label: n.data.label,
-    position: n.position,
-    config: n.data.config,
-  }));
+  const elements: ArchitectureElement[] = view.nodes
+    .filter((node): node is EquipmentFlowNode => node.type === 'equipment')
+    .map((n) => ({
+      id: n.id,
+      type: n.data.category,
+      equipmentModelId: n.data.equipmentModelId,
+      label: n.data.label,
+      position: n.position,
+      config: n.data.config,
+    }));
 
   const connections: ArchitectureConnection[] = view.edges.map((e) => ({
     id: e.id,
@@ -106,7 +167,10 @@ export function fromFlow(view: FlowView): ArchitectureDocument {
     id: zone.id,
     type: zone.type,
     label: zone.label,
-    elementIds: view.nodes.filter((n) => n.data.zoneId === zone.id).map((n) => n.id),
+    elementIds: view.nodes
+      .filter((node): node is EquipmentFlowNode => node.type === 'equipment')
+      .filter((n) => n.data.zoneId === zone.id)
+      .map((n) => n.id),
   }));
 
   return { elements, connections, zones };

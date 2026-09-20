@@ -507,6 +507,28 @@
       "fiber": "Fibre optique",
       "wireless": "Sans fil",
       "virtual": "Virtuel"
+    },
+    "validation": {
+      "title": "Validation architecture",
+      "none": "Aucune anomalie détectée",
+      "compatible": "Compatible",
+      "incompatible": "Incompatible",
+      "unknown": "Élément non identifié",
+      "capacity": {
+        "unsizedModel": "Modèle non renseigné",
+        "portOverflow": "Dépassement de capacité des ports",
+        "poeBudgetExceeded": "Budget PoE dépassé"
+      },
+      "compatibility": {
+        "portTypeMismatch": "Type de port incompatible avec le lien",
+        "wirelessCategoryMismatch": "Lien sans fil hors catégorie réseau",
+        "throughputMismatch": "Débit du lien supérieur à la capacité supportée"
+      },
+      "anomaly": {
+        "isolatedElement": "Élément isolé sans connexion",
+        "loopDetected": "Boucle détectée dans le graphe",
+        "singlePointOfFailure": "Point de défaillance unique"
+      }
     }
   }
 }

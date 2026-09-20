@@ -112,6 +112,40 @@ describe('suite 1 — entre locataires', () => {
   it('un identifiant mal formé répond 404, comme un identifiant inconnu', async () => {
     expect((await server().get(`${API}/projects/pas-un-uuid`).set(adminB.auth)).status).toBe(404);
   });
+
+  it('bloque de façon générique chaque route authentifiée qui cible une ressource du locataire A', async () => {
+    const assignmentId = await t.prisma.system.projectAssignment.findFirstOrThrow({
+      where: { projectId: w.projectA1, organizationId: w.orgA },
+      select: { id: true },
+    });
+
+    const cases = [
+      ['GET', `/projects/${w.projectA1}`],
+      ['GET', `/projects/${w.projectA1}/history`],
+      ['GET', `/projects/${w.projectA1}/transitions`],
+      ['POST', `/projects/${w.projectA1}/transitions`, { to: 'INTERNAL_REVIEW' }],
+      ['POST', `/projects/${w.projectA1}/assignments`, { userId: w.users.adminB.id, role: 'ENGINEER' }],
+      ['DELETE', `/projects/${w.projectA1}/assignments/${assignmentId.id}`],
+      ['PATCH', `/users/${w.users.salesA.id}/role`, { role: 'ENGINEER' }],
+      ['POST', `/users/${w.users.salesA.id}/deactivate`],
+      ['POST', `/users/${w.users.salesA.id}/reactivate`],
+      ['POST', `/users/${w.users.salesA.id}/anonymize`],
+    ] as const;
+
+    for (const [method, path, body] of cases) {
+      const call =
+        method === 'GET'
+          ? server().get(API + path)
+          : method === 'PATCH'
+            ? server().patch(API + path).send(body ?? {})
+            : method === 'DELETE'
+              ? server().delete(API + path)
+              : server().post(API + path).send(body ?? {});
+
+      const res = await call.set(adminB.auth);
+      expect(res.status, `${method} ${path}`).toBe(404);
+    }
+  });
 });
 
 describe('suite 2 — entre sociétés clientes d’un même locataire', () => {

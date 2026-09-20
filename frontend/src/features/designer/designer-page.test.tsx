@@ -101,4 +101,35 @@ describe('DesignerPage', () => {
     expect(screen.queryByRole('button', { name: 'Enregistrer' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Ajouter une zone' })).not.toBeInTheDocument();
   });
+
+  it('affiche les zones logiques sous forme de cadres visibles sur le canvas', async () => {
+    setArchitectSession();
+    vi.mocked(architectureApi.get).mockResolvedValue({
+      elements: [
+        {
+          id: 'fw-1',
+          type: 'firewall',
+          equipmentModelId: null,
+          label: 'Firewall DMZ',
+          position: { x: 220, y: 180 },
+          config: {},
+        },
+        {
+          id: 'srv-1',
+          type: 'server',
+          equipmentModelId: null,
+          label: 'Serveur interne',
+          position: { x: 410, y: 320 },
+          config: {},
+        },
+      ],
+      connections: [],
+      zones: [{ id: 'zone-dmz', type: 'DMZ', label: 'DMZ', elementIds: ['fw-1'] }],
+    });
+
+    renderDesigner();
+
+    expect((await screen.findAllByText('DMZ')).length).toBeGreaterThan(0);
+    expect(screen.getAllByLabelText('DMZ').length).toBeGreaterThan(0);
+  });
 });
