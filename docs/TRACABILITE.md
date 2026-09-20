@@ -197,6 +197,18 @@ Statut :
 | ENF-01 | Performance | Temps de réponse inférieur à 2 s pour les actions courantes ; rendu fluide d'un plan comportant plusieurs centaines d'éléments ; latence de co-édition inférieure à 500 ms. | 🕓 Transverse · mesurée Phase 14 — chunks séparés et chargement paresseux en place | `frontend/vite.config.ts`, `frontend/src/app/router.tsx` |
 | ENF-02 | Sécurité | Chiffrement des échanges (TLS) et des données sensibles ; gestion sécurisée des sessions ; conformité à la loi 09-08 relative à la protection des données personnelles (Maroc) et, le cas échéant, au RGPD. | 🔨 Phases 1 et 14 — bcrypt, sessions rotatives révocables, HSTS, anonymisation, rétention, registre (testés) ; TLS de déploiement et chiffrement du volume à la charge de l’hébergement | `backend/src/security/`, `backend/src/domain/`, `backend/src/workers/`, `docs/REGISTRE-TRAITEMENTS.md` |
 | ENF-03 | Ergonomie | Interface intuitive et responsive ; prise en main rapide ; interface en français, extensible à l'arabe et à l'anglais. | 🔨 Phase 1 — interface en français, aucune chaîne en dur (test automatique), responsive, bascule RTL prête ; arabe et anglais à traduire | `frontend/src/i18n/` — test `i18n.test.ts` |
+>
+> **Tableaux de bord repris (20/09/2026).** Les six portails affichaient la même page générique
+> (onglets non fonctionnels, contrôle « mes projets/organisation » inerte, bloc « Progression des
+> livraisons » non stylé donc tronqué). Repris avec le langage visuel validé de `/dev/ui`
+> (`KpiCard`+barre empilée, `MultiColumnStat`, `RankedList`, `Panel`) et des données réellement
+> disponibles (aucune UI décorative sans donnée derrière) : répartition par statut mutuellement
+> exclusive (`status-groups.ts`, testé), projets sans mise à jour récente (`stale-projects.ts`,
+> testé). Portail CLIENT distinct : son projet, sa progression en 4 étapes non techniques
+> (`client-progress.ts`, testé — jamais les 13 statuts internes), sa prochaine action réelle
+> (`GET /projects/:id/transitions`, pas de texte inventé), sans colonne société ni bouton
+> « + Nouveau » redondant avec « Nouvelle demande ». `dashboard-page.test.tsx` couvre les deux
+> profils.
 | ENF-04 | Disponibilité | Taux de disponibilité cible de 99,5 % ; sauvegardes régulières et plan de reprise d'activité. | 🔨 Phases 1 et 14 — sauvegarde chiffrée, rotation GFS, restauration vérifiée le 18/09/2026, supervision /health ; test chronométré en conditions réelles en Phase 14 | `backend/scripts/`, `docs/RUNBOOK-RESTAURATION.md` |
 | ENF-05 | Compatibilité | Support des navigateurs récents (Chrome, Firefox, Edge, Safari) ; usage bureautique prioritaire, tablette en option. | 🔨 Phases 1 et 14 — vérifié sur Edge (bureau et mobile) ; Chrome, Firefox, Safari en Phase 14 | — |
 | ENF-06 | Évolutivité | Architecture modulaire permettant la montée en charge et l'ajout de nouveaux modules ; mode multi-organisations. | 🔨 Phase 1 — multi-organisations livré et testé (deux suites d’isolation, filet Prisma) ; montée en charge mesurée en Phase 14 | `backend/src/core/prisma/org-scope.ts` — tests `isolation.e2e-spec.ts` |

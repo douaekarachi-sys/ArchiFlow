@@ -458,6 +458,17 @@
     "devices": "Équipements",
     "layers": "Calques de conception",
     "delivery": "Progression des livraisons",
+    "projectsCountLabel": "projets",
+    "statusGroups": {
+      "draft": "Brouillon",
+      "inProgress": "En cours",
+      "awaitingClient": "Chez le client",
+      "done": "Terminés"
+    },
+    "staleProjects": "Projets sans mise à jour récente",
+    "staleProjectsEmpty": "Tous les projets actifs ont été mis à jour récemment.",
+    "engineerTools": "Outils ingénieur",
+    "architectTools": "Concepteur",
     "liveSpace": "espace actif",
     "overview": "Vue d'ensemble",
     "overviewHint": "Survolez un signal pour révéler son détail opérationnel.",
