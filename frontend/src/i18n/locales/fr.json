@@ -190,7 +190,20 @@
     "ports": "Ports",
     "throughput": "Débit",
     "power": "Puissance",
-    "demo": "DEMO DATA"
+    "demo": "DEMO DATA",
+    "newModel": "Nouveau modèle",
+    "newModelHint": "Le fabricant et la marque sont créés automatiquement s'ils n'existent pas encore.",
+    "manufacturer": "Fabricant",
+    "brand": "Marque",
+    "category": "Catégorie",
+    "modelName": "Nom du modèle",
+    "reference": "Référence",
+    "rackUnits": "Hauteur U",
+    "price": "Prix indicatif",
+    "currency": "Devise",
+    "archived": "Archivé",
+    "archiveAction": "Archiver",
+    "archiveConsequence": "Il restera visible dans les architectures existantes mais ne pourra plus être ajouté à une nouvelle conception (ADR 0008)."
   },
   "auth": {
     "login": {
@@ -240,6 +253,8 @@
     "firstName": { "required": "Prénom requis" },
     "lastName": { "required": "Nom requis" },
     "name": { "required": "Nom requis" },
+    "website": { "invalid": "Adresse invalide" },
+    "reference": { "required": "Référence requise" },
     "projectName": { "required": "Nom du projet requis" },
     "comment": { "required": "Commentaire requis" },
     "clientCompany": {

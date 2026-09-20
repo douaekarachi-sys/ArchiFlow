@@ -1,6 +1,9 @@
 import type {
   AuthResult,
   ChangePasswordInput,
+  CreateBrandInput,
+  CreateEquipmentModelInput,
+  CreateManufacturerInput,
   CreateRequestInput,
   ForgotPasswordInput,
   LoginInput,
@@ -8,6 +11,7 @@ import type {
   ResetPasswordInput,
   Role,
   TransitionRequestInput,
+  UpdateEquipmentModelInput,
   UserProfile,
 } from '@archiflow/shared';
 import { api } from './client';
@@ -95,8 +99,16 @@ export interface EquipmentItem {
   availability: string | null;
   imageUrl: string | null;
   isDemoData: boolean;
+  archivedAt: string | null;
   brand: { id: string; name: string; manufacturer: { id: string; name: string } };
   category: { id: string; code: string; labelKey: string };
+}
+
+export interface ManufacturerItem {
+  id: string;
+  name: string;
+  website: string | null;
+  brands: { id: string; name: string }[];
 }
 
 export interface AvailableTransition {
@@ -145,6 +157,12 @@ export const usersApi = {
 };
 
 export const catalogApi = {
-  equipment: (query: { page?: number; pageSize?: number; q?: string; category?: string } = {}) =>
+  equipment: (query: { page?: number; pageSize?: number; q?: string; category?: string; includeArchived?: boolean } = {}) =>
     api.get<Page<EquipmentItem>>('/catalog/equipment', query),
+  createModel: (input: CreateEquipmentModelInput) => api.post<EquipmentItem>('/catalog/equipment', input),
+  updateModel: (id: string, input: UpdateEquipmentModelInput) => api.patch<EquipmentItem>(`/catalog/equipment/${id}`, input),
+  archiveModel: (id: string) => api.post<EquipmentItem>(`/catalog/equipment/${id}/archive`),
+  manufacturers: () => api.get<ManufacturerItem[]>('/catalog/manufacturers'),
+  createManufacturer: (input: CreateManufacturerInput) => api.post<ManufacturerItem>('/catalog/manufacturers', input),
+  createBrand: (input: CreateBrandInput) => api.post<{ id: string; name: string; manufacturerId: string }>('/catalog/brands', input),
 };

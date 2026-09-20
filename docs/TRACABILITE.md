@@ -88,7 +88,7 @@ Statut :
 
 | Réf. | Exigence | Priorité | Lot | Statut | Où c'est implémenté |
 |---|---|---|---|---|---|
-| EF-201 | Catalogue de composants référençant des marques et modèles réels (fabricant, référence, caractéristiques techniques). | Élevée | MVP | 🔨 Phase 3 — lecture seule livrée (liste paginée, recherche, filtre par catégorie, portée locataire), sans test ; aucune donnée de démonstration semée, aucune écriture (ajout/import/archivage — EF-505) | `backend/src/modules/catalog/`, `frontend/src/features/admin/catalog-page.tsx` |
+| EF-201 | Catalogue de composants référençant des marques et modèles réels (fabricant, référence, caractéristiques techniques). | Élevée | MVP | ✅ T1 — lecture (liste paginée, recherche, filtre par catégorie, portée locataire) et écriture (fabricant/marque idempotents, modèle, modification) testées ; seed 6 fabricants réels, 22 modèles DEMO DATA | `backend/src/modules/catalog/`, `frontend/src/features/admin/catalog-page.tsx` — tests `backend/test/catalog.e2e-spec.ts` |
 | EF-202 | Calcul automatique de capacité : bande passante, nombre de ports, puissance électrique, charge estimée. | Élevée | V1 ⚠ | 🕓 Phase 4 | — |
 | EF-203 | Vérification automatique de compatibilité entre équipements (interfaces, protocoles, versions). | Élevée | V1 ⚠ | 🕓 Phase 7 | — |
 | EF-204 | Détection des anomalies de conception : boucles, sous-dimensionnement, points uniques de défaillance (SPOF). | Moyenne | V2 ⚠ | 🕓 Phase 7 | — |
@@ -149,7 +149,7 @@ Statut :
 | EF-502 | Authentification sécurisée (identifiant / mot de passe, SSO ou OAuth en option). | Élevée | MVP (§3) | ✅ Phase 1 — identifiant / mot de passe ; SSO et OAuth (optionnels) non implémentés | `backend/src/modules/auth/`, `backend/src/security/`, `frontend/src/features/auth/` — tests `backend/test/auth.e2e-spec.ts` |
 | EF-503 | Gestion des rôles et permissions (administrateur, concepteur, invité). | Élevée | MVP (§3) | ✅ Phase 1 | `packages/shared/src/rbac/`, `backend/src/security/guards/` — tests `check-permissions.spec.ts`, `users.e2e-spec.ts` |
 | EF-504 | Tableau de bord des projets : liste, recherche, filtres, statut. | Moyenne | V1 (§3) | 🔨 Phases 1 et 3 — liste et statut par portail (API : recherche et filtre par statut) ; recherche et filtres à l’écran en Phase 3 | `frontend/src/features/projects/`, `frontend/src/features/dashboard/` |
-| EF-505 | Gestion du catalogue de composants par l'administrateur (ajout, mise à jour). | Moyenne | V1 | 🕓 Phase 3 | — |
+| EF-505 | Gestion du catalogue de composants par l'administrateur (ajout, mise à jour). | Moyenne | V1 | ✅ T1 — ajout, modification, archivage (ADR 0008) ; `catalog.manage` réservé à l'administrateur, testé | `backend/src/modules/catalog/catalog.service.ts`, `frontend/src/features/admin/catalog-page.tsx` — tests `backend/test/catalog.e2e-spec.ts` |
 
 > **EF-502 — ADR 0010.** Pas d'inscription publique : l'administrateur crée les comptes. La
 > création répond de manière identique que l'adresse soit libre ou non (anti-énumération).
