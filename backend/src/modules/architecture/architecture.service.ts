@@ -154,14 +154,21 @@ export class ArchitectureService {
 
   private async readNormalizedTables(organizationId: string, architectureId: string): Promise<ArchitectureDocument> {
     const scoped = { architectureId, organizationId };
-    const [elements, connections, zones, networks] = await Promise.all([
+    const [elements, connections, zones, networks, buildings, floors, rooms, racks] = await Promise.all([
       this.prisma.tenant.architectureElement.findMany({ where: scoped, orderBy: { key: 'asc' } }),
       this.prisma.tenant.architectureConnection.findMany({ where: scoped, orderBy: { key: 'asc' } }),
       this.prisma.tenant.architectureZone.findMany({ where: scoped, include: { elements: { select: { key: true } } }, orderBy: { key: 'asc' } }),
       this.prisma.tenant.architectureNetwork.findMany({ where: scoped, orderBy: { key: 'asc' } }),
+      this.prisma.tenant.architectureBuilding.findMany({ where: scoped, orderBy: { key: 'asc' } }),
+      this.prisma.tenant.architectureFloor.findMany({ where: scoped, orderBy: { key: 'asc' } }),
+      this.prisma.tenant.architectureRoom.findMany({ where: scoped, orderBy: { key: 'asc' } }),
+      this.prisma.tenant.architectureRack.findMany({ where: scoped, orderBy: { key: 'asc' } }),
     ]);
     const keyByElementId = new Map(elements.map((e) => [e.id, e.key]));
     const keyByNetworkId = new Map(networks.map((n) => [n.id, n.key]));
+    const keyByBuildingId = new Map(buildings.map((b) => [b.id, b.key]));
+    const keyByFloorId = new Map(floors.map((f) => [f.id, f.key]));
+    const keyByRoomId = new Map(rooms.map((r) => [r.id, r.key]));
 
     return {
       elements: elements.map((e) => ({
@@ -190,8 +197,9 @@ export class ArchitectureService {
         label: z.label ?? undefined,
         elementIds: z.elements.map((e) => e.key),
       })),
-      // `networks` est optionnel (comme `placement`) : omis, jamais `[]`, quand il n'y a aucun
-      // réseau — un document sans plan d'adressage reste comparable `toEqual` à l'ancien format.
+      // `networks`/`buildings`/`floors`/`rooms`/`racks` sont optionnels (comme `placement`) :
+      // omis, jamais `[]`, quand vides — un document sans plan d'adressage ou construction
+      // physique reste comparable `toEqual` à l'ancien format.
       networks:
         networks.length > 0
           ? networks.map((n) => ({
@@ -203,6 +211,16 @@ export class ArchitectureService {
               dhcpRangeStart: n.dhcpRangeStart ?? undefined,
               dhcpRangeEnd: n.dhcpRangeEnd ?? undefined,
             }))
+          : undefined,
+      buildings: buildings.length > 0 ? buildings.map((b) => ({ id: b.key, name: b.name })) : undefined,
+      floors:
+        floors.length > 0
+          ? floors.map((f) => ({ id: f.key, buildingId: keyByBuildingId.get(f.buildingId) ?? f.buildingId, name: f.name }))
+          : undefined,
+      rooms: rooms.length > 0 ? rooms.map((r) => ({ id: r.key, floorId: keyByFloorId.get(r.floorId) ?? r.floorId, name: r.name })) : undefined,
+      racks:
+        racks.length > 0
+          ? racks.map((r) => ({ id: r.key, roomId: keyByRoomId.get(r.roomId) ?? r.roomId, name: r.name, totalUnits: r.totalUnits }))
           : undefined,
     };
   }
@@ -269,6 +287,65 @@ export class ArchitectureService {
       await tx.architectureZone.deleteMany({ where: scoped });
       await tx.architectureElement.deleteMany({ where: scoped });
       await tx.architectureNetwork.deleteMany({ where: scoped });
+      // Construction physique : enfant avant parent (baie → salle → étage → bâtiment).
+      await tx.architectureRack.deleteMany({ where: scoped });
+      await tx.architectureRoom.deleteMany({ where: scoped });
+      await tx.architectureFloor.deleteMany({ where: scoped });
+      await tx.architectureBuilding.deleteMany({ where: scoped });
+
+      const buildings = input.buildings ?? [];
+      if (buildings.length > 0) {
+        await tx.architectureBuilding.createMany({
+          data: buildings.map((b) => ({ organizationId: ctx.organizationId, architectureId: architecture.id, key: b.id, name: b.name })),
+        });
+      }
+      const buildingRows = await tx.architectureBuilding.findMany({ where: scoped, select: { id: true, key: true } });
+      const buildingIdByKey = new Map(buildingRows.map((b) => [b.key, b.id]));
+
+      const floors = input.floors ?? [];
+      if (floors.length > 0) {
+        await tx.architectureFloor.createMany({
+          data: floors.map((f) => ({
+            organizationId: ctx.organizationId,
+            architectureId: architecture.id,
+            key: f.id,
+            // La cohérence buildingId est déjà garantie par architectureDocumentSchema (superRefine).
+            buildingId: buildingIdByKey.get(f.buildingId)!,
+            name: f.name,
+          })),
+        });
+      }
+      const floorRows = await tx.architectureFloor.findMany({ where: scoped, select: { id: true, key: true } });
+      const floorIdByKey = new Map(floorRows.map((f) => [f.key, f.id]));
+
+      const rooms = input.rooms ?? [];
+      if (rooms.length > 0) {
+        await tx.architectureRoom.createMany({
+          data: rooms.map((r) => ({
+            organizationId: ctx.organizationId,
+            architectureId: architecture.id,
+            key: r.id,
+            floorId: floorIdByKey.get(r.floorId)!,
+            name: r.name,
+          })),
+        });
+      }
+      const roomRows = await tx.architectureRoom.findMany({ where: scoped, select: { id: true, key: true } });
+      const roomIdByKey = new Map(roomRows.map((r) => [r.key, r.id]));
+
+      const racks = input.racks ?? [];
+      if (racks.length > 0) {
+        await tx.architectureRack.createMany({
+          data: racks.map((r) => ({
+            organizationId: ctx.organizationId,
+            architectureId: architecture.id,
+            key: r.id,
+            roomId: roomIdByKey.get(r.roomId)!,
+            name: r.name,
+            totalUnits: r.totalUnits,
+          })),
+        });
+      }
 
       const networks = input.networks ?? [];
       if (networks.length > 0) {

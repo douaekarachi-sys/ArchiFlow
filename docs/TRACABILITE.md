@@ -1,13 +1,13 @@
 # Traçabilité au cahier des charges
 
-**Statut : version 15 — plan d'adressage IP/VLAN, tranche T11 (21/09/2026).** Colonne *Lot* : ADR 0009.
+**Statut : version 16 — construction physique minimale, tranche T12 (21/09/2026).** Colonne *Lot* : ADR 0009.
 
 Les libellés de la colonne *Exigence* sont repris **mot pour mot** du cahier des charges
 (tableaux 3.1 à 3.5 et 5). Ils ne doivent pas être reformulés lors des mises à jour.
 
 Mise à jour : à chaque fin de phase.
 
-## État global (21/09/2026, fin de la tranche T11)
+## État global (21/09/2026, fin de la tranche T12)
 
 **✅ Livré et testé** : authentification et RBAC (Phase 1), tenancy à deux niveaux (Phase 1),
 machine à états et workflow (Phase 1), catalogue — lecture et administration (T1, EF-201/505),
@@ -18,23 +18,23 @@ restauration (T5, EF-405), BOM et coûts dérivés (T6, EF-302, matériel+licenc
 PDF minimal (T7, EF-301, D-11 fermée), validation client — publication, consultation,
 commentaire, validation, notification (T10, EF-508), plan d'adressage IP/VLAN — VLAN, CIDR,
 passerelle, plage DHCP, rattachement aux équipements, validation des chevauchements/conflits,
-tableau dans le PDF (T11, EF-207).
+tableau dans le PDF (T11, EF-207), construction physique minimale — bâtiment → étage → salle →
+baie → position U, rattachement d'un équipement, navigation dans la vue 3D (T12, partie « schéma
+physique » d'EF-205).
 
 **🔨 Livré en périmètre réduit, écart documenté** : détection d'anomalies structurelles limitée
-au graphe logique, pas encore aux anomalies physiques — Phase 6 non livrée (T4/EF-204) ; vue 3D
-en consultation sans navigation bâtiment/étage/salle — dépend de `placement`, Phase 6 non livrée
-(T8, EF-104) ; coût de mise en œuvre volontairement non chiffré, aucune donnée de tarif horaire
-au catalogue (T6, EF-303) ; chatbot en repli local uniquement, fournisseur LLM externe non
-câblé, aucune clé disponible (T9, D-12 partiellement tranchée).
+au graphe logique, les anomalies physiques restent à faire (dépassement de capacité d'une salle,
+alimentation d'une baie — T4/EF-204) ; coût de mise en œuvre volontairement non chiffré, aucune
+donnée de tarif horaire au catalogue (T6, EF-303) ; chatbot en repli local uniquement, fournisseur
+LLM externe non câblé, aucune clé disponible (T9, D-12 partiellement tranchée) ; construction
+physique sans câblage détaillé, comme demandé (T12, EF-205).
 
 **⛔ Hors périmètre assumé** : co-édition temps réel CRDT (EF-404, dépend de D-05) ; chatbot
 lui-même hors CDC par nature, livré comme extension (voir « Écarts assumés » ci-dessous).
 
-**🕓 Planifié, non commencé** : bibliothèque de modèles d'architecture (EF-206), construction
-physique — bâtiments/étages/salles/racks (Phase 6, dont dépendent EF-204 complet, EF-104 complet
-et la partie « schéma physique » d'EF-205), commentaires et présence temps réel (EF-403,
-Phase 10), personnalisation des rapports et formats d'export additionnels (EF-304/305/306,
-Phase 12).
+**🕓 Planifié, non commencé** : bibliothèque de modèles d'architecture (EF-206), commentaires et
+présence temps réel (EF-403, Phase 10), personnalisation des rapports et formats d'export
+additionnels (EF-304/305/306, Phase 12).
 
 ---
 
@@ -100,7 +100,7 @@ Statut :
 | EF-101 | Interface de conception par glisser-déposer (drag-and-drop) permettant de placer les éléments : serveurs, routeurs, pare-feu, commutateurs, répartiteurs de charge, stockage, postes clients. | Élevée | MVP | ✅ T3 | `frontend/src/features/designer/{equipment-palette,designer-page}.tsx` — palette du catalogue (archivedAt IS NULL) groupée par catégorie, glisser vers React Flow ; élément générique « Internet » pour ce qui n'a pas de modèle catalogue |
 | EF-102 | Bibliothèque d'icônes normalisées (symboles réseau standard) associées à chaque type d'équipement. | Élevée | MVP | ✅ T3 | `frontend/src/features/designer/category-icons.ts` — une icône par catégorie, couleur `tokens.css` §cat-* (déjà utilisée par `CategoryBadge` depuis T1) |
 | EF-103 | Tracé de connexions réseau visuelles entre éléments, avec libellés (débit, protocole, type de lien filaire/sans fil). | Élevée | MVP | ✅ T3 | `frontend/src/features/designer/labeled-edge.tsx` — tracé et couleur distincts par `linkType` (cuivre/fibre/sans fil/virtuel), libellé flottant débit + protocole |
-| EF-104 | Basculement entre une vue 2D (schéma logique) et une vue 3D (implantation physique : baies, salle serveur). | Moyenne | V2 ⚠ | 🔨 T8 — consultation uniquement, anticipée avant la Phase 9 | `frontend/src/features/designer3d/` (`Designer3DPage`, `buildScene3D`) — test `scene-layout.test.ts`, `designer-3d-page.test.tsx` |
+| EF-104 | Basculement entre une vue 2D (schéma logique) et une vue 3D (implantation physique : baies, salle serveur). | Moyenne | V2 ⚠ | ✅ T8 (consultation) + T12 (navigation bâtiment → étage → salle → baie réelle) | `frontend/src/features/designer3d/` (`Designer3DPage`, `buildScene3D`, `SiteNavigator`) — test `scene-layout.test.ts`, `designer-3d-page.test.tsx` |
 | EF-105 | Navigation fluide : zoom, panoramique, grille magnétique et alignement automatique des éléments. | Moyenne | V1 (§3) | 🔨 T3 | Zoom/panoramique/grille magnétique livrés (`snapGrid`, `--canvas-snap`) ; « alignement automatique » interprété comme l'accrochage à la grille — pas d'outil d'alignement multi-sélection dédié |
 | EF-106 | Mise à jour en temps réel du plan à chaque ajout, modification ou suppression d'un élément. | Élevée | MVP (§3) | ✅ T3 | `frontend/src/features/designer/document-adapter.ts` (`toFlow`/`fromFlow`) + `use-designer-history.ts` — mise à jour locale immédiate (ADR 0003), historique par patchs Immer (undo/redo), document `packages/shared` comme seule source de vérité |
 | EF-107 | Regroupement des éléments en zones logiques (DMZ, LAN, WAN, sites distants). | Moyenne | V1 (§3) | 🔨 T3 | `frontend/src/features/designer/element-inspector.tsx` — zones créables et assignables par élément (panneau « Zones logiques ») ; regroupement visuel par étiquette de couleur, pas encore par conteneur géométrique déplaçable |
@@ -136,14 +136,32 @@ Statut :
 | EF-201 | Catalogue de composants référençant des marques et modèles réels (fabricant, référence, caractéristiques techniques). | Élevée | MVP | ✅ T1 — lecture (liste paginée, recherche, filtre par catégorie, portée locataire) et écriture (fabricant/marque idempotents, modèle, modification) testées ; seed 6 fabricants réels, 22 modèles DEMO DATA | `backend/src/modules/catalog/`, `frontend/src/features/admin/catalog-page.tsx` — tests `backend/test/catalog.e2e-spec.ts` |
 | EF-202 | Calcul automatique de capacité : bande passante, nombre de ports, puissance électrique, charge estimée. | Élevée | V1 ⚠ | ✅ T4 | `packages/shared/src/architecture/validation.ts` (`checkCapacity`, capacité d'une architecture déjà posée) ; `packages/shared/src/sizing/engineering-sizing.ts` (`calculateSizing`, proposition chiffrée à partir du besoin client — ports, switches, bande passante, points d'accès, puissance) branché sur le portail ingénieur, `frontend/src/features/engineer/sizing-page.tsx` |
 | EF-203 | Vérification automatique de compatibilité entre équipements (interfaces, protocoles, versions). | Élevée | V1 ⚠ | ✅ T4 | `packages/shared/src/architecture/validation.ts` (`checkCompatibility`) — type de port vs type de lien (fibre), catégorie vs lien sans fil, débit du lien vs débit supporté |
-| EF-204 | Détection des anomalies de conception : boucles, sous-dimensionnement, points uniques de défaillance (SPOF). | Moyenne | V2 ⚠ | 🔨 T4 | `packages/shared/src/architecture/validation.ts` (`checkGraphAnomalies`) — boucles (DFS), SPOF (points d'articulation, Tarjan), éléments isolés ; sous-dimensionnement couvert par EF-202. Anomalies physiques (Phase 6, racks/étages) hors périmètre : pas encore de construction physique |
-| EF-205 | Génération de diagrammes détaillés : schéma logique, schéma physique, plan d'adressage. | Élevée | MVP (§3) | 🔨 T3 (logique) et T11 (adressage) livrés ; schéma physique 🕓 Phase 6 | `frontend/src/features/designer/` (logique), `packages/shared/src/network/addressing.ts` (adressage) |
+| EF-204 | Détection des anomalies de conception : boucles, sous-dimensionnement, points uniques de défaillance (SPOF). | Moyenne | V2 ⚠ | 🔨 T4 (logique) + T12 (position U hors baie, conflit de position, `checkPlacement`) | `packages/shared/src/architecture/validation.ts` (`checkGraphAnomalies`), `packages/shared/src/physical/placement.ts` (`checkPlacement`) — boucles (DFS), SPOF (Tarjan), éléments isolés, conflits de position U ; sous-dimensionnement couvert par EF-202. Anomalies physiques de capacité (surcharge d'une salle/baie en volume) hors périmètre |
+| EF-205 | Génération de diagrammes détaillés : schéma logique, schéma physique, plan d'adressage. | Élevée | MVP (§3) | ✅ T3 (logique), T11 (adressage), T12 (physique, minimal) | `frontend/src/features/designer/` (logique), `packages/shared/src/network/addressing.ts` (adressage), `packages/shared/src/physical/placement.ts` + `element-inspector.tsx` (`PhysicalSitesManager`, physique) |
 | EF-206 | Bibliothèque de modèles d'architectures types (PME, datacenter, multi-sites) réutilisables. | Moyenne | V2 ⚠ | 🕓 Post-Phase 10 | — |
 | EF-207 | Attribution et gestion du plan d'adressage IP (sous-réseaux, VLAN). | Moyenne | V1 (§3) | ✅ T11 | `packages/shared/src/network/addressing.ts` (`checkAddressing`, `parseCidr`, `cidrsOverlap`), `packages/shared/src/architecture/document.schema.ts` (`ipNetworkSchema`), `frontend/src/features/designer/element-inspector.tsx` (`NetworksManager`) — tests `addressing.spec.ts`, `document.schema.spec.ts`, `architecture.e2e-spec.ts`, `reports.e2e-spec.ts` |
 
 > **EF-205** couvre à lui seul les trois vues du designer, en priorité **Élevée** et donc en
-> lot MVP. Il s'étale sur trois phases et ne peut être clos avant la fin de la Phase 8 —
-> schéma logique (T3) et plan d'adressage (T11) livrés, schéma physique restant en Phase 6.
+> lot MVP. Les trois vues sont maintenant livrées : schéma logique (T3), plan d'adressage (T11),
+> schéma physique minimal (T12) — sans câblage physique détaillé, comme demandé.
+>
+> **T12 — construction physique minimale (schéma physique d'EF-205, 21/09/2026).** Bâtiment →
+> étage → salle → baie, dans le MÊME document que le reste (ADR 0001) : `Building`/`Floor`/
+> `Room`/`Rack`, chaque niveau référençant son parent par id (superRefine, comme networks/zones),
+> normalisés côté serveur (`ArchitectureBuilding/Floor/Room/Rack`, migration additive
+> `20260921210020`) + figés dans le snapshot de version. `ArchitectureElement.placement`
+> (colonne JSON déjà posée en Phase 1) rattache un élément à une baie et une position U — inchangée
+> dans sa forme, maintenant adossée à des entités réelles plutôt qu'à des identifiants libres.
+> Conflit de position U entre deux éléments d'une même baie, position U hors des bornes de la
+> baie : anomalies CRITICAL (`checkPlacement`, `packages/shared/src/physical/placement.ts`),
+> mêmes règles en local et en revalidation serveur (ADR 0003), même panneau que les autres
+> familles d'anomalies. Côté designer 2D, `PhysicalSitesManager` (`element-inspector.tsx`) crée la
+> chaîne complète en un seul ajout (réutilise bâtiment/étage/salle déjà nommés) ; le rattachement
+> d'un équipement se fait par un sélecteur de baie + position U dans l'inspecteur d'élément. Côté
+> vue 3D, `SiteNavigator` (`designer3d/designer-3d-page.tsx`) offre quatre listes en cascade
+> (bâtiment → étage → salle → baie) qui filtrent réellement la scène affichée à la baie choisie —
+> la navigation EF-104 fonctionne désormais avec de vraies données, plus seulement une vue à plat.
+> Pas de câblage physique détaillé (hors périmètre explicite de ce point).
 >
 > **T11 — plan d'adressage IP/VLAN (EF-207, 21/09/2026).** Un réseau (`IpNetwork` : nom, VLAN,
 > CIDR, passerelle, plage DHCP) vit dans le MÊME document d'architecture (ADR 0001), comme les

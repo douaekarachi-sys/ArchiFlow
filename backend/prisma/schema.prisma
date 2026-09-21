@@ -468,6 +468,10 @@ model Architecture {
   connections ArchitectureConnection[]
   zones       ArchitectureZone[]
   networks    ArchitectureNetwork[]
+  buildings   ArchitectureBuilding[]
+  floors      ArchitectureFloor[]
+  rooms       ArchitectureRoom[]
+  racks       ArchitectureRack[]
   versions    ArchitectureVersion[]
 }
 
@@ -555,6 +559,78 @@ model ArchitectureNetwork {
 
   @@unique([architectureId, key])
   @@index([architectureId])
+}
+
+// ---------------------------------------------------------------------------
+// Construction physique minimale (partie « schéma physique » d'EF-205) : bâtiment → étage →
+// salle → baie. `ArchitectureElement.placement` (JSON, déjà existant depuis la Phase 1)
+// référence ces entités par leur `key` document — pas de câblage physique détaillé.
+// ---------------------------------------------------------------------------
+
+model ArchitectureBuilding {
+  id             String @id @default(uuid()) @db.Uuid
+  organizationId String @db.Uuid
+  architectureId String @db.Uuid
+  key            String
+  name           String
+
+  architecture Architecture        @relation(fields: [architectureId], references: [id], onDelete: Cascade)
+  floors       ArchitectureFloor[]
+
+  @@unique([architectureId, key])
+  @@index([architectureId])
+}
+
+model ArchitectureFloor {
+  id             String @id @default(uuid()) @db.Uuid
+  organizationId String @db.Uuid
+  architectureId String @db.Uuid
+  buildingId     String @db.Uuid
+  key            String
+  name           String
+
+  architecture Architecture         @relation(fields: [architectureId], references: [id], onDelete: Cascade)
+  building     ArchitectureBuilding @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  rooms        ArchitectureRoom[]
+
+  @@unique([architectureId, key])
+  @@index([architectureId])
+  @@index([buildingId])
+}
+
+model ArchitectureRoom {
+  id             String @id @default(uuid()) @db.Uuid
+  organizationId String @db.Uuid
+  architectureId String @db.Uuid
+  floorId        String @db.Uuid
+  key            String
+  name           String
+
+  architecture Architecture       @relation(fields: [architectureId], references: [id], onDelete: Cascade)
+  floor        ArchitectureFloor  @relation(fields: [floorId], references: [id], onDelete: Cascade)
+  racks        ArchitectureRack[]
+
+  @@unique([architectureId, key])
+  @@index([architectureId])
+  @@index([floorId])
+}
+
+model ArchitectureRack {
+  id             String @id @default(uuid()) @db.Uuid
+  organizationId String @db.Uuid
+  architectureId String @db.Uuid
+  roomId         String @db.Uuid
+  key            String
+  name           String
+  /// Hauteur en U — 42U est la taille standard d'une baie 19" pleine hauteur.
+  totalUnits     Int    @default(42)
+
+  architecture Architecture     @relation(fields: [architectureId], references: [id], onDelete: Cascade)
+  room         ArchitectureRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@unique([architectureId, key])
+  @@index([architectureId])
+  @@index([roomId])
 }
 
 /// Version sauvegardée : snapshot immuable, auto-porteur, caractéristiques du modèle figées (ADR 0001).

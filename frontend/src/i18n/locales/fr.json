@@ -300,6 +300,10 @@
       "gatewayOutOfRange": "Réseau « {{network}} » : passerelle {{gateway}} hors du sous-réseau.",
       "dhcpRangeInvalid": "Réseau « {{network}} » : plage DHCP invalide (adresse de début postérieure à la fin, ou adresse mal formée).",
       "dhcpRangeOutOfRange": "Réseau « {{network}} » : plage DHCP hors du sous-réseau."
+    },
+    "placement": {
+      "rackUnitConflict": "Position U {{unit}} de la baie « {{rack}} » occupée par plusieurs équipements.",
+      "unitOutOfRange": "Position U {{unit}} hors des bornes de la baie « {{rack}} » ({{totalUnits}} U)."
     }
   },
   "sizing": {
@@ -647,11 +651,21 @@
     "backTo2d": "Vue 2D",
     "empty": "Le plan est vide",
     "emptyHint": "Ajoutez des équipements depuis le concepteur 2D pour les voir apparaître ici.",
-    "noPhysicalPlacement": "Aucun bâtiment/salle/baie renseigné pour ce plan (construction physique, Phase 6) : vue à plat depuis les positions du schéma logique.",
+    "noPhysicalPlacement": "Aucun bâtiment/étage/salle/baie renseigné pour ce plan : vue à plat depuis les positions du schéma logique. Utilisez « Construction physique » dans le concepteur 2D pour en définir un.",
     "category": "Catégorie",
     "equipmentModel": "Modèle catalogue",
     "fromCatalog": "Associé à un modèle du catalogue",
-    "noModel": "Aucun modèle associé"
+    "noModel": "Aucun modèle associé",
+    "navigator": {
+      "title": "Navigation",
+      "reset": "Réinitialiser",
+      "building": "Tous les bâtiments",
+      "floor": "Tous les étages",
+      "room": "Toutes les salles",
+      "rack": "Toutes les baies",
+      "filtered": "Scène filtrée sur cette baie.",
+      "emptyRack": "Aucun équipement placé dans cette baie."
+    }
   },
   "designer": {
     "title": "Concepteur d'architecture",
@@ -696,7 +710,18 @@
       "gateway": "Passerelle",
       "dhcpStart": "Début plage DHCP",
       "dhcpEnd": "Fin plage DHCP",
-      "addNetwork": "Ajouter un réseau"
+      "addNetwork": "Ajouter un réseau",
+      "rack": "Baie",
+      "noRack": "Non placé",
+      "unit": "Position U",
+      "sites": "Construction physique",
+      "noSites": "Aucune baie créée pour l'instant.",
+      "buildingName": "Bâtiment",
+      "floorName": "Étage",
+      "roomName": "Salle",
+      "rackName": "Baie",
+      "totalUnits": "Hauteur (U)",
+      "addSite": "Ajouter la baie"
     },
     "zoneType": {
       "DMZ": "DMZ",

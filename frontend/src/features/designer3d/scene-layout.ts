@@ -1,4 +1,4 @@
-import type { ArchitectureDocument } from '@archiflow/shared';
+import type { ArchitectureDocument, Building, Floor, Rack, Room } from '@archiflow/shared';
 import { CATEGORY_HEX } from './category-colors';
 
 /**
@@ -7,8 +7,8 @@ import { CATEGORY_HEX } from './category-colors';
  * fait que consommer sa sortie.
  *
  * Navigation bâtiment → étage → salle → baie (EF-104) : dépend de `placement`, posé par la
- * construction physique (Phase 6, pas encore livrée). Tant qu'aucun élément n'a de `placement`,
- * la scène retombe sur une vue à plat — état honnête, pas une fonctionnalité simulée.
+ * construction physique minimale (schéma physique d'EF-205). Tant qu'aucun élément n'a de
+ * `placement`, la scène retombe sur une vue à plat — état honnête, pas une fonctionnalité simulée.
  */
 
 export interface Scene3DNode {
@@ -20,6 +20,8 @@ export interface Scene3DNode {
   x: number;
   z: number;
   equipmentModelId: string | null;
+  /** Baie de rattachement (schéma physique d'EF-205) — permet de filtrer la scène par navigation. */
+  rackId: string | null;
 }
 
 export interface Scene3DEdge {
@@ -32,14 +34,19 @@ export interface Scene3DEdge {
 export interface Scene3D {
   nodes: Scene3DNode[];
   edges: Scene3DEdge[];
-  /** true si au moins un élément porte un `placement` physique (Phase 6) — sinon vue à plat. */
+  /** true si au moins un élément porte un `placement` physique — sinon vue à plat. */
   hasPhysicalPlacement: boolean;
+  buildings: Building[];
+  floors: Floor[];
+  rooms: Room[];
+  racks: Rack[];
 }
 
 const SCALE = 1 / 60; // ~60 px du canvas 2D = 1 mètre en scène 3D : ordre de grandeur d'une salle.
 
 export function buildScene3D(document: ArchitectureDocument): Scene3D {
-  if (document.elements.length === 0) return { nodes: [], edges: [], hasPhysicalPlacement: false };
+  const empty: Scene3D = { nodes: [], edges: [], hasPhysicalPlacement: false, buildings: [], floors: [], rooms: [], racks: [] };
+  if (document.elements.length === 0) return empty;
 
   const xs = document.elements.map((e) => e.position.x);
   const ys = document.elements.map((e) => e.position.y);
@@ -54,9 +61,18 @@ export function buildScene3D(document: ArchitectureDocument): Scene3D {
     x: (el.position.x - centerX) * SCALE,
     z: (el.position.y - centerY) * SCALE,
     equipmentModelId: el.equipmentModelId,
+    rackId: el.placement?.rackId ?? null,
   }));
 
   const edges: Scene3DEdge[] = document.connections.map((c) => ({ id: c.id, from: c.from, to: c.to, linkType: c.linkType }));
 
-  return { nodes, edges, hasPhysicalPlacement: document.elements.some((e) => e.placement != null) };
+  return {
+    nodes,
+    edges,
+    hasPhysicalPlacement: document.elements.some((e) => e.placement != null),
+    buildings: document.buildings ?? [],
+    floors: document.floors ?? [],
+    rooms: document.rooms ?? [],
+    racks: document.racks ?? [],
+  };
 }

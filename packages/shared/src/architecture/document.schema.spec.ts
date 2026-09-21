@@ -97,6 +97,37 @@ describe('document d’architecture', () => {
     expect(messages({ networks: [{ id: 'n1', name: 'A', vlanId: 4095, cidr: '10.0.0.0/24' }] }).length).toBeGreaterThan(0);
   });
 
+  it('accepte une construction physique coherente et le placement d’un element', () => {
+    const doc = {
+      elements: [{ ...el('fw-01', 'firewall'), placement: { rackId: 'rack-01', unit: 10 } }],
+      buildings: [{ id: 'bldg-01', name: 'Siège' }],
+      floors: [{ id: 'floor-01', buildingId: 'bldg-01', name: 'RDC' }],
+      rooms: [{ id: 'room-01', floorId: 'floor-01', name: 'Salle serveurs' }],
+      racks: [{ id: 'rack-01', roomId: 'room-01', name: 'Baie A', totalUnits: 42 }],
+    };
+    expect(messages(doc)).toEqual([]);
+  });
+
+  it('refuse un etage rattache a un batiment inconnu', () => {
+    const doc = { floors: [{ id: 'f1', buildingId: 'ghost', name: 'RDC' }] };
+    expect(messages(doc)).toContain('etage f1 : batiment inconnu ghost');
+  });
+
+  it('refuse une salle rattachee a un etage inconnu', () => {
+    const doc = { rooms: [{ id: 'r1', floorId: 'ghost', name: 'Salle' }] };
+    expect(messages(doc)).toContain('salle r1 : etage inconnu ghost');
+  });
+
+  it('refuse une baie rattachee a une salle inconnue', () => {
+    const doc = { racks: [{ id: 'rk1', roomId: 'ghost', name: 'Baie' }] };
+    expect(messages(doc)).toContain('baie rk1 : salle inconnue ghost');
+  });
+
+  it('refuse le placement d’un element dans une baie inconnue', () => {
+    const doc = { elements: [{ ...el('a'), placement: { rackId: 'ghost' } }] };
+    expect(messages(doc)).toContain('element a : baie inconnue ghost');
+  });
+
   it('localise chaque erreur par un chemin precis', () => {
     const result = architectureDocumentSchema.safeParse({
       elements: [el('a')],

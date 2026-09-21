@@ -87,6 +87,51 @@ describe('applyDesignerAction', () => {
     expect(next.elements.find((e) => e.id === 'fw-01')?.networkId).toBeUndefined();
   });
 
+  it('addSite crée la chaîne bâtiment → étage → salle → baie (schéma physique EF-205)', () => {
+    const next = apply(BASE, { type: 'addSite', buildingName: 'Siège', floorName: 'RDC', roomName: 'Salle serveurs', rackName: 'Baie A', totalUnits: 42 });
+    expect(next.buildings).toHaveLength(1);
+    expect(next.floors).toHaveLength(1);
+    expect(next.rooms).toHaveLength(1);
+    expect(next.racks).toHaveLength(1);
+    expect(next.racks?.[0]).toMatchObject({ name: 'Baie A', totalUnits: 42 });
+  });
+
+  it('addSite réutilise bâtiment/étage/salle déjà nommés au lieu d’en créer des doublons', () => {
+    const withFirstRack = apply(BASE, { type: 'addSite', buildingName: 'Siège', floorName: 'RDC', roomName: 'Salle serveurs', rackName: 'Baie A', totalUnits: 42 });
+    const next = apply(withFirstRack, { type: 'addSite', buildingName: 'Siège', floorName: 'RDC', roomName: 'Salle serveurs', rackName: 'Baie B', totalUnits: 12 });
+    expect(next.buildings).toHaveLength(1);
+    expect(next.floors).toHaveLength(1);
+    expect(next.rooms).toHaveLength(1);
+    expect(next.racks).toHaveLength(2);
+  });
+
+  it('updateElementPlacement rattache un équipement à une baie et derive bâtiment/étage/salle', () => {
+    const withSite = apply(BASE, { type: 'addSite', buildingName: 'Siège', floorName: 'RDC', roomName: 'Salle serveurs', rackName: 'Baie A', totalUnits: 42 });
+    const rackId = withSite.racks![0]!.id;
+    const next = apply(withSite, { type: 'updateElementPlacement', elementId: 'fw-01', rackId, unit: 10 });
+    const placement = next.elements.find((e) => e.id === 'fw-01')?.placement;
+    expect(placement).toMatchObject({ rackId, unit: 10 });
+    expect(placement?.buildingId).toBe(withSite.buildings![0]!.id);
+    expect(placement?.floorId).toBe(withSite.floors![0]!.id);
+    expect(placement?.roomId).toBe(withSite.rooms![0]!.id);
+  });
+
+  it('updateElementPlacement avec rackId null retire le placement', () => {
+    const withSite = apply(BASE, { type: 'addSite', buildingName: 'Siège', floorName: 'RDC', roomName: 'Salle', rackName: 'Baie A', totalUnits: 42 });
+    const placed = apply(withSite, { type: 'updateElementPlacement', elementId: 'fw-01', rackId: withSite.racks![0]!.id, unit: 3 });
+    const next = apply(placed, { type: 'updateElementPlacement', elementId: 'fw-01', rackId: null, unit: null });
+    expect(next.elements.find((e) => e.id === 'fw-01')?.placement).toBeUndefined();
+  });
+
+  it('deleteRack retire la baie et détache les équipements qui y étaient placés', () => {
+    const withSite = apply(BASE, { type: 'addSite', buildingName: 'Siège', floorName: 'RDC', roomName: 'Salle', rackName: 'Baie A', totalUnits: 42 });
+    const rackId = withSite.racks![0]!.id;
+    const placed = apply(withSite, { type: 'updateElementPlacement', elementId: 'fw-01', rackId, unit: 3 });
+    const next = apply(placed, { type: 'deleteRack', rackId });
+    expect(next.racks).toEqual([]);
+    expect(next.elements.find((e) => e.id === 'fw-01')?.placement).toBeUndefined();
+  });
+
   it('une action sur un identifiant inconnu est un no-op silencieux', () => {
     const next = apply(BASE, { type: 'moveElement', elementId: 'inconnu', position: { x: 1, y: 1 } });
     expect(next).toEqual(BASE);

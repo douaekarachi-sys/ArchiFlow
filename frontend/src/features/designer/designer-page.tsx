@@ -220,6 +220,10 @@ function DesignerCanvas({ projectId }: { projectId: string }) {
 
   const zones = useMemo(() => toFlow(history.document).zones, [history.document]);
   const networks = useMemo(() => toFlow(history.document).networks, [history.document]);
+  const racks = useMemo(() => toFlow(history.document).racks, [history.document]);
+  const rooms = useMemo(() => toFlow(history.document).rooms, [history.document]);
+  const floors = useMemo(() => toFlow(history.document).floors, [history.document]);
+  const buildings = useMemo(() => toFlow(history.document).buildings, [history.document]);
   const equipmentIndex = useMemo(() => buildEquipmentIndex(catalogQuery.data?.data ?? []), [catalogQuery.data?.data]);
   const validation = useMemo(() => validateArchitecture(history.document, equipmentIndex), [history.document, equipmentIndex]);
   const dirty = history.document !== savedRef.current;
@@ -412,7 +416,17 @@ function DesignerCanvas({ projectId }: { projectId: string }) {
               )}
             </div>
             {canEdit && (
-              <ElementInspector selectedNode={selectedNode} selectedEdge={selectedEdge} zones={zones} networks={networks} dispatch={dispatch} />
+              <ElementInspector
+                selectedNode={selectedNode}
+                selectedEdge={selectedEdge}
+                zones={zones}
+                networks={networks}
+                racks={racks}
+                rooms={rooms}
+                floors={floors}
+                buildings={buildings}
+                dispatch={dispatch}
+              />
             )}
           </div>
           <ValidationPanel

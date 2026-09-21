@@ -56,4 +56,19 @@ describe('toFlow / fromFlow', () => {
     expect(nodes.find((n) => n.id === 'sw-01')?.data.networkId).toBeNull();
     expect(fromFlow(toFlow(withAddressing))).toEqual(withAddressing);
   });
+
+  it('reporte la construction physique (schéma physique EF-205) et le placement d’un élément', () => {
+    const withPlacement: ArchitectureDocument = {
+      ...SAMPLE,
+      elements: [{ ...SAMPLE.elements[0]!, placement: { rackId: 'rack-01', roomId: 'room-01', floorId: 'floor-01', buildingId: 'bldg-01', unit: 12 } }, SAMPLE.elements[1]!],
+      buildings: [{ id: 'bldg-01', name: 'Siège' }],
+      floors: [{ id: 'floor-01', buildingId: 'bldg-01', name: 'RDC' }],
+      rooms: [{ id: 'room-01', floorId: 'floor-01', name: 'Salle' }],
+      racks: [{ id: 'rack-01', roomId: 'room-01', name: 'Baie A', totalUnits: 42 }],
+    };
+    const { nodes, racks } = toFlow(withPlacement);
+    expect(racks).toEqual([{ id: 'rack-01', roomId: 'room-01', name: 'Baie A', totalUnits: 42 }]);
+    expect(nodes.find((n) => n.id === 'fw-01')?.data.placement).toEqual({ rackId: 'rack-01', roomId: 'room-01', floorId: 'floor-01', buildingId: 'bldg-01', unit: 12 });
+    expect(fromFlow(toFlow(withPlacement))).toEqual(withPlacement);
+  });
 });

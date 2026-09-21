@@ -1,4 +1,5 @@
 import { checkAddressing } from '../network/addressing.js';
+import { checkPlacement } from '../physical/placement.js';
 import type { ArchitectureDocument } from './document.schema.js';
 
 /**
@@ -295,6 +296,7 @@ export function validateArchitecture(document: ArchitectureDocument, index: Equi
     ...checkCompatibility(document, index),
     ...checkGraphAnomalies(document),
     ...checkAddressing(document),
+    ...checkPlacement(document),
   ];
   return { anomalies, compatible: !anomalies.some((a) => a.severity === 'CRITICAL') };
 }

@@ -8,6 +8,7 @@ export * from './architecture/validation.js';
 export * from './architecture/diff.js';
 export * from './architecture/bom.js';
 export * from './network/addressing.js';
+export * from './physical/placement.js';
 export * from './chatbot/local-engine.js';
 export * from './organization/client-company.schema.js';
 export * from './projects/project.schema.js';

@@ -3,9 +3,13 @@ import type {
   ArchitectureDocument,
   ArchitectureElement,
   ArchitectureZone,
+  Building,
   EquipmentCategory,
+  Floor,
   IpNetwork,
   LinkType,
+  Rack,
+  Room,
   ZoneType,
 } from '@archiflow/shared';
 import type { Edge, Node } from '@xyflow/react';
@@ -20,6 +24,8 @@ export interface EquipmentNodeData extends Record<string, unknown> {
   zoneType: ZoneType | null;
   /** Rattachement au plan d'adressage (EF-207) — porté directement par l'élément, pas dénormalisé. */
   networkId: string | null;
+  /** Implantation physique (schéma physique d'EF-205) — portée directement par l'élément. */
+  placement: ArchitectureElement['placement'] | null;
 }
 export type EquipmentFlowNode = Node<EquipmentNodeData, 'equipment'>;
 
@@ -54,6 +60,10 @@ export interface FlowView {
   edges: LabeledFlowEdge[];
   zones: DesignerZone[];
   networks: DesignerNetwork[];
+  buildings: Building[];
+  floors: Floor[];
+  rooms: Room[];
+  racks: Rack[];
 }
 
 const zoneLabel = (type: ZoneType): string =>
@@ -128,6 +138,7 @@ export function toFlow(document: ArchitectureDocument): FlowView {
         zoneId: zoneByElementId.get(el.id)?.id ?? null,
         zoneType: zoneByElementId.get(el.id)?.type ?? null,
         networkId: el.networkId ?? null,
+        placement: el.placement ?? null,
       },
     })),
     ...zoneNodes,
@@ -144,6 +155,10 @@ export function toFlow(document: ArchitectureDocument): FlowView {
     })),
     zones: document.zones.map((z) => ({ id: z.id, type: z.type, label: z.label })),
     networks: document.networks ?? [],
+    buildings: document.buildings ?? [],
+    floors: document.floors ?? [],
+    rooms: document.rooms ?? [],
+    racks: document.racks ?? [],
   };
 }
 
@@ -158,6 +173,7 @@ export function fromFlow(view: FlowView): ArchitectureDocument {
       label: n.data.label,
       position: n.position,
       networkId: n.data.networkId ?? undefined,
+      placement: n.data.placement ?? undefined,
       config: n.data.config,
     }));
 
@@ -182,5 +198,14 @@ export function fromFlow(view: FlowView): ArchitectureDocument {
       .map((n) => n.id),
   }));
 
-  return { elements, connections, zones, networks: view.networks.length > 0 ? view.networks : undefined };
+  return {
+    elements,
+    connections,
+    zones,
+    networks: view.networks.length > 0 ? view.networks : undefined,
+    buildings: view.buildings.length > 0 ? view.buildings : undefined,
+    floors: view.floors.length > 0 ? view.floors : undefined,
+    rooms: view.rooms.length > 0 ? view.rooms : undefined,
+    racks: view.racks.length > 0 ? view.racks : undefined,
+  };
 }

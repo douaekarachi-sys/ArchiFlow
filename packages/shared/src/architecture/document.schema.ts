@@ -39,12 +39,48 @@ export const positionSchema = z.object({
   y: z.number(),
 });
 
-/** Implantation physique. Absente tant que l'element n'est pas place (Phase 6). */
+/**
+ * Construction physique minimale (partie « schéma physique » d'EF-205) : bâtiment → étage →
+ * salle → baie, dans le MÊME document que le reste (ADR 0001) — pas un second modèle. Pas de
+ * câblage physique détaillé : seule la hiérarchie de localisation est couverte.
+ */
+export const buildingSchema = z.object({ id: z.string().min(1), name: z.string().min(1).max(120) });
+export type Building = z.infer<typeof buildingSchema>;
+
+export const floorSchema = z.object({
+  id: z.string().min(1),
+  /** Référence un `Building.id` du même document. */
+  buildingId: z.string().min(1),
+  name: z.string().min(1).max(120),
+});
+export type Floor = z.infer<typeof floorSchema>;
+
+export const roomSchema = z.object({
+  id: z.string().min(1),
+  /** Référence un `Floor.id` du même document. */
+  floorId: z.string().min(1),
+  name: z.string().min(1).max(120),
+});
+export type Room = z.infer<typeof roomSchema>;
+
+export const rackSchema = z.object({
+  id: z.string().min(1),
+  /** Référence un `Room.id` du même document. */
+  roomId: z.string().min(1),
+  name: z.string().min(1).max(120),
+  /** Hauteur en U — 42U est la taille standard d'une baie 19" pleine hauteur. */
+  totalUnits: z.number().int().min(1).max(60).default(42),
+});
+export type Rack = z.infer<typeof rackSchema>;
+
+/** Implantation physique d'un élément. Absente tant qu'il n'est pas placé dans une baie. */
 export const placementSchema = z.object({
   buildingId: z.string().optional(),
   floorId: z.string().optional(),
   roomId: z.string().optional(),
+  /** Référence un `Rack.id` du même document. */
   rackId: z.string().optional(),
+  /** Position U dans la baie — les chevauchements entre deux éléments sont détectés par `checkPlacement`. */
   unit: z.number().int().min(1).max(60).optional(),
 });
 
@@ -130,6 +166,10 @@ export const architectureDocumentSchema = z
     connections: z.array(architectureConnectionSchema).default([]),
     zones: z.array(architectureZoneSchema).default([]),
     networks: z.array(ipNetworkSchema).optional(),
+    buildings: z.array(buildingSchema).optional(),
+    floors: z.array(floorSchema).optional(),
+    rooms: z.array(roomSchema).optional(),
+    racks: z.array(rackSchema).optional(),
   })
   .superRefine((doc, ctx) => {
     const issue = (path: (string | number)[], message: string) =>
@@ -180,6 +220,52 @@ export const architectureDocumentSchema = z
           issue(['zones', i, 'elementIds', j], `zone ${zone.id} : element inconnu ${elementId}`);
         }
       });
+    });
+
+    // Construction physique (partie « schéma physique » d'EF-205) : bâtiment → étage → salle →
+    // baie, chaque niveau référençant son parent par id, comme networks/zones ci-dessus.
+    const buildingIds = new Set<string>();
+    (doc.buildings ?? []).forEach((b, i) => {
+      if (buildingIds.has(b.id)) issue(['buildings', i, 'id'], `identifiant de batiment duplique : ${b.id}`);
+      buildingIds.add(b.id);
+    });
+
+    const floorIds = new Set<string>();
+    (doc.floors ?? []).forEach((f, i) => {
+      if (floorIds.has(f.id)) issue(['floors', i, 'id'], `identifiant d'etage duplique : ${f.id}`);
+      floorIds.add(f.id);
+      if (!buildingIds.has(f.buildingId)) issue(['floors', i, 'buildingId'], `etage ${f.id} : batiment inconnu ${f.buildingId}`);
+    });
+
+    const roomIds = new Set<string>();
+    (doc.rooms ?? []).forEach((r, i) => {
+      if (roomIds.has(r.id)) issue(['rooms', i, 'id'], `identifiant de salle duplique : ${r.id}`);
+      roomIds.add(r.id);
+      if (!floorIds.has(r.floorId)) issue(['rooms', i, 'floorId'], `salle ${r.id} : etage inconnu ${r.floorId}`);
+    });
+
+    const rackIds = new Set<string>();
+    (doc.racks ?? []).forEach((rack, i) => {
+      if (rackIds.has(rack.id)) issue(['racks', i, 'id'], `identifiant de baie duplique : ${rack.id}`);
+      rackIds.add(rack.id);
+      if (!roomIds.has(rack.roomId)) issue(['racks', i, 'roomId'], `baie ${rack.id} : salle inconnue ${rack.roomId}`);
+    });
+
+    doc.elements.forEach((el, i) => {
+      const placement = el.placement;
+      if (!placement) return;
+      if (placement.buildingId && !buildingIds.has(placement.buildingId)) {
+        issue(['elements', i, 'placement', 'buildingId'], `element ${el.id} : batiment inconnu ${placement.buildingId}`);
+      }
+      if (placement.floorId && !floorIds.has(placement.floorId)) {
+        issue(['elements', i, 'placement', 'floorId'], `element ${el.id} : etage inconnu ${placement.floorId}`);
+      }
+      if (placement.roomId && !roomIds.has(placement.roomId)) {
+        issue(['elements', i, 'placement', 'roomId'], `element ${el.id} : salle inconnue ${placement.roomId}`);
+      }
+      if (placement.rackId && !rackIds.has(placement.rackId)) {
+        issue(['elements', i, 'placement', 'rackId'], `element ${el.id} : baie inconnue ${placement.rackId}`);
+      }
     });
   });
 

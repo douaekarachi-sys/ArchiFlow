@@ -203,6 +203,71 @@ describe('conception d’architecture (EF-101 à EF-107, architecture.edit) — 
     expect(res.status).toBe(400);
   });
 
+  it('sauvegarde une construction physique (bâtiment → étage → salle → baie) et place un équipement (EF-205)', async () => {
+    const switchModelId = await createModel('switch');
+    const document: ArchitectureDocument = {
+      elements: [
+        {
+          id: 'sw-01',
+          type: 'switch',
+          equipmentModelId: switchModelId,
+          label: 'Switch',
+          position: { x: 0, y: 0 },
+          config: {},
+          placement: { buildingId: 'bldg-01', floorId: 'floor-01', roomId: 'room-01', rackId: 'rack-01', unit: 10 },
+        },
+      ],
+      connections: [],
+      zones: [],
+      buildings: [{ id: 'bldg-01', name: 'Siège' }],
+      floors: [{ id: 'floor-01', buildingId: 'bldg-01', name: 'RDC' }],
+      rooms: [{ id: 'room-01', floorId: 'floor-01', name: 'Salle serveurs' }],
+      racks: [{ id: 'rack-01', roomId: 'room-01', name: 'Baie A', totalUnits: 42 }],
+    };
+
+    const saved = await server().put(`${API}/projects/${w.projectA1}/architecture`).set(architect.auth).send(document);
+    expect(saved.status).toBe(200);
+    expect(saved.body).toEqual(document);
+
+    const reloaded = await server().get(`${API}/projects/${w.projectA1}/architecture`).set(architect.auth);
+    expect(reloaded.status).toBe(200);
+    expect(reloaded.body).toEqual(document);
+  });
+
+  it('revalide la construction physique côté serveur (ADR 0003) : un conflit de position U est refusé, rien n’est enregistré', async () => {
+    const document: ArchitectureDocument = {
+      elements: [
+        { id: 'a', type: 'switch', equipmentModelId: null, label: 'A', position: { x: 0, y: 0 }, config: {}, placement: { rackId: 'rack-01', unit: 5 } },
+        { id: 'b', type: 'switch', equipmentModelId: null, label: 'B', position: { x: 100, y: 0 }, config: {}, placement: { rackId: 'rack-01', unit: 5 } },
+      ],
+      connections: [],
+      zones: [],
+      racks: [{ id: 'rack-01', roomId: 'room-01', name: 'Baie A', totalUnits: 42 }],
+      rooms: [{ id: 'room-01', floorId: 'floor-01', name: 'Salle' }],
+      floors: [{ id: 'floor-01', buildingId: 'bldg-01', name: 'RDC' }],
+      buildings: [{ id: 'bldg-01', name: 'Siège' }],
+    };
+
+    const res = await server().put(`${API}/projects/${w.projectA1}/architecture`).set(architect.auth).send(document);
+    expect(res.status).toBe(422);
+    expect(res.body.error.details.anomalies).toContainEqual(
+      expect.objectContaining({ severity: 'CRITICAL', code: 'validation.placement.rackUnitConflict' }),
+    );
+
+    const reloaded = await server().get(`${API}/projects/${w.projectA1}/architecture`).set(architect.auth);
+    expect(reloaded.body).toEqual({ elements: [], connections: [], zones: [] });
+  });
+
+  it('refuse un placement vers une baie inconnue (schéma partagé)', async () => {
+    const document: ArchitectureDocument = {
+      elements: [{ id: 'a', type: 'switch', equipmentModelId: null, label: 'A', position: { x: 0, y: 0 }, config: {}, placement: { rackId: 'ghost' } }],
+      connections: [],
+      zones: [],
+    };
+    const res = await server().put(`${API}/projects/${w.projectA1}/architecture`).set(architect.auth).send(document);
+    expect(res.status).toBe(400);
+  });
+
   it('refuse un equipmentModelId d’une autre organisation', async () => {
     const adminB = await login(t, w.users.adminB.email);
     const manufacturerB = await server().post(`${API}/catalog/manufacturers`).set(adminB.auth).send({ name: 'Fabricant B' });

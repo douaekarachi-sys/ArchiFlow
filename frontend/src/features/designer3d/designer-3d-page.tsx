@@ -11,7 +11,97 @@ import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states';
 import { useSession } from '@/auth/session-store';
 import { errorMessage } from '@/utils/errors';
 import { useArchitecture } from '../designer/use-architecture';
-import { buildScene3D, type Scene3DNode } from './scene-layout';
+import { buildScene3D, type Scene3D, type Scene3DNode } from './scene-layout';
+
+/**
+ * Navigation bâtiment → étage → salle → baie (EF-104, schéma physique d'EF-205) : quatre listes
+ * en cascade, chacune filtrée par le niveau choisi au-dessus. Choisir une baie filtre la scène
+ * à son seul contenu ; sans baie choisie, la scène affiche tout (pas de filtrage partiel par
+ * bâtiment/étage/salle seuls — la seule granularité attachable à un équipement est la baie).
+ */
+function SiteNavigator({
+  scene,
+  buildingId,
+  floorId,
+  roomId,
+  rackId,
+  onChange,
+}: {
+  scene: Scene3D;
+  buildingId: string | null;
+  floorId: string | null;
+  roomId: string | null;
+  rackId: string | null;
+  onChange: (next: { buildingId: string | null; floorId: string | null; roomId: string | null; rackId: string | null }) => void;
+}) {
+  const { t } = useTranslation();
+  const floors = scene.floors.filter((f) => !buildingId || f.buildingId === buildingId);
+  const rooms = scene.rooms.filter((r) => !floorId || r.floorId === floorId);
+  const racks = scene.racks.filter((r) => !roomId || r.roomId === roomId);
+
+  const selectClass = 'h-8 w-full rounded-field border border-line bg-inset px-2 text-xs text-fg';
+
+  return (
+    <div className="absolute left-3 top-3 z-10 flex w-64 flex-col gap-2 rounded-card border border-line bg-elevated p-3 shadow-elevated">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-fg-muted">{t('designer3d.navigator.title')}</h2>
+        {(buildingId || floorId || roomId || rackId) && (
+          <button
+            type="button"
+            onClick={() => onChange({ buildingId: null, floorId: null, roomId: null, rackId: null })}
+            className="text-[11px] text-fg-muted hover:text-fg"
+          >
+            {t('designer3d.navigator.reset')}
+          </button>
+        )}
+      </div>
+      <select
+        className={selectClass}
+        value={buildingId ?? ''}
+        onChange={(e) => onChange({ buildingId: e.target.value || null, floorId: null, roomId: null, rackId: null })}
+      >
+        <option value="">{t('designer3d.navigator.building')}</option>
+        {scene.buildings.map((b) => (
+          <option key={b.id} value={b.id}>{b.name}</option>
+        ))}
+      </select>
+      <select
+        className={selectClass}
+        value={floorId ?? ''}
+        disabled={!buildingId}
+        onChange={(e) => onChange({ buildingId, floorId: e.target.value || null, roomId: null, rackId: null })}
+      >
+        <option value="">{t('designer3d.navigator.floor')}</option>
+        {floors.map((f) => (
+          <option key={f.id} value={f.id}>{f.name}</option>
+        ))}
+      </select>
+      <select
+        className={selectClass}
+        value={roomId ?? ''}
+        disabled={!floorId}
+        onChange={(e) => onChange({ buildingId, floorId, roomId: e.target.value || null, rackId: null })}
+      >
+        <option value="">{t('designer3d.navigator.room')}</option>
+        {rooms.map((r) => (
+          <option key={r.id} value={r.id}>{r.name}</option>
+        ))}
+      </select>
+      <select
+        className={selectClass}
+        value={rackId ?? ''}
+        disabled={!roomId}
+        onChange={(e) => onChange({ buildingId, floorId, roomId, rackId: e.target.value || null })}
+      >
+        <option value="">{t('designer3d.navigator.rack')}</option>
+        {racks.map((r) => (
+          <option key={r.id} value={r.id}>{r.name}</option>
+        ))}
+      </select>
+      {rackId && <p className="text-[11px] text-fg-muted">{t('designer3d.navigator.filtered')}</p>}
+    </div>
+  );
+}
 
 /**
  * Vue 3D en consultation (EF-104, Phase 9 anticipée) : le MÊME document que le designer 2D
@@ -24,8 +114,23 @@ export function Designer3DPage() {
   const role = useSession((s) => s.profile?.role);
   const query = useArchitecture(projectId ?? '');
   const [selected, setSelected] = useState<Scene3DNode | null>(null);
+  const [nav, setNav] = useState<{ buildingId: string | null; floorId: string | null; roomId: string | null; rackId: string | null }>({
+    buildingId: null,
+    floorId: null,
+    roomId: null,
+    rackId: null,
+  });
 
   const scene = useMemo(() => (query.data ? buildScene3D(query.data) : null), [query.data]);
+  const visibleNodes = useMemo(() => {
+    if (!scene) return [];
+    return nav.rackId ? scene.nodes.filter((n) => n.rackId === nav.rackId) : scene.nodes;
+  }, [scene, nav.rackId]);
+  const visibleNodeIds = useMemo(() => new Set(visibleNodes.map((n) => n.id)), [visibleNodes]);
+  const visibleEdges = useMemo(
+    () => (scene ? scene.edges.filter((e) => visibleNodeIds.has(e.from) && visibleNodeIds.has(e.to)) : []),
+    [scene, visibleNodeIds],
+  );
 
   if (!projectId) return null;
 
@@ -50,7 +155,9 @@ export function Designer3DPage() {
         <EmptyState icon={<LayoutDashboard />} title={t('designer3d.empty')} description={t('designer3d.emptyHint')} className="flex-1" />
       ) : (
         <div className="relative flex flex-1 overflow-hidden">
-          {!scene.hasPhysicalPlacement && (
+          {scene.hasPhysicalPlacement ? (
+            <SiteNavigator scene={scene} {...nav} onChange={setNav} />
+          ) : (
             <Alert tone="info" className="absolute left-3 top-3 z-10 max-w-sm">
               {t('designer3d.noPhysicalPlacement')}
             </Alert>
@@ -60,9 +167,9 @@ export function Designer3DPage() {
             <directionalLight position={[10, 12, 8]} intensity={0.6} />
             <Suspense fallback={null}>
               <Grid infiniteGrid cellSize={1} sectionSize={5} fadeDistance={40} />
-              {scene.edges.map((edge) => {
-                const from = scene.nodes.find((n) => n.id === edge.from);
-                const to = scene.nodes.find((n) => n.id === edge.to);
+              {visibleEdges.map((edge) => {
+                const from = visibleNodes.find((n) => n.id === edge.from);
+                const to = visibleNodes.find((n) => n.id === edge.to);
                 if (!from || !to) return null;
                 return (
                   <Line
@@ -76,7 +183,7 @@ export function Designer3DPage() {
                   />
                 );
               })}
-              {scene.nodes.map((node) => (
+              {visibleNodes.map((node) => (
                 <mesh
                   key={node.id}
                   position={[node.x, 0.4, node.z]}
@@ -95,6 +202,14 @@ export function Designer3DPage() {
             </Suspense>
             <OrbitControls makeDefault />
           </Canvas>
+
+          {nav.rackId && visibleNodes.length === 0 && (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <p className="rounded-card border border-line bg-elevated px-4 py-2 text-sm text-fg-secondary shadow-elevated">
+                {t('designer3d.navigator.emptyRack')}
+              </p>
+            </div>
+          )}
 
           {selected && (
             <aside className="absolute right-3 top-3 w-64 rounded-card border border-line bg-elevated p-4 shadow-elevated">
