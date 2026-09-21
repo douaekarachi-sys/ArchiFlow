@@ -79,10 +79,10 @@ const PROJECT_NAMES: Record<ProjectStatus, string> = {
   PENDING_ASSIGNMENT: 'Clinique Fès',
   ASSIGNED: 'Lycée Meknès',
   ENGINEERING: 'Usine Settat',
-  ARCHITECTURE: 'Nouveau siège Rabat',
+  ARCHITECTURE: 'Banque régionale Oujda',
   INTERNAL_REVIEW: 'Campus Agadir',
   COMMERCIAL_REVIEW: 'Hôtel Marrakech',
-  CLIENT_REVIEW: 'Banque régionale Oujda',
+  CLIENT_REVIEW: 'Nouveau siège Rabat',
   CLIENT_COMMENTS: 'Centre d’appels Casablanca',
   REVISION: 'Laboratoire El Jadida',
   CLIENT_APPROVED: 'Mairie Tétouan',
@@ -294,7 +294,8 @@ async function main(): Promise<void> {
     clientUserId: string,
     projects: { status: ProjectStatus; name: string }[],
     dateOffsetDays: number,
-  ): Promise<void> {
+  ): Promise<Record<string, string>> {
+    const projectIdByName: Record<string, string> = {};
     const actorUsers = { ...users, CLIENT: clientUserId };
     for (const [index, { status, name }] of projects.entries()) {
       const steps = pathTo(status);
@@ -310,6 +311,7 @@ async function main(): Promise<void> {
           createdAt: new Date(start - index * 1000),
         },
       });
+      projectIdByName[name] = project.id;
       // Équipe affectée dès que le projet a franchi l'étape d'affectation.
       if (steps.includes('ASSIGNED')) {
         for (const role of ['PROJECT_MANAGER', 'ENGINEER', 'ARCHITECT', 'SALES'] as const) {
@@ -335,15 +337,203 @@ async function main(): Promise<void> {
         });
       }
     }
+    return projectIdByName;
+  }
+
+  interface DemoElement {
+    key: string;
+    type: string;
+    equipmentModelId: string | null;
+    label: string;
+    x: number;
+    y: number;
+  }
+  interface DemoConnection {
+    key: string;
+    from: string;
+    to: string;
+  }
+  interface DemoZone {
+    key: string;
+    type: 'DMZ' | 'LAN' | 'WAN' | 'REMOTE_SITE';
+    label: string;
+    elementKeys: string[];
+  }
+
+  /** Remplace les tables normalisées (comme ArchitectureService.persist), sans passer par l'API. */
+  async function replaceWorkingTables(
+    architectureId: string,
+    organizationId: string,
+    elements: DemoElement[],
+    connections: DemoConnection[],
+    zones: DemoZone[],
+  ): Promise<void> {
+    await prisma.architectureConnection.deleteMany({ where: { architectureId } });
+    await prisma.architectureZone.deleteMany({ where: { architectureId } });
+    await prisma.architectureElement.deleteMany({ where: { architectureId } });
+
+    for (const el of elements) {
+      await prisma.architectureElement.create({
+        data: {
+          organizationId,
+          architectureId,
+          key: el.key,
+          type: el.type,
+          equipmentModelId: el.equipmentModelId,
+          label: el.label,
+          positionX: el.x,
+          positionY: el.y,
+          config: {},
+        },
+      });
+    }
+    const elementRows = await prisma.architectureElement.findMany({ where: { architectureId }, select: { id: true, key: true } });
+    const idByKey = new Map(elementRows.map((e) => [e.key, e.id]));
+
+    for (const c of connections) {
+      await prisma.architectureConnection.create({
+        data: {
+          organizationId,
+          architectureId,
+          key: c.key,
+          fromElementId: idByKey.get(c.from)!,
+          toElementId: idByKey.get(c.to)!,
+          linkType: 'copper',
+        },
+      });
+    }
+    for (const z of zones) {
+      await prisma.architectureZone.create({
+        data: {
+          organizationId,
+          architectureId,
+          key: z.key,
+          type: z.type,
+          label: z.label,
+          elements: { connect: z.elementKeys.map((k) => ({ id: idByKey.get(k)! })) },
+        },
+      });
+    }
+  }
+
+  /** Crée une ArchitectureVersion avec un snapshot auto-porteur — mêmes règles que persist() (ADR 0001). */
+  async function seedArchitectureVersion(
+    architectureId: string,
+    organizationId: string,
+    authorId: string,
+    number: number,
+    elements: DemoElement[],
+    connections: DemoConnection[],
+    zones: DemoZone[],
+  ): Promise<void> {
+    const modelIds = [...new Set(elements.map((e) => e.equipmentModelId).filter((id): id is string => id != null))];
+    const models = modelIds.length > 0 ? await prisma.equipmentModel.findMany({ where: { id: { in: modelIds } } }) : [];
+    const modelById = new Map(models.map((m) => [m.id, m]));
+
+    const snapshot = {
+      elements: elements.map((el) => {
+        const model = el.equipmentModelId ? modelById.get(el.equipmentModelId) : null;
+        return {
+          id: el.key,
+          type: el.type,
+          equipmentModelId: el.equipmentModelId,
+          label: el.label,
+          position: { x: el.x, y: el.y },
+          config: {},
+          frozenSpec: model
+            ? {
+                name: model.name,
+                reference: model.reference,
+                portCount: model.portCount ?? undefined,
+                throughputMbps: model.throughputMbps ?? undefined,
+                rackUnits: model.rackUnits ?? undefined,
+                poeBudgetW: model.poeBudgetW ?? undefined,
+                powerDrawW: model.powerDrawW ?? undefined,
+                indicativePrice: model.indicativePrice != null ? Number(model.indicativePrice) : undefined,
+                currency: model.currency ?? undefined,
+                licenseAnnualCost: model.licenseAnnualCost != null ? Number(model.licenseAnnualCost) : undefined,
+              }
+            : undefined,
+        };
+      }),
+      connections: connections.map((c) => ({ id: c.key, from: c.from, to: c.to, linkType: 'copper' })),
+      zones: zones.map((z) => ({ id: z.key, type: z.type, label: z.label, elementIds: z.elementKeys })),
+    };
+
+    await prisma.architectureVersion.create({
+      data: { organizationId, architectureId, number, snapshot, comment: null, authorId, restoredFromVersion: null },
+    });
   }
 
   // Société 1 — scénario complet : un projet par statut du workflow (chemin nominal + détours).
-  await seedCompanyProjects(
+  const company1ProjectIds = await seedCompanyProjects(
     rabat.id,
     users.CLIENT,
     PROJECT_STATUSES.map((status) => ({ status, name: PROJECT_NAMES[status] })),
     0,
   );
+
+  // --- Scénario de démonstration jouable en direct, sans rien préparer ------------------------
+  //
+  // Écrit directement dans les tables normalisées (comme ArchitectureService.persist), pas via
+  // l'API : un seed n'a pas d'autorité serveur à démontrer, il pose un état de départ.
+
+  // 1. « Nouveau siège Rabat » (CLIENT_REVIEW) : architecture complète, DEUX versions (pour
+  //    l'historique et le diff sémantique), BOM chiffré (prix ET licence figés), PDF générable.
+  const rabatArchitectureId = (
+    await prisma.architecture.create({ data: { organizationId: org.id, projectId: company1ProjectIds['Nouveau siège Rabat']!, currentVersion: 0 } })
+  ).id;
+  const fw1 = modelIdByReference['FG-100F']!; // FortiGate 100F — firewall, prix + licence renseignés
+  const sw1 = modelIdByReference['C9300-48P-E']!; // Catalyst 9300-48P — switch
+  const srv1 = modelIdByReference['P52560-B21']!; // ProLiant DL380 Gen11 — serveur
+
+  const v1Elements = [
+    { key: 'fw-01', type: 'firewall', equipmentModelId: fw1, label: 'Pare-feu périmètre', x: 0, y: 0 },
+    { key: 'sw-01', type: 'switch', equipmentModelId: sw1, label: 'Switch cœur', x: 220, y: 0 },
+    { key: 'srv-01', type: 'server', equipmentModelId: srv1, label: 'Serveur applicatif', x: 440, y: -80 },
+  ];
+  const v1Connections = [
+    { key: 'l-01', from: 'fw-01', to: 'sw-01' },
+    { key: 'l-02', from: 'sw-01', to: 'srv-01' },
+  ];
+  await seedArchitectureVersion(rabatArchitectureId, org.id, users.ARCHITECT, 1, v1Elements, v1Connections, [
+    { key: 'zone-dmz', type: 'DMZ', label: 'DMZ', elementKeys: ['fw-01'] },
+  ]);
+
+  // Version 2 : +1 switch (diff sémantique visible : « +1 switch »), devient l'état courant.
+  const v2Elements = [...v1Elements, { key: 'sw-02', type: 'switch', equipmentModelId: sw1, label: 'Switch accès étage 2', x: 220, y: 140 }];
+  const v2Connections = [...v1Connections, { key: 'l-03', from: 'sw-01', to: 'sw-02' }];
+  await seedArchitectureVersion(rabatArchitectureId, org.id, users.ARCHITECT, 2, v2Elements, v2Connections, [
+    { key: 'zone-dmz', type: 'DMZ', label: 'DMZ', elementKeys: ['fw-01'] },
+  ]);
+  await replaceWorkingTables(rabatArchitectureId, org.id, v2Elements, v2Connections, [{ key: 'zone-dmz', type: 'DMZ', label: 'DMZ', elementKeys: ['fw-01'] }]);
+  await prisma.architecture.update({ where: { id: rabatArchitectureId }, data: { currentVersion: 2 } });
+
+  // 2. « Campus Agadir » (INTERNAL_REVIEW) : boucle à 3 éléments — anomalie CRITICAL visible dès
+  //    l'ouverture du concepteur (checkGraphAnomalies), sans qu'aucune donnée n'ait besoin d'être
+  //    préparée en direct. Jamais sauvegardable telle quelle via l'API (ADR 0003) : c'est
+  //    volontaire, elle sert à DÉMONTRER la détection, pas à représenter un état valide.
+  const agadirArchitectureId = (
+    await prisma.architecture.create({ data: { organizationId: org.id, projectId: company1ProjectIds['Campus Agadir']!, currentVersion: 0 } })
+  ).id;
+  await replaceWorkingTables(
+    agadirArchitectureId,
+    org.id,
+    [
+      { key: 'sw-a', type: 'switch', equipmentModelId: sw1, label: 'Switch A', x: 0, y: 0 },
+      { key: 'sw-b', type: 'switch', equipmentModelId: sw1, label: 'Switch B', x: 200, y: 0 },
+      { key: 'sw-c', type: 'switch', equipmentModelId: sw1, label: 'Switch C', x: 100, y: 160 },
+    ],
+    [
+      { key: 'l-a', from: 'sw-a', to: 'sw-b' },
+      { key: 'l-b', from: 'sw-b', to: 'sw-c' },
+      { key: 'l-c', from: 'sw-c', to: 'sw-a' },
+    ],
+    [],
+  );
+
+  // 3. « Agence Tanger » (DRAFT) : aucune architecture — page blanche pour démontrer le
+  //    concepteur 2D depuis zéro. Déjà le cas par défaut : aucune écriture nécessaire.
 
   // Sociétés 2 et 3 — chacune avec son propre compte CLIENT et ses propres projets, JAMAIS ceux
   // de « Groupe Atlas Services » : c'est ce qui rend l'isolation entre sociétés clientes visible
@@ -408,6 +598,7 @@ async function main(): Promise<void> {
   );
   console.log(`  Sociétés clientes : ${rabat.name}, ${casablanca.name}, ${tanger.name} — chacune isolée (D-09).`);
   console.log(`  Catalogue : ${CATALOG.length} fabricants, ${modelCount} modèles (DEMO DATA).`);
+  console.log('  Scénario de démonstration : voir README.md « Démonstration en 5 minutes ».');
 }
 
 main()
