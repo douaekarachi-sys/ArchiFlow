@@ -101,6 +101,7 @@ interface ModelSeed {
   powerDrawW?: number;
   rackUnits?: number;
   indicativePrice: number;
+  licenseAnnualCost?: number;
 }
 
 interface ManufacturerSeed {
@@ -126,15 +127,15 @@ const CATALOG: ManufacturerSeed[] = [
     models: [
       { name: 'Aruba 6300M', reference: 'JL658A', category: 'switch', description: 'Commutateur de distribution 24 ports PoE+.', portCount: 24, portType: 'RJ45', throughputMbps: 1000, poeBudgetW: 370, powerDrawW: 320, rackUnits: 1, indicativePrice: 41000 },
       { name: 'Aruba AP-535', reference: 'R4W35A', category: 'access-point', description: 'Borne Wi-Fi 6 double radio, usage dense.', portCount: 1, portType: 'RJ45', throughputMbps: 2400, powerDrawW: 25, indicativePrice: 8200 },
-      { name: 'Aruba 7205', reference: 'JW738A', category: 'wifi-controller', description: 'Contrôleur Wi-Fi mobilité, jusqu’à 256 bornes.', portCount: 8, portType: 'SFP', throughputMbps: 40000, powerDrawW: 180, rackUnits: 1, indicativePrice: 95000 },
+      { name: 'Aruba 7205', reference: 'JW738A', category: 'wifi-controller', description: 'Contrôleur Wi-Fi mobilité, jusqu’à 256 bornes.', portCount: 8, portType: 'SFP', throughputMbps: 40000, powerDrawW: 180, rackUnits: 1, indicativePrice: 95000, licenseAnnualCost: 8500 },
     ],
   },
   {
     manufacturer: 'Fortinet',
     website: 'https://www.fortinet.com',
     models: [
-      { name: 'FortiGate 100F', reference: 'FG-100F', category: 'firewall', description: 'Pare-feu nouvelle génération, succursale.', portCount: 22, portType: 'RJ45/SFP', throughputMbps: 10000, powerDrawW: 46, rackUnits: 1, indicativePrice: 58000 },
-      { name: 'FortiGate 60F', reference: 'FG-60F', category: 'firewall', description: 'Pare-feu petite agence, SD-WAN intégré.', portCount: 10, portType: 'RJ45', throughputMbps: 5000, powerDrawW: 30, rackUnits: 1, indicativePrice: 21000 },
+      { name: 'FortiGate 100F', reference: 'FG-100F', category: 'firewall', description: 'Pare-feu nouvelle génération, succursale.', portCount: 22, portType: 'RJ45/SFP', throughputMbps: 10000, powerDrawW: 46, rackUnits: 1, indicativePrice: 58000, licenseAnnualCost: 12000 },
+      { name: 'FortiGate 60F', reference: 'FG-60F', category: 'firewall', description: 'Pare-feu petite agence, SD-WAN intégré.', portCount: 10, portType: 'RJ45', throughputMbps: 5000, powerDrawW: 30, rackUnits: 1, indicativePrice: 21000, licenseAnnualCost: 4500 },
       { name: 'FortiSwitch 124F', reference: 'FS-124F', category: 'switch', description: 'Commutateur d’accès géré par FortiGate, 24 ports PoE.', portCount: 24, portType: 'RJ45', throughputMbps: 1000, poeBudgetW: 250, powerDrawW: 210, rackUnits: 1, indicativePrice: 27000 },
     ],
   },
@@ -250,6 +251,7 @@ async function main(): Promise<void> {
           rackUnits: model.rackUnits,
           indicativePrice: model.indicativePrice,
           currency: 'MAD',
+          licenseAnnualCost: model.licenseAnnualCost,
           isDemoData: true,
         },
       });

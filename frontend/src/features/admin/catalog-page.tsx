@@ -141,6 +141,7 @@ const createModelFormSchema = z.object({
   rackUnits: z.string().optional(),
   indicativePrice: z.string().optional(),
   currency: z.string().max(3).optional(),
+  licenseAnnualCost: z.string().optional(),
 });
 type CreateModelForm = z.infer<typeof createModelFormSchema>;
 
@@ -173,6 +174,7 @@ function CreateModelDialog() {
       rackUnits: values.rackUnits ? Number(values.rackUnits) : undefined,
       indicativePrice: values.indicativePrice ? Number(values.indicativePrice) : undefined,
       currency: values.currency || undefined,
+      licenseAnnualCost: values.licenseAnnualCost ? Number(values.licenseAnnualCost) : undefined,
     });
     await queryClient.invalidateQueries({ queryKey: ['catalog'] });
     form.reset();
@@ -216,9 +218,10 @@ function CreateModelDialog() {
             <Field label={t('catalog.power')}><Input {...form.register('powerDrawW')} inputMode="numeric" /></Field>
             <Field label={t('catalog.rackUnits')}><Input {...form.register('rackUnits')} inputMode="numeric" /></Field>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <Field label={t('catalog.price')}><Input {...form.register('indicativePrice')} inputMode="decimal" /></Field>
             <Field label={t('catalog.currency')}><Input {...form.register('currency')} mono /></Field>
+            <Field label={t('catalog.licenseAnnualCost')}><Input {...form.register('licenseAnnualCost')} inputMode="decimal" /></Field>
           </div>
           <div className="mt-2 flex justify-end gap-2">
             <DialogClose asChild><Button variant="secondary">{t('common.cancel')}</Button></DialogClose>

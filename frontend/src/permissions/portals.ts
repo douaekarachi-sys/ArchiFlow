@@ -127,8 +127,10 @@ export const PORTAL_NAV: Record<Role, RoleNav> = {
     group: {
       key: 'quoting',
       items: [
-        { key: 'bom', icon: FileSpreadsheet, phase: 11 },
-        { key: 'costs', icon: Receipt, phase: 11 },
+        // Nomenclature et coûts (EF-302/303) forment un seul écran dérivé de l'architecture :
+        // deux entrées de menu, une seule destination.
+        { key: 'bom', icon: FileSpreadsheet, path: '/sales/bom' },
+        { key: 'costs', icon: Receipt, path: '/sales/bom' },
         { key: 'clientPublish', icon: Share2, phase: 11 },
       ],
     },

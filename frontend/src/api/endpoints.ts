@@ -1,6 +1,7 @@
 import type {
   ArchitectureDiff,
   ArchitectureDocument,
+  BillOfMaterials,
   AuthResult,
   ChangePasswordInput,
   CreateBrandInput,
@@ -98,6 +99,7 @@ export interface EquipmentItem {
   indicativePrice: string | number | null;
   currency: string | null;
   licenseInfo: string | null;
+  licenseAnnualCost: string | number | null;
   availability: string | null;
   imageUrl: string | null;
   isDemoData: boolean;
@@ -186,4 +188,8 @@ export const architectureApi = {
     api.get<ArchitectureDiff>(`/projects/${projectId}/architecture/versions/diff`, { from, to }),
   restore: (projectId: string, number: number) =>
     api.post<ArchitectureDocument>(`/projects/${projectId}/architecture/versions/${number}/restore`),
+};
+
+export const bomApi = {
+  get: (projectId: string) => api.get<BillOfMaterials>(`/projects/${projectId}/bom`),
 };

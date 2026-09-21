@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import {
+  buildBom,
   diffArchitecture,
   validateArchitecture,
   type ArchitectureDiff,
   type ArchitectureDocument,
   type AuthContext,
+  type BillOfMaterials,
   type EquipmentIndex,
   type FrozenModelSpec,
 } from '@archiflow/shared';
@@ -118,6 +120,22 @@ export class ArchitectureService {
     return this.persist(ctx, projectId, document, number, `Restauration de la version ${number}`);
   }
 
+  /**
+   * BOM et coûts (EF-302, EF-303) : DÉRIVÉS de la dernière version sauvegardée, jamais saisis à
+   * la main. Basé sur le snapshot figé (prix au moment de CETTE sauvegarde), pas le catalogue
+   * courant — reproductible même si le catalogue a changé depuis (ADR 0001).
+   */
+  async getBom(ctx: AuthContext, projectId: string): Promise<BillOfMaterials> {
+    await this.projects.get(ctx, projectId);
+    const architecture = await this.prisma.tenant.architecture.findFirst({
+      where: { projectId, organizationId: ctx.organizationId },
+      select: { id: true, currentVersion: true },
+    });
+    if (!architecture || architecture.currentVersion === 0) return buildBom(EMPTY_DOCUMENT);
+    const document = await this.getVersion(ctx, projectId, architecture.currentVersion);
+    return buildBom(document);
+  }
+
   private async findVersion(ctx: AuthContext, projectId: string, number: number) {
     await this.projects.get(ctx, projectId);
     const architecture = await this.prisma.tenant.architecture.findFirst({
@@ -212,6 +230,7 @@ export class ArchitectureService {
           powerDrawW: model.powerDrawW ?? undefined,
           indicativePrice: model.indicativePrice != null ? Number(model.indicativePrice) : undefined,
           currency: model.currency ?? undefined,
+          licenseAnnualCost: model.licenseAnnualCost != null ? Number(model.licenseAnnualCost) : undefined,
         });
       }
     }

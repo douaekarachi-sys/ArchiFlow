@@ -214,6 +214,7 @@
     "rackUnits": "Hauteur U",
     "price": "Prix indicatif",
     "currency": "Devise",
+    "licenseAnnualCost": "Licence (par an)",
     "archived": "Archivé",
     "archiveAction": "Archiver",
     "archiveConsequence": "Il restera visible dans les architectures existantes mais ne pourra plus être ajouté à une nouvelle conception (ADR 0008)."
@@ -542,6 +543,31 @@
     "restoreAction": "Restaurer",
     "restoreTarget": "la version {{number}}",
     "restoreConsequence": "Une nouvelle version sera créée à partir de celle-ci, revalidée contre le catalogue actuel. L'historique existant reste intact."
+  },
+  "bom": {
+    "pickerDescription": "Choisissez un projet pour consulter sa nomenclature et ses coûts.",
+    "detailDescription": "Nomenclature et coûts dérivés de la dernière version sauvegardée — jamais saisis à la main (EF-302, EF-303).",
+    "empty": "Aucun équipement chiffré",
+    "emptyHint": "Le BOM se remplit dès qu'une architecture avec des équipements du catalogue est sauvegardée.",
+    "materialTotal": "Matériel",
+    "licenseTotal": "Licences",
+    "implementationTotal": "Mise en œuvre",
+    "notEstimated": "Non estimée",
+    "implementationHint": "Optionnelle au cahier des charges ; aucune donnée de tarif horaire dans le catalogue.",
+    "grandTotal": "Total",
+    "unpriced_one": "{{count}} élément sans prix ou sans modèle catalogue, exclu du total.",
+    "unpriced_other": "{{count}} éléments sans prix ou sans modèle catalogue, exclus du total.",
+    "linesTitle": "Nomenclature",
+    "notPriced": "Non chiffré",
+    "subtotalDetail": "{{quantity}} × {{unitPrice}}",
+    "columns": {
+      "name": "Équipement",
+      "category": "Catégorie",
+      "quantity": "Qté",
+      "unitPrice": "Prix unitaire",
+      "subtotal": "Sous-total",
+      "license": "Licence/an"
+    }
   },
   "equipment": {
     "category": {

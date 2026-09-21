@@ -1,6 +1,6 @@
 # Traçabilité au cahier des charges
 
-**Statut : version 9 — historique et versions d'architecture, tranche T5 (20/09/2026).** Colonne *Lot* : ADR 0009.
+**Statut : version 10 — nomenclature et coûts, tranche T6 (20/09/2026).** Colonne *Lot* : ADR 0009.
 
 Les libellés de la colonne *Exigence* sont repris **mot pour mot** du cahier des charges
 (tableaux 3.1 à 3.5 et 5). Ils ne doivent pas être reformulés lors des mises à jour.
@@ -143,13 +143,23 @@ Statut :
 | Réf. | Exigence | Priorité | Lot | Statut | Où c'est implémenté |
 |---|---|---|---|---|---|
 | EF-301 | Export PDF de l'architecture (schémas, légende, mise en page soignée). | Élevée | MVP | 🕓 Phases 5 et 12 | — |
-| EF-302 | Génération automatique des spécifications techniques et de la nomenclature (BOM). | Élevée | MVP (§3) | 🕓 Phase 11 | — |
-| EF-303 | Estimation des coûts : matériel, licences et, en option, mise en œuvre. | Élevée | MVP (§3) | 🕓 Phase 11 | — |
+| EF-302 | Génération automatique des spécifications techniques et de la nomenclature (BOM). | Élevée | MVP (§3) | ✅ T6 | `packages/shared/src/architecture/bom.ts` (`buildBom`) — `backend/src/modules/architecture/bom.controller.ts` (`GET /projects/:id/bom`), `frontend/src/features/bom/bom-page.tsx` — tests `bom.spec.ts`, `architecture.e2e-spec.ts`, `bom-page.test.tsx` |
+| EF-303 | Estimation des coûts : matériel, licences et, en option, mise en œuvre. | Élevée | MVP (§3) | 🔨 T6 — matériel et licences dérivés et chiffrés ; mise en œuvre honnêtement non estimée (aucune donnée de tarif horaire au catalogue, exigence « en option ») | même implémentation qu'EF-302 |
 | EF-304 | Production d'une documentation technique (description des flux, adressage, inventaire des équipements). | Moyenne | V1 (§3) | 🕓 Phase 12 | — |
 | EF-305 | Personnalisation des rapports : logo, en-tête client, charte graphique. | Moyenne | V1 | 🕓 Phase 12 | — |
 | EF-306 | Export dans d'autres formats : Word, Excel, image, Visio (VSDX). | Moyenne | V1 (§3) ⚑ | 🕓 Phase 12 | — |
 
 > **EF-301** : un PDF minimal est livré dès la fin de la Phase 5, puis enrichi en Phase 12.
+>
+> **T6 — BOM et coûts.** `buildBom` agrège les éléments d'un document par modèle catalogue
+> (quantité, prix unitaire, sous-total), à partir du snapshot de la **dernière version
+> sauvegardée** — jamais du catalogue courant (ADR 0001) : un test vérifie que changer le prix
+> catalogue APRÈS la sauvegarde ne modifie pas le BOM déjà chiffré. Nouveau champ
+> `EquipmentModel.licenseAnnualCost` (migration additive `20260920222904_equipment_license_cost`,
+> distincte du prix matériel) : le total « Licences » est réel, jamais estimé. **Mise en œuvre**
+> affichée mais volontairement **non chiffrée** — inventer un tarif horaire sans donnée catalogue
+> aurait été une donnée fictive présentée comme réelle ; le CDC la classe « en option ».
+> Visible dans le portail Commercial (`/sales/bom`), et pour ADMIN/PROJECT_MANAGER.
 >
 > **⚑ EF-306** — §4.3 range les exports VSDX, image et Excel sous « Intégrations et
 > interopérabilité ». Si le thème « intégrations » de §8.1 les englobe, EF-306 passe en **V2**.

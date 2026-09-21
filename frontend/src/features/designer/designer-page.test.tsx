@@ -151,6 +151,7 @@ describe('DesignerPage', () => {
           indicativePrice: null,
           currency: null,
           licenseInfo: null,
+          licenseAnnualCost: null,
           availability: null,
           imageUrl: null,
           isDemoData: true,

@@ -33,6 +33,9 @@ const SizingDetailPage = lazy(() => sizing().then((m) => ({ default: m.SizingDet
 const versions = () => import('@/features/versions/versions-page');
 const VersionsPickerPage = lazy(() => versions().then((m) => ({ default: m.VersionsPickerPage })));
 const VersionsDetailPage = lazy(() => versions().then((m) => ({ default: m.VersionsDetailPage })));
+const bom = () => import('@/features/bom/bom-page');
+const BomPickerPage = lazy(() => bom().then((m) => ({ default: m.BomPickerPage })));
+const BomDetailPage = lazy(() => bom().then((m) => ({ default: m.BomDetailPage })));
 // `import.meta.env.DEV` est remplacé statiquement à la build : en production, Rollup élimine
 // entièrement cet import dynamique — la page de référence des composants n'existe pas dans
 // dist/, pas seulement hors des routes.
@@ -87,6 +90,14 @@ const portalRoute = (role: Role): RouteObject => ({
                 { path: 'users', element: <Lazy><UsersPage /></Lazy> },
                 { path: 'requests', element: <Lazy><AdminRequestsPage /></Lazy> },
                 { path: 'catalog', element: <Lazy><CatalogPage /></Lazy> },
+              ]
+            : []),
+          // BOM et coûts (EF-302/303) : par-projet, ouvert aux rôles bom.read (portail Commercial
+          // en premier lieu — le serveur revérifie).
+          ...(role === 'SALES' || role === 'ADMIN' || role === 'PROJECT_MANAGER'
+            ? [
+                { path: 'bom', element: <Lazy><BomPickerPage role={role} /></Lazy> },
+                { path: 'projects/:id/bom', element: <Lazy><BomDetailPage /></Lazy> },
               ]
             : []),
           // Outils par-projet du portail ingénieur (EF-202, Phase 4) : comme le concepteur 2D,

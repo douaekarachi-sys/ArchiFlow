@@ -275,6 +275,46 @@ describe('versions (EF-405, ADR 0001) — snapshot auto-porteur, historique, dif
   });
 });
 
+describe('BOM et coûts (EF-302, EF-303) — dérivés de l’architecture, jamais saisis à la main', () => {
+  it('agrège le BOM depuis la dernière version sauvegardée, prix ET licence compris', async () => {
+    const firewallModelId = await createModel('firewall');
+    const switchModelId = await createModel('switch');
+    await server()
+      .patch(`${API}/catalog/equipment/${switchModelId}`)
+      .set(admin.auth)
+      .send({ indicativePrice: 68000, currency: 'MAD' });
+    await server()
+      .patch(`${API}/catalog/equipment/${firewallModelId}`)
+      .set(admin.auth)
+      .send({ indicativePrice: 21000, currency: 'MAD', licenseAnnualCost: 5000 });
+    await server().put(`${API}/projects/${w.projectA1}/architecture`).set(architect.auth).send(sampleDocument(firewallModelId, switchModelId));
+
+    // Le catalogue change APRÈS la sauvegarde : le BOM reste celui de la version figée.
+    await server().patch(`${API}/catalog/equipment/${switchModelId}`).set(admin.auth).send({ indicativePrice: 999999 });
+
+    const bom = await server().get(`${API}/projects/${w.projectA1}/bom`).set(admin.auth);
+    expect(bom.status).toBe(200);
+    expect(bom.body.materialTotal).toBe(68000 + 21000);
+    expect(bom.body.licenseTotal).toBe(5000);
+    expect(bom.body.grandTotal).toBe(68000 + 21000 + 5000);
+  });
+
+  it('un projet jamais sauvegardé a un BOM vide, pas une erreur', async () => {
+    const bom = await server().get(`${API}/projects/${w.projectA1}/bom`).set(admin.auth);
+    expect(bom.status).toBe(200);
+    expect(bom.body).toMatchObject({ lines: [], materialTotal: 0, grandTotal: 0 });
+  });
+
+  it('un CLIENT consulte le BOM de son projet (lecture) mais l’ingénieur, sans bom.read, est refusé', async () => {
+    const clientA1 = await login(t, w.users.clientA1.email);
+    const asClient = await server().get(`${API}/projects/${w.projectA1}/bom`).set(clientA1.auth);
+    expect(asClient.status).toBe(200);
+
+    const asEngineer = await server().get(`${API}/projects/${w.projectA1}/bom`).set(engineer.auth);
+    expect(asEngineer.status).toBe(403);
+  });
+});
+
 describe('permissions (ADR 0004) — l’ingénieur dimensionne, il ne conçoit pas', () => {
   it('l’ingénieur lit l’architecture mais ne peut pas la modifier', async () => {
     const read = await server().get(`${API}/projects/${w.projectA1}/architecture`).set(engineer.auth);
