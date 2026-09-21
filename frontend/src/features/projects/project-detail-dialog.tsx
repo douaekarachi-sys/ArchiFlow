@@ -1,4 +1,4 @@
-import { ArrowRight, Calculator, ClipboardList, Download, History, LayoutPanelTop, Undo2, UserPlus } from 'lucide-react';
+import { ArrowRight, Calculator, ClipboardList, Download, FileSpreadsheet, History, LayoutPanelTop, Undo2, UserPlus } from 'lucide-react';
 import { ROLE_HOME } from '@archiflow/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -89,6 +89,12 @@ export function ProjectDetailDialog({ projectId, onClose }: { projectId: string 
               )}
               {role === 'CLIENT' && (
                 <div className="flex flex-wrap gap-2">
+                  <Button asChild variant="secondary" size="sm" icon={<LayoutPanelTop />}>
+                    <Link to={`/client/projects/${projectId}/design`}>{t('projects.detail.viewArchitecture')}</Link>
+                  </Button>
+                  <Button asChild variant="secondary" size="sm" icon={<FileSpreadsheet />}>
+                    <Link to={`/client/projects/${projectId}/bom`}>{t('projects.detail.viewBom')}</Link>
+                  </Button>
                   <PdfDownloadButton projectId={projectId} />
                 </div>
               )}

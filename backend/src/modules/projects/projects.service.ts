@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   availableTransitions,
   canTransition,
@@ -12,10 +12,12 @@ import {
 } from '@archiflow/shared';
 import { AppError, forbidden, notFound } from '../../common/errors/app-error';
 import { skipTake, toPage, type Pagination } from '../../common/http/pagination';
+import { ENV, type Env } from '../../core/config/env';
 import { PrismaService } from '../../core/prisma/prisma.service';
 import { ASSIGNABLE_ROLES, PROJECT_VISIBILITY, requiresAssignmentAs } from '../../domain/projects/visibility';
 import { Prisma } from '../../generated/prisma/client';
 import { AuditService } from '../audit/audit.service';
+import { Mailer } from '../mail/mailer';
 
 const PROJECT_SUMMARY = {
   id: true,
@@ -47,6 +49,8 @@ export class ProjectsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    private readonly mailer: Mailer,
+    @Inject(ENV) private readonly env: Env,
   ) {}
 
   /**
@@ -209,9 +213,12 @@ export class ProjectsService {
         detail: check.detail,
       });
     }
-    const reason = check.transition.reverse ? input.reason?.trim() : undefined;
+    // Le motif est obligatoire pour un retour en arrière (ADR 0005), mais un motif fourni pour
+    // une transition « avant » (ex. le client explique ce qu'il faut changer, CLIENT_COMMENTS)
+    // n'a aucune raison d'être jeté : il reste informatif, jamais requis hors retour.
+    const reason = input.reason?.trim() || undefined;
 
-    return this.prisma.tenant.$transaction(async (tx) => {
+    const result = await this.prisma.tenant.$transaction(async (tx) => {
       // Mise à jour conditionnée au statut lu : deux transitions concurrentes ne passent pas toutes deux.
       const updated = await tx.project.updateMany({
         where: { id: project.id, organizationId: ctx.organizationId, status: project.status },
@@ -242,6 +249,51 @@ export class ProjectsService {
       );
       return { id: project.id, status: input.to };
     });
+
+    await this.notifyTransition(ctx.organizationId, project, input.to, reason);
+    return result;
+  }
+
+  /**
+   * Notification simple (EF-401/402, T10) : un e-mail informatif, jamais bloquant pour la
+   * transition elle-même — une erreur d'envoi ne doit jamais faire échouer le workflow.
+   */
+  private async notifyTransition(
+    organizationId: string,
+    project: { id: string; name: string; clientCompanyId: string },
+    to: ProjectStatus,
+    reason: string | undefined,
+  ): Promise<void> {
+    try {
+      if (to === 'CLIENT_REVIEW') {
+        const clients = await this.prisma.tenant.user.findMany({
+          where: { organizationId, clientCompanyId: project.clientCompanyId, role: 'CLIENT', deletedAt: null },
+          select: { email: true },
+        });
+        for (const client of clients) {
+          await this.mailer.send({
+            to: client.email,
+            subject: `Proposition disponible — ${project.name}`,
+            text: `Une proposition d'architecture est prête pour votre projet « ${project.name} ». Connectez-vous sur ${this.env.APP_PUBLIC_URL} pour la consulter, la commenter ou la valider.`,
+          });
+        }
+      } else if (to === 'CLIENT_APPROVED' || to === 'CLIENT_COMMENTS') {
+        const pm = await this.prisma.tenant.projectAssignment.findFirst({
+          where: { organizationId, projectId: project.id, role: 'PROJECT_MANAGER' },
+          select: { user: { select: { email: true } } },
+        });
+        if (!pm) return;
+        const subject =
+          to === 'CLIENT_APPROVED' ? `Projet validé par le client — ${project.name}` : `Modifications demandées par le client — ${project.name}`;
+        const text =
+          to === 'CLIENT_APPROVED'
+            ? `Le client a validé la proposition du projet « ${project.name} ».`
+            : `Le client demande des modifications sur « ${project.name} »${reason ? ` : ${reason}` : '.'}`;
+        await this.mailer.send({ to: pm.user.email, subject, text });
+      }
+    } catch {
+      // Notification best-effort : une panne d'envoi ne doit jamais bloquer le workflow métier.
+    }
   }
 
   async available(ctx: AuthContext, projectId: string) {
@@ -253,7 +305,9 @@ export class ProjectsService {
     return availableTransitions(project.status, ctx.role).map((t) => ({
       to: t.to,
       labelKey: t.labelKey,
-      requiresReason: t.reverse === true,
+      // Obligatoire pour un retour en arrière (ADR 0005) ; proposé (jamais imposé) pour
+      // CLIENT_COMMENTS — le client explique ce qu'il faut changer, ce n'est pas un retour.
+      requiresReason: t.reverse === true || t.to === 'CLIENT_COMMENTS',
     }));
   }
 

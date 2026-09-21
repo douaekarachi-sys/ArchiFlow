@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { API, createTestApp, type TestApp } from './support/app';
 import { buildWorld, login, type Session, type World } from './support/world';
 
@@ -59,6 +59,71 @@ describe('parcours complet du workflow, rôle par rôle', () => {
     const res = await transition('adminA', w.projectA2, { to: 'ASSIGNED' });
     expect(res.status).toBe(409);
     expect(res.body.error.details).toEqual({ refusal: 'MISSING_ASSIGNMENTS', detail: 'ARCHITECT' });
+  });
+});
+
+describe('validation client (T10, EF-401/402) — publication, commentaire, validation, notification', () => {
+  async function toClientReview(): Promise<string> {
+    const p = w.projectA2;
+    await transition('clientA2', p, { to: 'SUBMITTED' }).expect(200);
+    await transition('adminA', p, { to: 'PENDING_ASSIGNMENT' }).expect(200);
+    for (const key of ['pmA', 'engineerA', 'architectA', 'salesA'] as const) {
+      await server()
+        .post(`${API}/projects/${p}/assignments`)
+        .set(sessions.adminA.auth)
+        .send({ userId: w.users[key].id, role: w.users[key].role })
+        .expect(201);
+    }
+    await transition('adminA', p, { to: 'ASSIGNED' }).expect(200);
+    await transition('engineerA', p, { to: 'ENGINEERING' }).expect(200);
+    await transition('engineerA', p, { to: 'ARCHITECTURE' }).expect(200);
+    await transition('architectA', p, { to: 'INTERNAL_REVIEW' }).expect(200);
+    await transition('pmA', p, { to: 'COMMERCIAL_REVIEW' }).expect(200);
+    t.mailer.outbox.length = 0; // ne garder que les notifications du test lui-même
+    await transition('salesA', p, { to: 'CLIENT_REVIEW' }).expect(200);
+    return p;
+  }
+
+  it('le commercial publie : le client reçoit une notification simple', async () => {
+    await toClientReview();
+    const mail = t.mailer.outbox.find((m) => m.to === w.users.clientA2.email);
+    expect(mail).toBeDefined();
+    expect(mail!.subject).toContain('Proposition disponible');
+  });
+
+  it('le client valide : le chef de projet est notifié, la transition est auditée', async () => {
+    const p = await toClientReview();
+    t.mailer.outbox.length = 0;
+    await transition('clientA2', p, { to: 'CLIENT_APPROVED' }).expect(200);
+
+    const mail = t.mailer.outbox.find((m) => m.to === w.users.pmA.email);
+    expect(mail).toBeDefined();
+    expect(mail!.subject).toContain('validé');
+
+    const entries = await t.prisma.system.auditLog.findMany({ where: { projectId: p, action: 'project.transition' } });
+    expect(entries.some((e) => (e.details as { to?: string } | null)?.to === 'CLIENT_APPROVED')).toBe(true);
+  });
+
+  it('le client commente : le motif est conservé dans l’historique ET transmis dans la notification', async () => {
+    const p = await toClientReview();
+    t.mailer.outbox.length = 0;
+    const reason = 'Merci de prévoir une redondance sur le lien Internet principal.';
+    await transition('clientA2', p, { to: 'CLIENT_COMMENTS', reason }).expect(200);
+
+    const history = await server().get(`${API}/projects/${p}/history`).set(sessions.pmA.auth);
+    expect(history.body[0]).toMatchObject({ toStatus: 'CLIENT_COMMENTS', reason });
+
+    const mail = t.mailer.outbox.find((m) => m.to === w.users.pmA.email);
+    expect(mail).toBeDefined();
+    expect(mail!.text).toContain(reason);
+  });
+
+  it('une panne d’envoi ne bloque jamais la transition (best-effort)', async () => {
+    const p = await toClientReview();
+    const spy = vi.spyOn(t.mailer, 'send').mockRejectedValueOnce(new Error('SMTP indisponible'));
+    const res = await transition('clientA2', p, { to: 'CLIENT_APPROVED' });
+    expect(res.status).toBe(200);
+    spy.mockRestore();
   });
 });
 

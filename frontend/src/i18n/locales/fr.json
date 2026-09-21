@@ -412,6 +412,8 @@
       ,"openDesigner": "Ouvrir le concepteur"
       ,"openNeedAnalysis": "Analyser le besoin"
       ,"openSizing": "Calculer le dimensionnement"
+      ,"viewArchitecture": "Voir l'architecture"
+      ,"viewBom": "Voir le BOM et les coûts"
     },
     "count_one": "{{count}} projet",
     "count_other": "{{count}} projets"

@@ -83,6 +83,10 @@ const portalRoute = (role: Role): RouteObject => ({
       ? [
           { path: 'request', element: <Lazy><RequestPage /></Lazy> },
           { path: 'assistant', element: <Lazy><ChatbotPage /></Lazy> },
+          // Consultation seule (EF-401/402, T10) : le CLIENT a architecture.read et bom.read,
+          // mais jamais architecture.edit — DesignerPage retombe déjà en lecture seule.
+          { path: 'projects/:id/design', element: <Lazy><DesignerPage /></Lazy> },
+          { path: 'projects/:id/bom', element: <Lazy><BomDetailPage /></Lazy> },
         ]
       : [
           { path: 'projects', element: <Lazy><ProjectsPage role={role} /></Lazy> },

@@ -1,13 +1,13 @@
 # Traçabilité au cahier des charges
 
-**Statut : version 13 — chatbot client, repli local, tranche T9 (21/09/2026).** Colonne *Lot* : ADR 0009.
+**Statut : version 14 — validation client, tranche T10 (21/09/2026).** Colonne *Lot* : ADR 0009.
 
 Les libellés de la colonne *Exigence* sont repris **mot pour mot** du cahier des charges
 (tableaux 3.1 à 3.5 et 5). Ils ne doivent pas être reformulés lors des mises à jour.
 
 Mise à jour : à chaque fin de phase.
 
-## État global (21/09/2026, fin de la tranche T9)
+## État global (21/09/2026, fin de la tranche T10)
 
 **✅ Livré et testé** : authentification et RBAC (Phase 1), tenancy à deux niveaux (Phase 1),
 machine à états et workflow (Phase 1), catalogue — lecture et administration (T1, EF-201/505),
@@ -15,7 +15,8 @@ demande client — cadrage et bâtiments/départements (T2, EF-507 partiel), con
 EF-101 à EF-107), moteurs de capacité/compatibilité/anomalies avec revalidation serveur (T4,
 ADR 0003 fermée, EF-202/203), versions d'architecture — snapshot auto-porteur, diff sémantique,
 restauration (T5, EF-405), BOM et coûts dérivés (T6, EF-302, matériel+licences d'EF-303), export
-PDF minimal (T7, EF-301, D-11 fermée).
+PDF minimal (T7, EF-301, D-11 fermée), validation client — publication, consultation,
+commentaire, validation, notification (T10, EF-508).
 
 **🔨 Livré en périmètre réduit, écart documenté** : détection d'anomalies structurelles limitée
 au graphe logique, pas encore aux anomalies physiques — Phase 6 non livrée (T4/EF-204) ; vue 3D
@@ -30,9 +31,8 @@ lui-même hors CDC par nature, livré comme extension (voir « Écarts assumés 
 **🕓 Planifié, non commencé** : adressage IP/VLAN (EF-207, Phase 8), bibliothèque de modèles
 d'architecture (EF-206), construction physique — bâtiments/étages/salles/racks (Phase 6, dont
 dépendent EF-204 complet et EF-104 complet), commentaires et présence temps réel (EF-403,
-Phase 10), notifications (EF-406), personnalisation des rapports et formats d'export
-additionnels (EF-304/305/306, Phase 12), portail client de validation de proposition (EF-508,
-Phase 11).
+Phase 10), personnalisation des rapports et formats d'export additionnels (EF-304/305/306,
+Phase 12).
 
 ---
 
@@ -216,7 +216,7 @@ Statut :
 | EF-403 | Commentaires et annotations en temps réel, positionnés sur les éléments. | Moyenne | V1 | 🕓 Phase 10 | — |
 | EF-404 | Édition collaborative simultanée avec indication de la présence des utilisateurs. | Moyenne | V2 ⚠ | 🕓 Phase 10 (présence) · post-V2 (co-édition) | — |
 | EF-405 | Historique et gestion des versions : comparaison et restauration d'une version antérieure. | Élevée | V1 ⚠ | ✅ T5 | `backend/src/modules/architecture/architecture.service.ts` (`persist`/`listVersions`/`getVersion`/`diffVersions`/`restoreVersion`), `packages/shared/src/architecture/diff.ts` (`diffArchitecture`) — `frontend/src/features/versions/versions-page.tsx` — tests `backend/test/architecture.e2e-spec.ts`, `diff.spec.ts`, `versions-page.test.tsx` |
-| EF-406 | Notifications lors d'une modification, d'un commentaire ou d'un partage. | Faible | V2 (§3) ⚑ | 🕓 Phase 10 | — |
+| EF-406 | Notifications lors d'une modification, d'un commentaire ou d'un partage. | Faible | V2 (§3) ⚑ | 🔨 T10 — notification e-mail *best-effort* aux transitions du workflow client (publication, commentaire, validation) uniquement ; pas encore sur une modification ou un partage quelconque | `backend/src/modules/projects/projects.service.ts` (`notifyTransition`), `backend/src/modules/mail/` |
 
 > **⚑ EF-402** — « Partage simple » est MVP, « collaboration » est V1 ; des droits *fins* relèvent
 > plutôt du second. Lot MVP retenu faute de mention littérale. Arbitrage attendu.
@@ -318,7 +318,7 @@ aucune exigence du CDC. Numérotation proposée, à valider :
 |---|---|---|---|---|
 | EF-506 | Cycle de vie d'un projet piloté par une machine à états, avec transitions contrôlées par rôle, retours en arrière nommés et motivés. | Élevée | MVP | ✅ Phase 1 — `packages/shared/src/workflow/`, `ProjectsService.applyTransition`, dialogue de projet |
 | EF-507 | Portail client d'expression du besoin : formulaire multi-étapes, sauvegarde en brouillon, soumission. | Élevée | V1 | 🔨 T2 — cadrage, bâtiments/départements (`useFieldArray`), capacité, réseau et sécurité structurés ; sauvegarde en brouillon locale (par profil) et transaction ProjectRequest (buildings/departments inclus) livrées ; reprise de brouillon **côté serveur** (multi-appareil) sciemment différée — `updateRequestSchema` existe déjà côté `packages/shared` mais n'est câblé à aucune route ; à faire quand un besoin réel de reprise multi-appareil apparaît | `frontend/src/features/request/request-page.tsx`, `backend/src/modules/projects/projects.service.ts` — test `request-page.test.tsx` |
-| EF-508 | Consultation, commentaire et validation d'une version publiée par le client. | Moyenne | V1 | 🕓 Phase 11 |
+| EF-508 | Consultation, commentaire et validation d'une version publiée par le client. | Moyenne | V1 | ✅ T10 | `backend/src/modules/projects/projects.service.ts` (`applyTransition`, `notifyTransition`), `frontend/src/app/router.tsx` (routes CLIENT `design`/`bom` lecture seule), `frontend/src/features/projects/project-detail-dialog.tsx` — tests `backend/test/projects.e2e-spec.ts` (describe « validation client (T10, EF-401/402) ») |
 
 ### 4. Chatbot d'assistance client — hors périmètre initial, livré en T9 (🔨)
 
@@ -338,6 +338,37 @@ aucune implémentation réelle câblée — aucune clé disponible dans cet envi
 fournisseur choisi. Page `frontend/src/features/chatbot/`, nav CLIENT « Assistant ». Tests :
 `local-engine.spec.ts` (9 cas), `chatbot.e2e-spec.ts` (5 cas, dont l'audit réel et l'isolation
 entre sociétés clientes), `chatbot-page.test.tsx`.
+
+### 5. Validation client — EF-508, clôture du parcours de bout en bout (T10)
+
+**T10 (21/09/2026).** La machine à états (`packages/shared/src/workflow/`) proposait déjà les
+transitions `COMMERCIAL_REVIEW → CLIENT_REVIEW` (SALES publie), `CLIENT_REVIEW →
+CLIENT_COMMENTS` (le client demande des modifications) et `CLIENT_REVIEW → CLIENT_APPROVED` (le
+client valide) ; elles n'étaient reliées à aucune notification et le motif du client n'était
+conservé que pour les retours en arrière (ADR 0005). T10 ferme ces trois manques :
+
+- `ProjectsService.applyTransition` conserve désormais le motif fourni pour **toute** transition
+  (pas seulement les retours en arrière au sens de l'ADR 0005, qui reste inchangée) ;
+- `notifyTransition` envoie un e-mail **best-effort** (une panne d'envoi ne bloque jamais la
+  transition, testé) : aux CLIENT de la société à `CLIENT_REVIEW` (« Proposition disponible »),
+  au chef de projet affecté à `CLIENT_APPROVED` (« validé ») et à `CLIENT_COMMENTS` (motif du
+  client inclus dans le texte) ;
+- le CLIENT peut désormais consulter l'architecture (lecture seule, `frontend/src/features/
+  designer/designer-page.tsx` retombe déjà en lecture seule sans `architecture.edit`), le BOM et
+  les coûts, et télécharger le PDF depuis le dialogue de détail projet — les trois boutons de
+  découverte (`project-detail-dialog.tsx`) et les routes correspondantes (`router.tsx`) sont
+  nouveaux.
+
+Chaque transition reste auditée (`AuditLog`, action `project.transition`), comme toutes les
+transitions du workflow depuis la Phase 1 — T10 n'a rien changé à l'audit lui-même, seulement à
+la notification et à la persistance du motif. Tests : 4 nouveaux cas dans
+`backend/test/projects.e2e-spec.ts` (publication notifiée, validation notifiée+auditée,
+commentaire avec motif persisté et transmis, panne d'envoi non bloquante) — 20/20 dans ce
+fichier, suite complète backend et frontend au vert.
+
+**Écart assumé** : la notification reste un e-mail simple (pas de centre de notifications
+in-app, pas de badge non-lu) — suffisant pour « notification simple » demandé, pas une
+implémentation d'EF-406 dans sa généralité (voir la ligne EF-406 ci-dessus).
 
 ---
 
