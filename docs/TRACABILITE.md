@@ -7,6 +7,33 @@ Les libellés de la colonne *Exigence* sont repris **mot pour mot** du cahier de
 
 Mise à jour : à chaque fin de phase.
 
+## État global (21/09/2026, fin de la tranche T9)
+
+**✅ Livré et testé** : authentification et RBAC (Phase 1), tenancy à deux niveaux (Phase 1),
+machine à états et workflow (Phase 1), catalogue — lecture et administration (T1, EF-201/505),
+demande client — cadrage et bâtiments/départements (T2, EF-507 partiel), concepteur 2D (T3,
+EF-101 à EF-107), moteurs de capacité/compatibilité/anomalies avec revalidation serveur (T4,
+ADR 0003 fermée, EF-202/203), versions d'architecture — snapshot auto-porteur, diff sémantique,
+restauration (T5, EF-405), BOM et coûts dérivés (T6, EF-302, matériel+licences d'EF-303), export
+PDF minimal (T7, EF-301, D-11 fermée).
+
+**🔨 Livré en périmètre réduit, écart documenté** : détection d'anomalies structurelles limitée
+au graphe logique, pas encore aux anomalies physiques — Phase 6 non livrée (T4/EF-204) ; vue 3D
+en consultation sans navigation bâtiment/étage/salle — dépend de `placement`, Phase 6 non livrée
+(T8, EF-104) ; coût de mise en œuvre volontairement non chiffré, aucune donnée de tarif horaire
+au catalogue (T6, EF-303) ; chatbot en repli local uniquement, fournisseur LLM externe non
+câblé, aucune clé disponible (T9, D-12 partiellement tranchée).
+
+**⛔ Hors périmètre assumé** : co-édition temps réel CRDT (EF-404, dépend de D-05) ; chatbot
+lui-même hors CDC par nature, livré comme extension (voir « Écarts assumés » ci-dessous).
+
+**🕓 Planifié, non commencé** : adressage IP/VLAN (EF-207, Phase 8), bibliothèque de modèles
+d'architecture (EF-206), construction physique — bâtiments/étages/salles/racks (Phase 6, dont
+dépendent EF-204 complet et EF-104 complet), commentaires et présence temps réel (EF-403,
+Phase 10), notifications (EF-406), personnalisation des rapports et formats d'export
+additionnels (EF-304/305/306, Phase 12), portail client de validation de proposition (EF-508,
+Phase 11).
+
 ---
 
 ## ⚠ Note d'écart — le CDC se contredit sur sept exigences
