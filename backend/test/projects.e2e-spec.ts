@@ -238,3 +238,100 @@ describe('affectations', () => {
     expect(res.status).toBe(409);
   });
 });
+
+describe('partage (T13, EF-401/402) — inviter un utilisateur de l’organisation avec un droit borné', () => {
+  it('un utilisateur non affecté ne voit pas le projet, avant tout partage', async () => {
+    const res = await server().get(`${API}/projects/${w.projectA2}`).set(sessions.architectA.auth);
+    expect(res.status).toBe(404);
+  });
+
+  it('le partage rend le projet visible à un utilisateur non affecté', async () => {
+    // adminA voit tout le locataire (ORGANIZATION) : c'est lui qui invite ici, pas pmA, qui ne voit
+    // même pas projectA2 sans y être déjà affecté ou partagé — on ne peut pas inviter sur un
+    // projet qu'on ne voit pas soi-même.
+    const share = await server()
+      .post(`${API}/projects/${w.projectA2}/shares`)
+      .set(sessions.adminA.auth)
+      .send({ userId: w.users.architectA.id, right: 'READ' });
+    expect(share.status).toBe(201);
+    expect(share.body).toMatchObject({ right: 'READ', user: { id: w.users.architectA.id } });
+
+    const res = await server().get(`${API}/projects/${w.projectA2}`).set(sessions.architectA.auth);
+    expect(res.status).toBe(200);
+  });
+
+  it('un droit LECTURE ne permet pas d’éditer l’architecture ; EDIT le permet (réinviter change le droit)', async () => {
+    await server().post(`${API}/projects/${w.projectA2}/shares`).set(sessions.adminA.auth).send({ userId: w.users.architectA.id, right: 'READ' });
+
+    const readOnly = await server()
+      .put(`${API}/projects/${w.projectA2}/architecture`)
+      .set(sessions.architectA.auth)
+      .send({ elements: [], connections: [], zones: [] });
+    expect(readOnly.status).toBe(403);
+
+    // Réinviter le même utilisateur change son droit (upsert), pas de doublon.
+    const upgraded = await server()
+      .post(`${API}/projects/${w.projectA2}/shares`)
+      .set(sessions.adminA.auth)
+      .send({ userId: w.users.architectA.id, right: 'EDIT' });
+    expect(upgraded.status).toBe(201);
+    expect(upgraded.body.right).toBe('EDIT');
+
+    const edited = await server()
+      .put(`${API}/projects/${w.projectA2}/architecture`)
+      .set(sessions.architectA.auth)
+      .send({ elements: [], connections: [], zones: [] });
+    expect(edited.status).toBe(200);
+  });
+
+  it('révoquer le partage retire la visibilité', async () => {
+    const share = await server()
+      .post(`${API}/projects/${w.projectA2}/shares`)
+      .set(sessions.adminA.auth)
+      .send({ userId: w.users.architectA.id, right: 'EDIT' });
+
+    await server().delete(`${API}/projects/${w.projectA2}/shares/${share.body.id}`).set(sessions.adminA.auth).expect(204);
+
+    const res = await server().get(`${API}/projects/${w.projectA2}`).set(sessions.architectA.auth);
+    expect(res.status).toBe(404);
+  });
+
+  it('refuse de partager avec un compte CLIENT', async () => {
+    const res = await server()
+      .post(`${API}/projects/${w.projectA2}/shares`)
+      .set(sessions.adminA.auth)
+      .send({ userId: w.users.clientA1.id, right: 'READ' });
+    expect(res.status).toBe(422);
+  });
+
+  it('refuse de se partager un projet à soi-même', async () => {
+    const res = await server()
+      .post(`${API}/projects/${w.projectA2}/shares`)
+      .set(sessions.adminA.auth)
+      .send({ userId: w.users.adminA.id, right: 'EDIT' });
+    expect(res.status).toBe(422);
+  });
+
+  it('pas de lien public : partager exige un identifiant utilisateur existant de la même organisation', async () => {
+    const res = await server()
+      .post(`${API}/projects/${w.projectA2}/shares`)
+      .set(sessions.adminA.auth)
+      .send({ userId: w.users.engineerB.id, right: 'READ' });
+    expect(res.status).toBe(404);
+  });
+
+  it('un rôle sans project.share est refusé', async () => {
+    const res = await server()
+      .post(`${API}/projects/${w.projectA2}/shares`)
+      .set(sessions.engineerA.auth)
+      .send({ userId: w.users.architectA.id, right: 'READ' });
+    expect(res.status).toBe(403);
+  });
+
+  it('un partage reste borné à SON projet, pas aux autres', async () => {
+    await server().post(`${API}/projects/${w.projectA2}/shares`).set(sessions.adminA.auth).send({ userId: w.users.architectA.id, right: 'EDIT' });
+    // architectA est déjà affecté à projectA1 par ailleurs (buildWorld) : le partage sur A2 n'y change rien.
+    const other = await server().get(`${API}/projects/${w.projectB}`).set(sessions.architectA.auth);
+    expect(other.status).toBe(404);
+  });
+});

@@ -1,13 +1,13 @@
 # Traçabilité au cahier des charges
 
-**Statut : version 16 — construction physique minimale, tranche T12 (21/09/2026).** Colonne *Lot* : ADR 0009.
+**Statut : version 17 — partage et droits, tranche T13 (21/09/2026).** Colonne *Lot* : ADR 0009.
 
 Les libellés de la colonne *Exigence* sont repris **mot pour mot** du cahier des charges
 (tableaux 3.1 à 3.5 et 5). Ils ne doivent pas être reformulés lors des mises à jour.
 
 Mise à jour : à chaque fin de phase.
 
-## État global (21/09/2026, fin de la tranche T12)
+## État global (21/09/2026, fin de la tranche T13)
 
 **✅ Livré et testé** : authentification et RBAC (Phase 1), tenancy à deux niveaux (Phase 1),
 machine à états et workflow (Phase 1), catalogue — lecture et administration (T1, EF-201/505),
@@ -20,21 +20,26 @@ commentaire, validation, notification (T10, EF-508), plan d'adressage IP/VLAN �
 passerelle, plage DHCP, rattachement aux équipements, validation des chevauchements/conflits,
 tableau dans le PDF (T11, EF-207), construction physique minimale — bâtiment → étage → salle →
 baie → position U, rattachement d'un équipement, navigation dans la vue 3D (T12, partie « schéma
-physique » d'EF-205).
+physique » d'EF-205), partage d'un projet — inviter un utilisateur de l'organisation avec un
+droit lecture/commentaire/édition, vérifié côté serveur (T13, EF-401/402).
 
 **🔨 Livré en périmètre réduit, écart documenté** : détection d'anomalies structurelles limitée
 au graphe logique, les anomalies physiques restent à faire (dépassement de capacité d'une salle,
 alimentation d'une baie — T4/EF-204) ; coût de mise en œuvre volontairement non chiffré, aucune
 donnée de tarif horaire au catalogue (T6, EF-303) ; chatbot en repli local uniquement, fournisseur
 LLM externe non câblé, aucune clé disponible (T9, D-12 partiellement tranchée) ; construction
-physique sans câblage détaillé, comme demandé (T12, EF-205).
+physique sans câblage détaillé, comme demandé (T12, EF-205) ; droit « commentaire » du partage
+stocké et vérifiable mais fonctionnellement identique à « lecture » tant qu'EF-403 (commentaires)
+n'est pas livré — aucune action de commentaire n'existe encore pour s'y accrocher (T13, EF-402).
 
 **⛔ Hors périmètre assumé** : co-édition temps réel CRDT (EF-404, dépend de D-05) ; chatbot
-lui-même hors CDC par nature, livré comme extension (voir « Écarts assumés » ci-dessous).
+lui-même hors CDC par nature, livré comme extension (voir « Écarts assumés » ci-dessous) ; lien
+de partage public (explicitement exclu par la demande, EF-401).
 
 **🕓 Planifié, non commencé** : bibliothèque de modèles d'architecture (EF-206), commentaires et
-présence temps réel (EF-403, Phase 10), personnalisation des rapports et formats d'export
-additionnels (EF-304/305/306, Phase 12).
+présence temps réel (EF-403, Phase 10 — donnerait enfin un sens fonctionnel au droit « commentaire »
+du partage), personnalisation des rapports et formats d'export additionnels (EF-304/305/306,
+Phase 12).
 
 ---
 
@@ -245,8 +250,8 @@ Statut :
 
 | Réf. | Exigence | Priorité | Lot | Statut | Où c'est implémenté |
 |---|---|---|---|---|---|
-| EF-401 | Partage d'un projet avec d'autres utilisateurs (lien ou invitation). | Élevée | MVP | 🔨 Phases 1 et 3 — partage par affectation à un projet (API, testé) ; invitation et lien en Phase 3 | `backend/src/modules/projects/` (affectations) |
-| EF-402 | Gestion fine des droits d'accès : lecture, commentaire, édition. | Élevée | MVP (§3) ⚑ | 🔨 Phases 1 et 10 — portée par rôle, locataire, société cliente et affectation (testé) ; droits lecture / commentaire / édition par projet en Phase 10 | `packages/shared/src/rbac/`, `backend/src/domain/projects/visibility.ts` |
+| EF-401 | Partage d'un projet avec d'autres utilisateurs (lien ou invitation). | Élevée | MVP | ✅ T13 — invitation par identifiant utilisateur, jamais de lien public (demande explicite) | `backend/src/modules/projects/projects.service.ts` (`share`/`unshare`), `frontend/src/features/projects/project-detail-dialog.tsx` (`ShareActions`) — test `projects.e2e-spec.ts` |
+| EF-402 | Gestion fine des droits d'accès : lecture, commentaire, édition. | Élevée | MVP (§3) ⚑ | 🔨 T13 — droit borné par projet (`ProjectShare.right`), vérifié côté serveur ; lecture et édition pleinement fonctionnelles, commentaire stocké mais sans action à gater tant qu'EF-403 n'existe pas | `backend/prisma/schema.prisma` (`ProjectShare`), `packages/shared/src/projects/project.schema.ts` (`createShareSchema`) — test `projects.e2e-spec.ts` (describe « partage (T13, EF-401/402) ») |
 | EF-403 | Commentaires et annotations en temps réel, positionnés sur les éléments. | Moyenne | V1 | 🕓 Phase 10 | — |
 | EF-404 | Édition collaborative simultanée avec indication de la présence des utilisateurs. | Moyenne | V2 ⚠ | 🕓 Phase 10 (présence) · post-V2 (co-édition) | — |
 | EF-405 | Historique et gestion des versions : comparaison et restauration d'une version antérieure. | Élevée | V1 ⚠ | ✅ T5 | `backend/src/modules/architecture/architecture.service.ts` (`persist`/`listVersions`/`getVersion`/`diffVersions`/`restoreVersion`), `packages/shared/src/architecture/diff.ts` (`diffArchitecture`) — `frontend/src/features/versions/versions-page.tsx` — tests `backend/test/architecture.e2e-spec.ts`, `diff.spec.ts`, `versions-page.test.tsx` |
@@ -259,6 +264,26 @@ Statut :
 > module Collaboration, que §8.1 place en V1. Arbitrage attendu.
 >
 > **EF-404** se scinde : la présence est livrée en Phase 10, la co-édition dépend de D-05.
+>
+> **T13 — partage et droits (EF-401, EF-402, 21/09/2026).** `ProjectShare` (migration additive
+> `20260921211731`) : un droit borné (`READ`/`COMMENT`/`EDIT`) par couple projet/utilisateur,
+> distinct de `ProjectAssignment` (qui reste le mécanisme d'affectation par rôle projet, inchangé).
+> Toujours un utilisateur DE L'ORGANISATION, identifié par id — jamais un compte CLIENT, jamais de
+> lien public (refusé explicitement, testé). Deux effets, tous deux vérifiés côté serveur :
+> **visibilité** — `ProjectsService.scope()` rend le projet visible à un utilisateur partagé même
+> sans affectation (`GET /projects`, `GET /projects/:id`) ; **édition** — `ArchitectureService
+> .persist()` (`assertCanEditViaShare`) exige `right = 'EDIT'` pour un accès qui ne vient QUE d'un
+> partage (ni ADMIN, ni affecté) — un droit `READ` seul est refusé (403) à la sauvegarde de
+> l'architecture. Réinviter le même utilisateur change son droit (upsert), sans doublon. Nouvelle
+> permission `project.share` (ADMIN, PROJECT_MANAGER) — la matrice de rôles elle-même
+> (`PERMISSION_MATRIX`) reste inchangée (D-04) : le partage ne contourne jamais les permissions de
+> rôle, il ajoute une portée par-projet, exactement comme `ProjectAssignment` le fait déjà. Droit
+> `COMMENT` : stocké, retourné par l'API, distinct de `READ` dans le modèle de données — mais sans
+> action serveur à gater tant que le module de commentaires (EF-403) n'existe pas ; se comporte
+> donc comme `READ` en pratique aujourd'hui, écart assumé et annoncé ci-dessus. `comment.create`
+> existe déjà dans `PERMISSION_MATRIX` depuis la Phase 1 (jamais câblé à une route) : EF-403
+> pourra s'appuyer directement sur cette permission et sur le droit `COMMENT` du partage sans
+> nouvelle décision RBAC.
 >
 > **T5 — versions (ADR 0001).** Chaque sauvegarde de l'architecture (y compris une restauration)
 > crée une nouvelle `ArchitectureVersion`, jamais n'écrase la précédente : snapshot auto-porteur

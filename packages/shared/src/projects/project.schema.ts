@@ -21,3 +21,17 @@ export const createAssignmentSchema = z.object({
   role: z.enum(ROLES),
 });
 export type CreateAssignmentInput = z.infer<typeof createAssignmentSchema>;
+
+/**
+ * Partage d'un projet (EF-401, EF-402) : un droit borné, distinct de l'affectation par rôle
+ * projet (`ProjectAssignment`) — un utilisateur de l'organisation, quel que soit son rôle, peut
+ * être invité sur un projet précis avec lecture, commentaire ou édition. Jamais de lien public.
+ */
+export const PROJECT_SHARE_RIGHTS = ['READ', 'COMMENT', 'EDIT'] as const;
+export type ProjectShareRight = (typeof PROJECT_SHARE_RIGHTS)[number];
+
+export const createShareSchema = z.object({
+  userId: z.string().uuid(),
+  right: z.enum(PROJECT_SHARE_RIGHTS),
+});
+export type CreateShareInput = z.infer<typeof createShareSchema>;

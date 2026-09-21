@@ -10,6 +10,7 @@ import type {
   CreateRequestInput,
   ForgotPasswordInput,
   LoginInput,
+  ProjectShareRight,
   ProjectStatus,
   ResetPasswordInput,
   Role,
@@ -45,8 +46,16 @@ export interface ProjectAssignment {
   user: { id: string; firstName: string; lastName: string; role: Role };
 }
 
+export interface ProjectShare {
+  id: string;
+  right: ProjectShareRight;
+  createdAt: string;
+  user: { id: string; firstName: string; lastName: string; role: Role; email: string };
+}
+
 export interface ProjectDetail extends ProjectSummary {
   assignments: ProjectAssignment[];
+  shares: ProjectShare[];
   request: ProjectRequest | null;
 }
 
@@ -150,6 +159,9 @@ export const projectsApi = {
     api.post<{ id: string; status: ProjectStatus }>(`/projects/${id}/transitions`, input),
   assign: (id: string, input: { userId: string; role: Role }) =>
     api.post<ProjectAssignment>(`/projects/${id}/assignments`, input),
+  share: (id: string, input: { userId: string; right: ProjectShareRight }) =>
+    api.post<ProjectShare>(`/projects/${id}/shares`, input),
+  unshare: (id: string, shareId: string) => api.delete<void>(`/projects/${id}/shares/${shareId}`),
 };
 
 export const usersApi = {

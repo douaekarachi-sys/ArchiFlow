@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
-import type { AvailableTransition } from '@/api/endpoints';
+import type { AvailableTransition, ProjectShare } from '@/api/endpoints';
 import { projectsApi, reportsApi, usersApi } from '@/api/endpoints';
 import { ProjectStatusBadge } from '@/components/patterns/project-status';
 import { Alert } from '@/components/ui/alert';
@@ -27,6 +27,7 @@ const dateTime = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeSty
 export function ProjectDetailDialog({ projectId, onClose }: { projectId: string | null; onClose: () => void }) {
   const { t } = useTranslation();
   const role = useSession((s) => s.profile?.role);
+  const canShare = useCan('project.share');
   const project = useProject(projectId);
 
   return (
@@ -100,6 +101,7 @@ export function ProjectDetailDialog({ projectId, onClose }: { projectId: string 
               )}
               <RequestOverview request={project.data.request} />
               {role === 'ADMIN' && <AssignmentActions projectId={projectId} />}
+              {canShare && <ShareActions projectId={projectId} shares={project.data.shares} />}
               <TransitionActions projectId={projectId} />
               <StatusHistory projectId={projectId} />
             </div>
@@ -148,6 +150,98 @@ function AssignmentActions({ projectId }: { projectId: string }) {
   });
   const candidates = users.data?.data ?? [];
   return <section className="flex flex-col gap-3 rounded-card border border-line bg-inset p-4"><h3 className="flex items-center gap-2 text-sm font-semibold text-fg"><UserPlus className="size-4 text-primary" />{t('projects.detail.assignTitle')}</h3><div className="grid gap-3 sm:grid-cols-[170px_1fr_auto]"><select aria-label={t('projects.detail.assignRole')} className="h-9 rounded-field border border-line bg-surface px-2 text-sm text-fg" value={role} onChange={(event) => { setRole(event.target.value as typeof role); setUserId(''); }}><option value="ENGINEER">{t('roles.ENGINEER')}</option><option value="ARCHITECT">{t('roles.ARCHITECT')}</option><option value="PROJECT_MANAGER">{t('roles.PROJECT_MANAGER')}</option><option value="SALES">{t('roles.SALES')}</option></select><select aria-label={t('projects.detail.assignUser')} className="h-9 rounded-field border border-line bg-surface px-2 text-sm text-fg" value={userId} onChange={(event) => setUserId(event.target.value)} disabled={users.isPending}><option value="">{users.isPending ? t('common.loading') : t('projects.detail.chooseUser')}</option>{candidates.map((user) => <option key={user.id} value={user.id}>{user.firstName} {user.lastName}</option>)}</select><Button size="sm" icon={<UserPlus />} disabled={!userId} loading={assign.isPending} onClick={() => void assign.mutateAsync()}>{t('projects.detail.assign')}</Button></div>{users.isError && <Alert tone="critical">{t('errors.INTERNAL')}</Alert>}{assign.isError && <Alert tone="critical">{errorMessage(t, assign.error)}</Alert>}</section>;
+}
+
+const SHARE_RIGHTS = ['READ', 'COMMENT', 'EDIT'] as const;
+
+/**
+ * Partage d'un projet (EF-401, EF-402) : inviter un utilisateur DE L'ORGANISATION — jamais un
+ * compte CLIENT, jamais un lien public — avec un droit borné (lecture/commentaire/édition),
+ * vérifié côté serveur à chaque action.
+ */
+function ShareActions({ projectId, shares }: { projectId: string; shares: ProjectShare[] }) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const currentUserId = useSession((s) => s.profile?.id);
+  const [right, setRight] = useState<(typeof SHARE_RIGHTS)[number]>('READ');
+  const [userId, setUserId] = useState('');
+  const users = useQuery({ queryKey: ['shareable-users'], queryFn: () => usersApi.list({ pageSize: 100 }) });
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['projects', 'detail', projectId] });
+  const share = useMutation({
+    mutationFn: () => projectsApi.share(projectId, { userId, right }),
+    onSuccess: () => {
+      setUserId('');
+      invalidate();
+    },
+  });
+  const unshare = useMutation({ mutationFn: (shareId: string) => projectsApi.unshare(projectId, shareId), onSuccess: invalidate });
+
+  const alreadySharedIds = new Set(shares.map((s) => s.user.id));
+  const candidates = (users.data?.data ?? []).filter(
+    (u) => u.role !== 'CLIENT' && u.id !== currentUserId && !alreadySharedIds.has(u.id) && !u.deletedAt,
+  );
+
+  return (
+    <section className="flex flex-col gap-3 rounded-card border border-line bg-inset p-4">
+      <h3 className="flex items-center gap-2 text-sm font-semibold text-fg">
+        <UserPlus className="size-4 text-primary" />
+        {t('projects.detail.shareTitle')}
+      </h3>
+      {shares.length > 0 && (
+        <ul className="flex flex-col gap-1.5">
+          {shares.map((s) => (
+            <li key={s.id} className="flex items-center justify-between gap-2 rounded-field border border-line bg-surface px-2.5 py-1.5">
+              <span className="min-w-0 truncate text-sm text-fg">
+                {s.user.firstName} {s.user.lastName} <span className="text-fg-muted">— {t(`projects.detail.shareRight.${s.right}`)}</span>
+              </span>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                icon={<Undo2 />}
+                aria-label={t('common.remove')}
+                loading={unshare.isPending && unshare.variables === s.id}
+                onClick={() => unshare.mutate(s.id)}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="grid gap-3 sm:grid-cols-[170px_1fr_auto]">
+        <select
+          aria-label={t('projects.detail.shareRightLabel')}
+          className="h-9 rounded-field border border-line bg-surface px-2 text-sm text-fg"
+          value={right}
+          onChange={(event) => setRight(event.target.value as typeof right)}
+        >
+          {SHARE_RIGHTS.map((r) => (
+            <option key={r} value={r}>
+              {t(`projects.detail.shareRight.${r}`)}
+            </option>
+          ))}
+        </select>
+        <select
+          aria-label={t('projects.detail.assignUser')}
+          className="h-9 rounded-field border border-line bg-surface px-2 text-sm text-fg"
+          value={userId}
+          onChange={(event) => setUserId(event.target.value)}
+          disabled={users.isPending}
+        >
+          <option value="">{users.isPending ? t('common.loading') : t('projects.detail.chooseUser')}</option>
+          {candidates.map((user) => (
+            <option key={user.id} value={user.id}>
+              {user.firstName} {user.lastName} ({t(`roles.${user.role}`)})
+            </option>
+          ))}
+        </select>
+        <Button size="sm" icon={<UserPlus />} disabled={!userId} loading={share.isPending} onClick={() => void share.mutateAsync()}>
+          {t('projects.detail.share')}
+        </Button>
+      </div>
+      {users.isError && <Alert tone="critical">{t('errors.INTERNAL')}</Alert>}
+      {share.isError && <Alert tone="critical">{errorMessage(t, share.error)}</Alert>}
+      {unshare.isError && <Alert tone="critical">{errorMessage(t, unshare.error)}</Alert>}
+    </section>
+  );
 }
 
 function TransitionActions({ projectId }: { projectId: string }) {

@@ -63,6 +63,13 @@ enum LinkType {
   virtual
 }
 
+/// Partage d'un projet (EF-401, EF-402) — distinct du rôle projet de `ProjectAssignment`.
+enum ProjectShareRight {
+  READ
+  COMMENT
+  EDIT
+}
+
 // ---------------------------------------------------------------------------
 // Identité et locataires
 // ---------------------------------------------------------------------------
@@ -127,6 +134,7 @@ model User {
   refreshTokens  RefreshToken[]
   resetTokens    PasswordResetToken[]
   assignments    ProjectAssignment[]  @relation("AssignmentUser")
+  shares         ProjectShare[]       @relation("ProjectShareUser")
 
   @@index([organizationId, role])
   @@index([clientCompanyId])
@@ -197,6 +205,7 @@ model Project {
   organization  Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   clientCompany ClientCompany          @relation(fields: [clientCompanyId], references: [id], onDelete: Restrict)
   assignments   ProjectAssignment[]
+  shares        ProjectShare[]
   history       ProjectStatusHistory[]
   architecture  Architecture?
   request       ProjectRequest?
@@ -221,6 +230,26 @@ model ProjectAssignment {
   user    User    @relation("AssignmentUser", fields: [userId], references: [id], onDelete: Restrict)
 
   @@unique([projectId, userId, role])
+  @@index([userId])
+  @@index([organizationId])
+}
+
+/// Partage d'un projet (EF-401, EF-402) : un droit borné (lecture/commentaire/édition), pour
+/// n'importe quel utilisateur de l'organisation — indépendant du rôle projet ci-dessus. Pas de
+/// lien public : toujours un utilisateur identifié, invité par id.
+model ProjectShare {
+  id             String            @id @default(uuid()) @db.Uuid
+  organizationId String            @db.Uuid
+  projectId      String            @db.Uuid
+  userId         String            @db.Uuid
+  right          ProjectShareRight
+  invitedById    String            @db.Uuid
+  createdAt      DateTime          @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation("ProjectShareUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
   @@index([userId])
   @@index([organizationId])
 }

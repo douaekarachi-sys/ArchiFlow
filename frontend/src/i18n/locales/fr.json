@@ -426,6 +426,10 @@
       ,"openSizing": "Calculer le dimensionnement"
       ,"viewArchitecture": "Voir l'architecture"
       ,"viewBom": "Voir le BOM et les coûts"
+      ,"shareTitle": "Partager le projet"
+      ,"shareRightLabel": "Droit accordé"
+      ,"share": "Inviter"
+      ,"shareRight": { "READ": "Lecture", "COMMENT": "Commentaire", "EDIT": "Édition" }
     },
     "count_one": "{{count}} projet",
     "count_other": "{{count}} projets"

@@ -58,7 +58,7 @@ describe('VersionsDetailPage', () => {
     vi.mocked(projectsApi.get).mockResolvedValue({
       id: 'proj-1', name: 'Nouveau siège Rabat', description: null, status: 'ARCHITECTURE',
       clientCompanyId: 'c1', clientCompany: { id: 'c1', name: 'Atlas' }, createdAt: '', updatedAt: '',
-      assignments: [], request: null,
+      assignments: [], shares: [], request: null,
     });
     vi.mocked(architectureApi.versions).mockResolvedValue(VERSIONS);
     vi.mocked(architectureApi.diff).mockResolvedValue({
@@ -92,7 +92,7 @@ describe('VersionsDetailPage', () => {
     vi.mocked(projectsApi.get).mockResolvedValue({
       id: 'proj-1', name: 'Nouveau siège Rabat', description: null, status: 'ARCHITECTURE',
       clientCompanyId: 'c1', clientCompany: { id: 'c1', name: 'Atlas' }, createdAt: '', updatedAt: '',
-      assignments: [], request: null,
+      assignments: [], shares: [], request: null,
     });
     vi.mocked(architectureApi.versions).mockResolvedValue(VERSIONS);
     vi.mocked(architectureApi.diff).mockResolvedValue({ elements: [], connectionsAdded: 0, connectionsRemoved: 0, zonesAdded: 0, zonesRemoved: 0 });

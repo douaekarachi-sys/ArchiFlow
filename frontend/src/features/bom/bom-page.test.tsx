@@ -28,7 +28,7 @@ describe('BomDetailPage', () => {
     vi.mocked(projectsApi.get).mockResolvedValue({
       id: 'proj-1', name: 'Nouveau siège Rabat', description: null, status: 'COMMERCIAL_REVIEW',
       clientCompanyId: 'c1', clientCompany: { id: 'c1', name: 'Atlas' }, createdAt: '', updatedAt: '',
-      assignments: [], request: null,
+      assignments: [], shares: [], request: null,
     });
     vi.mocked(bomApi.get).mockResolvedValue({
       lines: [

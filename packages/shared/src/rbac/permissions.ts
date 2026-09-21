@@ -23,6 +23,7 @@ export const PERMISSIONS = [
   'project.create',
   'project.update',
   'project.assign',
+  'project.share',
   'project.transition',
 
   // Expression du besoin client (portail client, hors CDC — voir EF-507 propose)
@@ -77,6 +78,7 @@ export const PERMISSION_MATRIX: Record<Role, readonly Permission[]> = {
     'project.create',
     'project.update',
     'project.assign',
+    'project.share',
     'project.transition',
     'request.read',
     'catalog.read',

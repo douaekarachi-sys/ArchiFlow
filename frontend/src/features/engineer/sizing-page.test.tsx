@@ -35,7 +35,7 @@ describe('SizingDetailPage', () => {
       clientCompany: { id: 'c1', name: 'Groupe Atlas Services' },
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
-      assignments: [],
+      assignments: [], shares: [],
       request: {
         location: null,
         projectType: null,
@@ -79,7 +79,7 @@ describe('SizingDetailPage', () => {
       clientCompany: { id: 'c1', name: 'Groupe Atlas Services' },
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
-      assignments: [],
+      assignments: [], shares: [],
       request: null,
     });
 

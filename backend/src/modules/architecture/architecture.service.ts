@@ -238,7 +238,9 @@ export class ArchitectureService {
     restoredFromVersion: number | null,
     comment: string | undefined,
   ): Promise<ArchitectureDocument> {
-    await this.projects.get(ctx, projectId);
+    const project = await this.projects.get(ctx, projectId);
+    // EF-402 : un accès venu SEULEMENT d'un partage (pas ADMIN, pas affecté) exige le droit EDIT.
+    await this.projects.assertCanEditViaShare(ctx, projectId, project.assignments);
 
     const modelIds = [...new Set(input.elements.map((e) => e.equipmentModelId).filter((id): id is string => id != null))];
     const validationIndex: EquipmentIndex = {};

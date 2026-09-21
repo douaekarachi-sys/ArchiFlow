@@ -3,10 +3,12 @@ import {
   PROJECT_STATUSES,
   createAssignmentSchema,
   createRequestSchema,
+  createShareSchema,
   transitionRequestSchema,
   type AuthContext,
   type CreateAssignmentInput,
   type CreateRequestInput,
+  type CreateShareInput,
   type TransitionRequestInput,
 } from '@archiflow/shared';
 import { z } from 'zod';
@@ -86,5 +88,18 @@ export class ProjectsController {
     @Param('assignmentId', uuidParam) assignmentId: string,
   ): Promise<void> {
     return this.projects.unassign(ctx, id, assignmentId);
+  }
+
+  @Post(':id/shares')
+  @RequirePermission('project.share')
+  share(@CurrentUser() ctx: AuthContext, @Param('id', uuidParam) id: string, @Body(zod(createShareSchema)) input: CreateShareInput) {
+    return this.projects.share(ctx, id, input);
+  }
+
+  @Delete(':id/shares/:shareId')
+  @HttpCode(204)
+  @RequirePermission('project.share')
+  unshare(@CurrentUser() ctx: AuthContext, @Param('id', uuidParam) id: string, @Param('shareId', uuidParam) shareId: string): Promise<void> {
+    return this.projects.unshare(ctx, id, shareId);
   }
 }

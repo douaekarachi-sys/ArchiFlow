@@ -5,6 +5,7 @@ import {
   type AuthContext,
   type CreateAssignmentInput,
   type CreateRequestInput,
+  type CreateShareInput,
   type ProjectStatus,
   type Role,
   type TransitionRefusal,
@@ -37,6 +38,13 @@ const ASSIGNMENT_VIEW = {
   user: { select: { id: true, firstName: true, lastName: true, role: true } },
 } satisfies Prisma.ProjectAssignmentSelect;
 
+const SHARE_VIEW = {
+  id: true,
+  right: true,
+  createdAt: true,
+  user: { select: { id: true, firstName: true, lastName: true, role: true, email: true } },
+} satisfies Prisma.ProjectShareSelect;
+
 const REFUSAL_MESSAGES: Record<TransitionRefusal, string> = {
   UNKNOWN_TRANSITION: 'Cette transition n’existe pas depuis le statut actuel',
   ROLE_NOT_ALLOWED: 'Permissions insuffisantes',
@@ -54,7 +62,8 @@ export class ProjectsService {
   ) {}
 
   /**
-   * Portée de lecture : locataire (toujours), puis société cliente ou affectation selon le rôle.
+   * Portée de lecture : locataire (toujours), puis société cliente, affectation ou PARTAGE selon
+   * le rôle (EF-401 : un partage rend un projet visible même sans affectation par rôle projet).
    * Un projet hors portée est INTROUVABLE (404), jamais « interdit » (ADR 0006).
    */
   scope(ctx: AuthContext): Prisma.ProjectWhereInput {
@@ -63,7 +72,7 @@ export class ProjectsService {
       case 'ORGANIZATION':
         return base;
       case 'ASSIGNED':
-        return { ...base, assignments: { some: { userId: ctx.userId } } };
+        return { ...base, OR: [{ assignments: { some: { userId: ctx.userId } } }, { shares: { some: { userId: ctx.userId } } }] };
       case 'CLIENT_COMPANY':
         // Un CLIENT sans société ne voit rien (checkPermissions le refuse aussi).
         return { ...base, clientCompanyId: ctx.clientCompanyId ?? '00000000-0000-0000-0000-000000000000' };
@@ -96,6 +105,7 @@ export class ProjectsService {
       select: {
         ...PROJECT_SUMMARY,
         assignments: { select: ASSIGNMENT_VIEW },
+        shares: { select: SHARE_VIEW },
         request: { include: { buildings: true, departments: true } },
       },
     });
@@ -389,5 +399,72 @@ export class ProjectsService {
       projectId: project.id,
       details: { assignmentId },
     });
+  }
+
+  // --- Partage (EF-401, EF-402) --------------------------------------------------------------
+
+  /**
+   * Inviter un utilisateur DE L'ORGANISATION (jamais un compte CLIENT, jamais un lien public)
+   * avec un droit borné : lecture, commentaire ou édition. Réinviter change le droit (upsert),
+   * ça n'empile pas des partages redondants.
+   */
+  async share(ctx: AuthContext, projectId: string, input: CreateShareInput) {
+    const project = await this.get(ctx, projectId);
+    if (input.userId === ctx.userId) {
+      throw new AppError('UNPROCESSABLE', 'Impossible de se partager un projet à soi-même');
+    }
+    const user = await this.prisma.tenant.user.findFirst({
+      where: { id: input.userId, organizationId: ctx.organizationId, deletedAt: null },
+      select: { id: true, role: true },
+    });
+    if (!user) throw notFound('Utilisateur');
+    if (user.role === 'CLIENT') {
+      throw new AppError('UNPROCESSABLE', 'Le partage s’adresse aux utilisateurs internes de l’organisation, pas à un compte client');
+    }
+    const share = await this.prisma.tenant.projectShare.upsert({
+      // `organizationId` en plus de la clé composite : le filet d'isolation (niveau 3) exige ce
+      // filtre explicite sur `where`, la clé composite seule ne suffit pas à sa lecture statique.
+      where: { projectId_userId: { projectId: project.id, userId: user.id }, organizationId: ctx.organizationId },
+      create: { organizationId: ctx.organizationId, projectId: project.id, userId: user.id, right: input.right, invitedById: ctx.userId },
+      update: { right: input.right },
+      select: SHARE_VIEW,
+    });
+    await this.audit.record(ctx, {
+      action: 'project.share',
+      targetType: 'project',
+      targetId: project.id,
+      projectId: project.id,
+      details: { userId: user.id, right: input.right },
+    });
+    return share;
+  }
+
+  async unshare(ctx: AuthContext, projectId: string, shareId: string): Promise<void> {
+    const project = await this.get(ctx, projectId);
+    const removed = await this.prisma.tenant.projectShare.deleteMany({
+      where: { id: shareId, projectId: project.id, organizationId: ctx.organizationId },
+    });
+    if (removed.count === 0) throw notFound('Partage');
+    await this.audit.record(ctx, {
+      action: 'project.unshare',
+      targetType: 'project',
+      targetId: project.id,
+      projectId: project.id,
+      details: { shareId },
+    });
+  }
+
+  /**
+   * Un utilisateur visible sur un projet SEULEMENT via un partage (ni ADMIN, ni affecté) ne peut
+   * agir que dans les bornes de son droit — l'édition exige `right = 'EDIT'` (EF-402).
+   * Renvoie `true` quand l'accès ne dépend pas d'un partage (comportement inchangé, ADMIN/affecté).
+   */
+  async assertCanEditViaShare(ctx: AuthContext, projectId: string, assignments: { user: { id: string } }[]): Promise<void> {
+    if (ctx.role === 'ADMIN' || assignments.some((a) => a.user.id === ctx.userId)) return;
+    const share = await this.prisma.tenant.projectShare.findFirst({
+      where: { projectId, organizationId: ctx.organizationId, userId: ctx.userId },
+      select: { right: true },
+    });
+    if (share && share.right !== 'EDIT') throw forbidden();
   }
 }
