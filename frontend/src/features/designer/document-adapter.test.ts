@@ -43,4 +43,17 @@ describe('toFlow / fromFlow', () => {
     const bare = { ...view, edges: [{ id: 'raw', source: 'fw-01', target: 'sw-01', type: 'labeled' as const }] };
     expect(fromFlow(bare).connections[0]).toMatchObject({ id: 'raw', from: 'fw-01', to: 'sw-01', linkType: 'copper' });
   });
+
+  it('reporte le plan d’adressage (EF-207) et le rattachement réseau sur le nœud correspondant', () => {
+    const withAddressing: ArchitectureDocument = {
+      ...SAMPLE,
+      elements: [{ ...SAMPLE.elements[0]!, networkId: 'lan-01' }, SAMPLE.elements[1]!],
+      networks: [{ id: 'lan-01', name: 'LAN', vlanId: 10, cidr: '10.0.0.0/24' }],
+    };
+    const { nodes, networks } = toFlow(withAddressing);
+    expect(networks).toEqual([{ id: 'lan-01', name: 'LAN', vlanId: 10, cidr: '10.0.0.0/24' }]);
+    expect(nodes.find((n) => n.id === 'fw-01')?.data.networkId).toBe('lan-01');
+    expect(nodes.find((n) => n.id === 'sw-01')?.data.networkId).toBeNull();
+    expect(fromFlow(toFlow(withAddressing))).toEqual(withAddressing);
+  });
 });

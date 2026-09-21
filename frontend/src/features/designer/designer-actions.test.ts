@@ -68,6 +68,25 @@ describe('applyDesignerAction', () => {
     expect(next.connections[0]).toMatchObject({ id: 'link-01', from: 'fw-01', to: 'sw-01', speedMbps: 10000, linkType: 'copper' });
   });
 
+  it('addNetwork ajoute un réseau au plan d’adressage (EF-207)', () => {
+    const next = apply(BASE, { type: 'addNetwork', network: { id: 'lan-01', name: 'LAN', vlanId: 10, cidr: '10.0.0.0/24' } });
+    expect(next.networks).toEqual([{ id: 'lan-01', name: 'LAN', vlanId: 10, cidr: '10.0.0.0/24' }]);
+  });
+
+  it('updateElementNetwork rattache un équipement à un réseau', () => {
+    const withNetwork = apply(BASE, { type: 'addNetwork', network: { id: 'lan-01', name: 'LAN', vlanId: 10, cidr: '10.0.0.0/24' } });
+    const next = apply(withNetwork, { type: 'updateElementNetwork', elementId: 'fw-01', networkId: 'lan-01' });
+    expect(next.elements.find((e) => e.id === 'fw-01')?.networkId).toBe('lan-01');
+  });
+
+  it('deleteNetwork retire le réseau et détache les équipements qui y étaient rattachés', () => {
+    const withNetwork = apply(BASE, { type: 'addNetwork', network: { id: 'lan-01', name: 'LAN', vlanId: 10, cidr: '10.0.0.0/24' } });
+    const attached = apply(withNetwork, { type: 'updateElementNetwork', elementId: 'fw-01', networkId: 'lan-01' });
+    const next = apply(attached, { type: 'deleteNetwork', networkId: 'lan-01' });
+    expect(next.networks).toEqual([]);
+    expect(next.elements.find((e) => e.id === 'fw-01')?.networkId).toBeUndefined();
+  });
+
   it('une action sur un identifiant inconnu est un no-op silencieux', () => {
     const next = apply(BASE, { type: 'moveElement', elementId: 'inconnu', position: { x: 1, y: 1 } });
     expect(next).toEqual(BASE);

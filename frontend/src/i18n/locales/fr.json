@@ -292,6 +292,14 @@
       "isolatedElement": "Élément sans aucune connexion dans le plan.",
       "loopDetected": "Boucle détectée : ces liens forment un cycle dans le réseau.",
       "singlePointOfFailure": "Point de défaillance unique : sa perte isolerait une partie du réseau, faute de chemin redondant."
+    },
+    "addressing": {
+      "invalidCidr": "Réseau « {{network}} » : sous-réseau « {{cidr}} » invalide (format attendu : adresse/préfixe, ex. 192.168.1.0/24).",
+      "cidrOverlap": "Chevauchement de sous-réseaux entre « {{networkA}} » et « {{networkB}} ».",
+      "vlanConflict": "Conflit de VLAN {{vlanId}} : utilisé par plusieurs réseaux ({{networks}}).",
+      "gatewayOutOfRange": "Réseau « {{network}} » : passerelle {{gateway}} hors du sous-réseau.",
+      "dhcpRangeInvalid": "Réseau « {{network}} » : plage DHCP invalide (adresse de début postérieure à la fin, ou adresse mal formée).",
+      "dhcpRangeOutOfRange": "Réseau « {{network}} » : plage DHCP hors du sous-réseau."
     }
   },
   "sizing": {
@@ -677,7 +685,18 @@
       "noZones": "Aucune zone créée pour l'instant.",
       "zoneType": "Type de zone",
       "zoneLabel": "Nom de la zone",
-      "addZone": "Ajouter une zone"
+      "addZone": "Ajouter une zone",
+      "network": "Réseau (VLAN)",
+      "noNetwork": "Aucun réseau",
+      "networks": "Plan d'adressage IP/VLAN",
+      "noNetworks": "Aucun réseau créé pour l'instant.",
+      "networkName": "Nom du réseau",
+      "vlanId": "VLAN",
+      "cidr": "Sous-réseau (CIDR)",
+      "gateway": "Passerelle",
+      "dhcpStart": "Début plage DHCP",
+      "dhcpEnd": "Fin plage DHCP",
+      "addNetwork": "Ajouter un réseau"
     },
     "zoneType": {
       "DMZ": "DMZ",

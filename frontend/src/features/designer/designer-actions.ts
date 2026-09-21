@@ -1,17 +1,21 @@
-import type { ArchitectureConnection, ArchitectureDocument, ArchitectureElement, ZoneType } from '@archiflow/shared';
+import type { ArchitectureConnection, ArchitectureDocument, ArchitectureElement, IpNetwork, ZoneType } from '@archiflow/shared';
 
 export type DesignerAction =
   | { type: 'addElement'; element: ArchitectureElement }
   | { type: 'moveElement'; elementId: string; position: { x: number; y: number } }
   | { type: 'updateElementLabel'; elementId: string; label: string }
   | { type: 'updateElementZone'; elementId: string; zoneId: string | null }
+  | { type: 'updateElementNetwork'; elementId: string; networkId: string | null }
   | { type: 'deleteElement'; elementId: string }
   | { type: 'addConnection'; connection: ArchitectureConnection }
   | { type: 'updateConnection'; connectionId: string; patch: Partial<Omit<ArchitectureConnection, 'id' | 'from' | 'to'>> }
   | { type: 'deleteConnection'; connectionId: string }
   | { type: 'addZone'; zoneId: string; zoneType: ZoneType; label?: string }
   | { type: 'renameZone'; zoneId: string; label: string }
-  | { type: 'deleteZone'; zoneId: string };
+  | { type: 'deleteZone'; zoneId: string }
+  | { type: 'addNetwork'; network: IpNetwork }
+  | { type: 'updateNetwork'; networkId: string; patch: Partial<Omit<IpNetwork, 'id'>> }
+  | { type: 'deleteNetwork'; networkId: string };
 
 /**
  * Reducer pur : la SEULE façon dont le document change (ARCHITECTURE-CIBLE §6.11, « toute
@@ -78,6 +82,29 @@ export function applyDesignerAction(draft: ArchitectureDocument, action: Designe
     case 'deleteZone':
       // L'appartenance vit sur la zone (elementIds) : la supprimer suffit, rien à nettoyer côté élément.
       draft.zones = draft.zones.filter((z) => z.id !== action.zoneId);
+      return;
+
+    case 'updateElementNetwork': {
+      const element = draft.elements.find((e) => e.id === action.elementId);
+      if (element) element.networkId = action.networkId ?? undefined;
+      return;
+    }
+
+    case 'addNetwork':
+      draft.networks = [...(draft.networks ?? []), action.network];
+      return;
+
+    case 'updateNetwork': {
+      const network = draft.networks?.find((n) => n.id === action.networkId);
+      if (network) Object.assign(network, action.patch);
+      return;
+    }
+
+    case 'deleteNetwork':
+      draft.networks = (draft.networks ?? []).filter((n) => n.id !== action.networkId);
+      for (const element of draft.elements) {
+        if (element.networkId === action.networkId) element.networkId = undefined;
+      }
       return;
   }
 }

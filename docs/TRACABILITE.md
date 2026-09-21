@@ -1,13 +1,13 @@
 # Traçabilité au cahier des charges
 
-**Statut : version 14 — validation client, tranche T10 (21/09/2026).** Colonne *Lot* : ADR 0009.
+**Statut : version 15 — plan d'adressage IP/VLAN, tranche T11 (21/09/2026).** Colonne *Lot* : ADR 0009.
 
 Les libellés de la colonne *Exigence* sont repris **mot pour mot** du cahier des charges
 (tableaux 3.1 à 3.5 et 5). Ils ne doivent pas être reformulés lors des mises à jour.
 
 Mise à jour : à chaque fin de phase.
 
-## État global (21/09/2026, fin de la tranche T10)
+## État global (21/09/2026, fin de la tranche T11)
 
 **✅ Livré et testé** : authentification et RBAC (Phase 1), tenancy à deux niveaux (Phase 1),
 machine à états et workflow (Phase 1), catalogue — lecture et administration (T1, EF-201/505),
@@ -16,7 +16,9 @@ EF-101 à EF-107), moteurs de capacité/compatibilité/anomalies avec revalidati
 ADR 0003 fermée, EF-202/203), versions d'architecture — snapshot auto-porteur, diff sémantique,
 restauration (T5, EF-405), BOM et coûts dérivés (T6, EF-302, matériel+licences d'EF-303), export
 PDF minimal (T7, EF-301, D-11 fermée), validation client — publication, consultation,
-commentaire, validation, notification (T10, EF-508).
+commentaire, validation, notification (T10, EF-508), plan d'adressage IP/VLAN — VLAN, CIDR,
+passerelle, plage DHCP, rattachement aux équipements, validation des chevauchements/conflits,
+tableau dans le PDF (T11, EF-207).
 
 **🔨 Livré en périmètre réduit, écart documenté** : détection d'anomalies structurelles limitée
 au graphe logique, pas encore aux anomalies physiques — Phase 6 non livrée (T4/EF-204) ; vue 3D
@@ -28,9 +30,9 @@ câblé, aucune clé disponible (T9, D-12 partiellement tranchée).
 **⛔ Hors périmètre assumé** : co-édition temps réel CRDT (EF-404, dépend de D-05) ; chatbot
 lui-même hors CDC par nature, livré comme extension (voir « Écarts assumés » ci-dessous).
 
-**🕓 Planifié, non commencé** : adressage IP/VLAN (EF-207, Phase 8), bibliothèque de modèles
-d'architecture (EF-206), construction physique — bâtiments/étages/salles/racks (Phase 6, dont
-dépendent EF-204 complet et EF-104 complet), commentaires et présence temps réel (EF-403,
+**🕓 Planifié, non commencé** : bibliothèque de modèles d'architecture (EF-206), construction
+physique — bâtiments/étages/salles/racks (Phase 6, dont dépendent EF-204 complet, EF-104 complet
+et la partie « schéma physique » d'EF-205), commentaires et présence temps réel (EF-403,
 Phase 10), personnalisation des rapports et formats d'export additionnels (EF-304/305/306,
 Phase 12).
 
@@ -135,12 +137,26 @@ Statut :
 | EF-202 | Calcul automatique de capacité : bande passante, nombre de ports, puissance électrique, charge estimée. | Élevée | V1 ⚠ | ✅ T4 | `packages/shared/src/architecture/validation.ts` (`checkCapacity`, capacité d'une architecture déjà posée) ; `packages/shared/src/sizing/engineering-sizing.ts` (`calculateSizing`, proposition chiffrée à partir du besoin client — ports, switches, bande passante, points d'accès, puissance) branché sur le portail ingénieur, `frontend/src/features/engineer/sizing-page.tsx` |
 | EF-203 | Vérification automatique de compatibilité entre équipements (interfaces, protocoles, versions). | Élevée | V1 ⚠ | ✅ T4 | `packages/shared/src/architecture/validation.ts` (`checkCompatibility`) — type de port vs type de lien (fibre), catégorie vs lien sans fil, débit du lien vs débit supporté |
 | EF-204 | Détection des anomalies de conception : boucles, sous-dimensionnement, points uniques de défaillance (SPOF). | Moyenne | V2 ⚠ | 🔨 T4 | `packages/shared/src/architecture/validation.ts` (`checkGraphAnomalies`) — boucles (DFS), SPOF (points d'articulation, Tarjan), éléments isolés ; sous-dimensionnement couvert par EF-202. Anomalies physiques (Phase 6, racks/étages) hors périmètre : pas encore de construction physique |
-| EF-205 | Génération de diagrammes détaillés : schéma logique, schéma physique, plan d'adressage. | Élevée | MVP (§3) | 🕓 Phases 5, 6 et 8 | — |
+| EF-205 | Génération de diagrammes détaillés : schéma logique, schéma physique, plan d'adressage. | Élevée | MVP (§3) | 🔨 T3 (logique) et T11 (adressage) livrés ; schéma physique 🕓 Phase 6 | `frontend/src/features/designer/` (logique), `packages/shared/src/network/addressing.ts` (adressage) |
 | EF-206 | Bibliothèque de modèles d'architectures types (PME, datacenter, multi-sites) réutilisables. | Moyenne | V2 ⚠ | 🕓 Post-Phase 10 | — |
-| EF-207 | Attribution et gestion du plan d'adressage IP (sous-réseaux, VLAN). | Moyenne | V1 (§3) | 🕓 Phase 8 | — |
+| EF-207 | Attribution et gestion du plan d'adressage IP (sous-réseaux, VLAN). | Moyenne | V1 (§3) | ✅ T11 | `packages/shared/src/network/addressing.ts` (`checkAddressing`, `parseCidr`, `cidrsOverlap`), `packages/shared/src/architecture/document.schema.ts` (`ipNetworkSchema`), `frontend/src/features/designer/element-inspector.tsx` (`NetworksManager`) — tests `addressing.spec.ts`, `document.schema.spec.ts`, `architecture.e2e-spec.ts`, `reports.e2e-spec.ts` |
 
 > **EF-205** couvre à lui seul les trois vues du designer, en priorité **Élevée** et donc en
-> lot MVP. Il s'étale sur trois phases et ne peut être clos avant la fin de la Phase 8.
+> lot MVP. Il s'étale sur trois phases et ne peut être clos avant la fin de la Phase 8 —
+> schéma logique (T3) et plan d'adressage (T11) livrés, schéma physique restant en Phase 6.
+>
+> **T11 — plan d'adressage IP/VLAN (EF-207, 21/09/2026).** Un réseau (`IpNetwork` : nom, VLAN,
+> CIDR, passerelle, plage DHCP) vit dans le MÊME document d'architecture (ADR 0001), comme les
+> zones — normalisé (`ArchitectureNetwork`, migration additive `20260921204442`) + figé dans le
+> snapshot de version. Rattachement à un équipement par `element.networkId` (référence, pas de
+> duplication). Validation croisée — chevauchements de sous-réseaux et conflits de VLAN entre
+> plusieurs réseaux — dans `checkAddressing` (`packages/shared/src/network/addressing.ts`,
+> IPv4 pur, sans dépendance), branchée dans `validateArchitecture` : mêmes règles en local
+> (retour instantané, ADR 0003) et en revalidation serveur à la sauvegarde (même fonction, fait
+> autorité). CIDR/VLAN mal formés, passerelle ou plage DHCP hors du sous-réseau : anomalies
+> CRITICAL/WARNING avec le détail du calcul, dans le même panneau que les anomalies EF-202/203/204.
+> Tableau d'adressage (réseau, VLAN, sous-réseau, passerelle, plage DHCP, équipements rattachés)
+> ajouté au PDF (EF-301). IPv6 hors périmètre CDC.
 >
 > **T4 — validation locale (second volet de l'ADR 0003).** Fonctions pures testées (19 tests,
 > `validation.spec.ts`) : `checkCapacity` (EF-202), `checkCompatibility` (EF-203),

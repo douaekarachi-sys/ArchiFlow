@@ -4,6 +4,7 @@ import type {
   ArchitectureElement,
   ArchitectureZone,
   EquipmentCategory,
+  IpNetwork,
   LinkType,
   ZoneType,
 } from '@archiflow/shared';
@@ -17,6 +18,8 @@ export interface EquipmentNodeData extends Record<string, unknown> {
   zoneId: string | null;
   /** Dénormalisé depuis la zone au moment de `toFlow` : évite au nœud de connaître la liste des zones. */
   zoneType: ZoneType | null;
+  /** Rattachement au plan d'adressage (EF-207) — porté directement par l'élément, pas dénormalisé. */
+  networkId: string | null;
 }
 export type EquipmentFlowNode = Node<EquipmentNodeData, 'equipment'>;
 
@@ -44,10 +47,13 @@ export interface DesignerZone {
 
 export type FlowNode = EquipmentFlowNode | ZoneFlowNode;
 
+export type DesignerNetwork = IpNetwork;
+
 export interface FlowView {
   nodes: FlowNode[];
   edges: LabeledFlowEdge[];
   zones: DesignerZone[];
+  networks: DesignerNetwork[];
 }
 
 const zoneLabel = (type: ZoneType): string =>
@@ -121,6 +127,7 @@ export function toFlow(document: ArchitectureDocument): FlowView {
         config: el.config,
         zoneId: zoneByElementId.get(el.id)?.id ?? null,
         zoneType: zoneByElementId.get(el.id)?.type ?? null,
+        networkId: el.networkId ?? null,
       },
     })),
     ...zoneNodes,
@@ -136,6 +143,7 @@ export function toFlow(document: ArchitectureDocument): FlowView {
       data: { linkType: c.linkType, speedMbps: c.speedMbps, protocol: c.protocol, fromPort: c.fromPort, toPort: c.toPort },
     })),
     zones: document.zones.map((z) => ({ id: z.id, type: z.type, label: z.label })),
+    networks: document.networks ?? [],
   };
 }
 
@@ -149,6 +157,7 @@ export function fromFlow(view: FlowView): ArchitectureDocument {
       equipmentModelId: n.data.equipmentModelId,
       label: n.data.label,
       position: n.position,
+      networkId: n.data.networkId ?? undefined,
       config: n.data.config,
     }));
 
@@ -173,5 +182,5 @@ export function fromFlow(view: FlowView): ArchitectureDocument {
       .map((n) => n.id),
   }));
 
-  return { elements, connections, zones };
+  return { elements, connections, zones, networks: view.networks.length > 0 ? view.networks : undefined };
 }

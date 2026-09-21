@@ -70,6 +70,25 @@ export const frozenModelSpecSchema = z.object({
 });
 export type FrozenModelSpec = z.infer<typeof frozenModelSpecSchema>;
 
+/**
+ * Plan d'adressage IP/VLAN (EF-207, partie « plan d'adressage » d'EF-205).
+ *
+ * Le VLAN (bornes IEEE 802.1Q) est valide ICI, au format, des la saisie. Les chevauchements de
+ * sous-reseaux et les conflits de VLAN sont des regles CROISEES entre plusieurs reseaux du meme
+ * document : elles relevent du moteur d'anomalies (`checkAddressing`), pas de ce schema — meme
+ * repartition que les moteurs de capacite/compatibilite (EF-202/203).
+ */
+export const ipNetworkSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1).max(120),
+  vlanId: z.number().int().min(1).max(4094),
+  cidr: z.string().min(1),
+  gateway: z.string().optional(),
+  dhcpRangeStart: z.string().optional(),
+  dhcpRangeEnd: z.string().optional(),
+});
+export type IpNetwork = z.infer<typeof ipNetworkSchema>;
+
 export const architectureElementSchema = z.object({
   id: z.string().min(1),
   type: z.enum(EQUIPMENT_CATEGORIES),
@@ -77,6 +96,8 @@ export const architectureElementSchema = z.object({
   label: z.string().min(1).max(120),
   position: positionSchema,
   placement: placementSchema.optional(),
+  /** Rattachement au plan d'adressage (EF-207) — reference un `IpNetwork.id` du meme document. */
+  networkId: z.string().optional(),
   config: z.record(z.unknown()).default({}),
   /** Present dans un snapshot, absent dans la version de travail. */
   frozenSpec: frozenModelSpecSchema.optional(),
@@ -108,6 +129,7 @@ export const architectureDocumentSchema = z
     elements: z.array(architectureElementSchema).default([]),
     connections: z.array(architectureConnectionSchema).default([]),
     zones: z.array(architectureZoneSchema).default([]),
+    networks: z.array(ipNetworkSchema).optional(),
   })
   .superRefine((doc, ctx) => {
     const issue = (path: (string | number)[], message: string) =>
@@ -117,6 +139,17 @@ export const architectureDocumentSchema = z
     doc.elements.forEach((el, i) => {
       if (elementIds.has(el.id)) issue(['elements', i, 'id'], `identifiant d'element duplique : ${el.id}`);
       elementIds.add(el.id);
+    });
+
+    const networkIds = new Set<string>();
+    (doc.networks ?? []).forEach((network, i) => {
+      if (networkIds.has(network.id)) issue(['networks', i, 'id'], `identifiant de reseau duplique : ${network.id}`);
+      networkIds.add(network.id);
+    });
+    doc.elements.forEach((el, i) => {
+      if (el.networkId && !networkIds.has(el.networkId)) {
+        issue(['elements', i, 'networkId'], `element ${el.id} : reseau inconnu ${el.networkId}`);
+      }
     });
 
     const connectionIds = new Set<string>();

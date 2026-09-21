@@ -1,3 +1,4 @@
+import { checkAddressing } from '../network/addressing.js';
 import type { ArchitectureDocument } from './document.schema.js';
 
 /**
@@ -289,6 +290,11 @@ function detectArticulationPoints(
 }
 
 export function validateArchitecture(document: ArchitectureDocument, index: EquipmentIndex): ValidationResult {
-  const anomalies = [...checkCapacity(document, index), ...checkCompatibility(document, index), ...checkGraphAnomalies(document)];
+  const anomalies = [
+    ...checkCapacity(document, index),
+    ...checkCompatibility(document, index),
+    ...checkGraphAnomalies(document),
+    ...checkAddressing(document),
+  ];
   return { anomalies, compatible: !anomalies.some((a) => a.severity === 'CRITICAL') };
 }

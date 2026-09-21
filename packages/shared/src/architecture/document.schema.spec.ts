@@ -69,6 +69,34 @@ describe('document d’architecture', () => {
     expect(messages(doc)).toContain('identifiant de zone duplique : z');
   });
 
+  it('accepte un reseau IP/VLAN rattache a un element', () => {
+    const doc = {
+      elements: [{ ...el('fw-01', 'firewall'), networkId: 'lan-01' }],
+      networks: [{ id: 'lan-01', name: 'LAN utilisateurs', vlanId: 10, cidr: '192.168.10.0/24', gateway: '192.168.10.1' }],
+    };
+    expect(messages(doc)).toEqual([]);
+  });
+
+  it('refuse un identifiant de reseau duplique', () => {
+    const doc = {
+      networks: [
+        { id: 'n1', name: 'A', vlanId: 10, cidr: '10.0.0.0/24' },
+        { id: 'n1', name: 'B', vlanId: 20, cidr: '10.0.1.0/24' },
+      ],
+    };
+    expect(messages(doc)).toContain('identifiant de reseau duplique : n1');
+  });
+
+  it('refuse un rattachement d’element vers un reseau inconnu', () => {
+    const doc = { elements: [{ ...el('a'), networkId: 'ghost' }] };
+    expect(messages(doc)).toContain('element a : reseau inconnu ghost');
+  });
+
+  it('refuse un VLAN hors bornes IEEE 802.1Q (1-4094)', () => {
+    expect(messages({ networks: [{ id: 'n1', name: 'A', vlanId: 0, cidr: '10.0.0.0/24' }] }).length).toBeGreaterThan(0);
+    expect(messages({ networks: [{ id: 'n1', name: 'A', vlanId: 4095, cidr: '10.0.0.0/24' }] }).length).toBeGreaterThan(0);
+  });
+
   it('localise chaque erreur par un chemin precis', () => {
     const result = architectureDocumentSchema.safeParse({
       elements: [el('a')],

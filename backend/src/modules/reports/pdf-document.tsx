@@ -26,6 +26,12 @@ const styles = StyleSheet.create({
   colQty: { width: '12%', textAlign: 'right' },
   colPrice: { width: '17%', textAlign: 'right' },
   colSubtotal: { width: '17%', textAlign: 'right' },
+  colNetName: { width: '18%' },
+  colNetVlan: { width: '10%', textAlign: 'right' },
+  colNetCidr: { width: '18%' },
+  colNetGateway: { width: '16%' },
+  colNetDhcp: { width: '20%' },
+  colNetEquipment: { width: '18%' },
   totalsBlock: { marginTop: 10, alignItems: 'flex-end' },
   totalRow: { flexDirection: 'row', gap: 12, paddingVertical: 2 },
   totalLabel: { fontSize: 9, color: '#555', width: 100, textAlign: 'right' },
@@ -102,6 +108,45 @@ function LogicalDiagram({ document }: { document: ArchitectureDocument }) {
   );
 }
 
+/** EF-207 — tableau d'adressage : un réseau par ligne, équipements rattachés par nom. */
+function AddressingTable({ document }: { document: ArchitectureDocument }) {
+  const networks = document.networks ?? [];
+  if (networks.length === 0) {
+    return <Text style={styles.muted}>Aucun réseau défini sur cette architecture.</Text>;
+  }
+
+  const labelsByNetworkId = new Map<string, string[]>();
+  for (const element of document.elements) {
+    if (!element.networkId) continue;
+    labelsByNetworkId.set(element.networkId, [...(labelsByNetworkId.get(element.networkId) ?? []), element.label]);
+  }
+
+  return (
+    <View style={styles.table}>
+      <View style={styles.tableHeaderRow}>
+        <Text style={[styles.th, styles.colNetName]}>Réseau</Text>
+        <Text style={[styles.th, styles.colNetVlan]}>VLAN</Text>
+        <Text style={[styles.th, styles.colNetCidr]}>Sous-réseau</Text>
+        <Text style={[styles.th, styles.colNetGateway]}>Passerelle</Text>
+        <Text style={[styles.th, styles.colNetDhcp]}>Plage DHCP</Text>
+        <Text style={[styles.th, styles.colNetEquipment]}>Équipements</Text>
+      </View>
+      {networks.map((network) => (
+        <View key={network.id} style={styles.tableRow}>
+          <Text style={[styles.td, styles.colNetName]}>{network.name}</Text>
+          <Text style={[styles.td, styles.colNetVlan]}>{network.vlanId}</Text>
+          <Text style={[styles.td, styles.colNetCidr]}>{network.cidr}</Text>
+          <Text style={[styles.td, styles.colNetGateway]}>{network.gateway ?? '—'}</Text>
+          <Text style={[styles.td, styles.colNetDhcp]}>
+            {network.dhcpRangeStart && network.dhcpRangeEnd ? `${network.dhcpRangeStart} – ${network.dhcpRangeEnd}` : '—'}
+          </Text>
+          <Text style={[styles.td, styles.colNetEquipment]}>{labelsByNetworkId.get(network.id)?.join(', ') || '—'}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 export function ArchitectureReport({ organizationName, project, document, bom, generatedAt }: ReportData) {
   return (
     <Document title={`Architecture — ${project.name}`} author={organizationName}>
@@ -162,6 +207,9 @@ export function ArchitectureReport({ organizationName, project, document, bom, g
             {bom.unpricedElementCount} élément(s) sans modèle catalogue ou sans prix renseigné, exclus des totaux.
           </Text>
         )}
+
+        <Text style={styles.h2}>Plan d'adressage IP/VLAN</Text>
+        <AddressingTable document={document} />
 
         <Text style={styles.h2}>Coûts</Text>
         <View style={styles.totalsBlock}>

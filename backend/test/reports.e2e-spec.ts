@@ -49,6 +49,23 @@ describe('export PDF (EF-301) — informations client, schéma logique, équipem
     expect(res.body.length).toBeGreaterThan(1000);
   });
 
+  it('génère un PDF incluant le plan d’adressage IP/VLAN (EF-207) quand il existe', async () => {
+    const document: ArchitectureDocument = {
+      elements: [],
+      connections: [],
+      zones: [],
+      networks: [{ id: 'lan-01', name: 'LAN utilisateurs', vlanId: 10, cidr: '192.168.10.0/24', gateway: '192.168.10.1' }],
+    };
+    await server().put(`${API}/projects/${w.projectA1}/architecture`).set(admin.auth).send(document);
+
+    const withoutNetwork = await server().get(`${API}/projects/${w.projectA2}/report/pdf`).set(admin.auth);
+    const withNetwork = await server().get(`${API}/projects/${w.projectA1}/report/pdf`).set(admin.auth);
+    expect(withNetwork.status).toBe(200);
+    expect(withNetwork.body.slice(0, 4).toString('latin1')).toBe('%PDF');
+    // Une page en plus (tableau d'adressage) rend le PDF plus volumineux que sans réseau défini.
+    expect(withNetwork.body.length).toBeGreaterThan(withoutNetwork.body.length);
+  });
+
   it('un rôle sans bom.read (ingénieur) est refusé', async () => {
     const engineer = await login(t, w.users.engineerA.email);
     const res = await server().get(`${API}/projects/${w.projectA1}/report/pdf`).set(engineer.auth);

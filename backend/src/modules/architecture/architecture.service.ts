@@ -24,6 +24,8 @@ export interface ArchitectureVersionSummary {
   author: { id: string; firstName: string; lastName: string } | null;
 }
 
+// `networks` est OPTIONNEL dans le schéma (comme `placement`) : l'omettre ici, jamais `[]`, pour
+// que les comparaisons `toEqual` face à un document sans plan d'adressage restent stables.
 const EMPTY_DOCUMENT: ArchitectureDocument = { elements: [], connections: [], zones: [] };
 
 @Injectable()
@@ -152,12 +154,14 @@ export class ArchitectureService {
 
   private async readNormalizedTables(organizationId: string, architectureId: string): Promise<ArchitectureDocument> {
     const scoped = { architectureId, organizationId };
-    const [elements, connections, zones] = await Promise.all([
+    const [elements, connections, zones, networks] = await Promise.all([
       this.prisma.tenant.architectureElement.findMany({ where: scoped, orderBy: { key: 'asc' } }),
       this.prisma.tenant.architectureConnection.findMany({ where: scoped, orderBy: { key: 'asc' } }),
       this.prisma.tenant.architectureZone.findMany({ where: scoped, include: { elements: { select: { key: true } } }, orderBy: { key: 'asc' } }),
+      this.prisma.tenant.architectureNetwork.findMany({ where: scoped, orderBy: { key: 'asc' } }),
     ]);
     const keyByElementId = new Map(elements.map((e) => [e.id, e.key]));
+    const keyByNetworkId = new Map(networks.map((n) => [n.id, n.key]));
 
     return {
       elements: elements.map((e) => ({
@@ -167,6 +171,7 @@ export class ArchitectureService {
         label: e.label,
         position: { x: e.positionX, y: e.positionY },
         placement: (e.placement as ArchitectureDocument['elements'][number]['placement']) ?? undefined,
+        networkId: e.networkId ? keyByNetworkId.get(e.networkId) : undefined,
         config: (e.config as Record<string, unknown>) ?? {},
       })),
       connections: connections.map((c) => ({
@@ -185,6 +190,20 @@ export class ArchitectureService {
         label: z.label ?? undefined,
         elementIds: z.elements.map((e) => e.key),
       })),
+      // `networks` est optionnel (comme `placement`) : omis, jamais `[]`, quand il n'y a aucun
+      // réseau — un document sans plan d'adressage reste comparable `toEqual` à l'ancien format.
+      networks:
+        networks.length > 0
+          ? networks.map((n) => ({
+              id: n.key,
+              name: n.name,
+              vlanId: n.vlanId,
+              cidr: n.cidr,
+              gateway: n.gateway ?? undefined,
+              dhcpRangeStart: n.dhcpRangeStart ?? undefined,
+              dhcpRangeEnd: n.dhcpRangeEnd ?? undefined,
+            }))
+          : undefined,
     };
   }
 
@@ -249,6 +268,26 @@ export class ArchitectureService {
       await tx.architectureConnection.deleteMany({ where: scoped });
       await tx.architectureZone.deleteMany({ where: scoped });
       await tx.architectureElement.deleteMany({ where: scoped });
+      await tx.architectureNetwork.deleteMany({ where: scoped });
+
+      const networks = input.networks ?? [];
+      if (networks.length > 0) {
+        await tx.architectureNetwork.createMany({
+          data: networks.map((n) => ({
+            organizationId: ctx.organizationId,
+            architectureId: architecture.id,
+            key: n.id,
+            name: n.name,
+            vlanId: n.vlanId,
+            cidr: n.cidr,
+            gateway: n.gateway ?? null,
+            dhcpRangeStart: n.dhcpRangeStart ?? null,
+            dhcpRangeEnd: n.dhcpRangeEnd ?? null,
+          })),
+        });
+      }
+      const networkRows = await tx.architectureNetwork.findMany({ where: scoped, select: { id: true, key: true } });
+      const networkIdByKey = new Map(networkRows.map((n) => [n.key, n.id]));
 
       if (input.elements.length > 0) {
         await tx.architectureElement.createMany({
@@ -262,6 +301,8 @@ export class ArchitectureService {
             positionX: el.position.x,
             positionY: el.position.y,
             placement: el.placement ? (el.placement as Prisma.InputJsonValue) : Prisma.JsonNull,
+            // La cohérence networkId est déjà garantie par architectureDocumentSchema (superRefine).
+            networkId: el.networkId ? (networkIdByKey.get(el.networkId) ?? null) : null,
             config: el.config as Prisma.InputJsonValue,
           })),
         });

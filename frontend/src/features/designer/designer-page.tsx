@@ -219,6 +219,7 @@ function DesignerCanvas({ projectId }: { projectId: string }) {
   }, [history.document]);
 
   const zones = useMemo(() => toFlow(history.document).zones, [history.document]);
+  const networks = useMemo(() => toFlow(history.document).networks, [history.document]);
   const equipmentIndex = useMemo(() => buildEquipmentIndex(catalogQuery.data?.data ?? []), [catalogQuery.data?.data]);
   const validation = useMemo(() => validateArchitecture(history.document, equipmentIndex), [history.document, equipmentIndex]);
   const dirty = history.document !== savedRef.current;
@@ -410,7 +411,9 @@ function DesignerCanvas({ projectId }: { projectId: string }) {
                 </div>
               )}
             </div>
-            {canEdit && <ElementInspector selectedNode={selectedNode} selectedEdge={selectedEdge} zones={zones} dispatch={dispatch} />}
+            {canEdit && (
+              <ElementInspector selectedNode={selectedNode} selectedEdge={selectedEdge} zones={zones} networks={networks} dispatch={dispatch} />
+            )}
           </div>
           <ValidationPanel
             anomalies={validation.anomalies}

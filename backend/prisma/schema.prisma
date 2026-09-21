@@ -467,6 +467,7 @@ model Architecture {
   elements    ArchitectureElement[]
   connections ArchitectureConnection[]
   zones       ArchitectureZone[]
+  networks    ArchitectureNetwork[]
   versions    ArchitectureVersion[]
 }
 
@@ -483,10 +484,13 @@ model ArchitectureElement {
   positionX        Float
   positionY        Float
   placement        Json?
+  /// Rattachement au plan d'adressage (EF-207) — optionnel.
+  networkId        String? @db.Uuid
   config           Json    @default("{}")
 
   architecture    Architecture             @relation(fields: [architectureId], references: [id], onDelete: Cascade)
   equipmentModel  EquipmentModel?          @relation(fields: [equipmentModelId], references: [id], onDelete: Restrict)
+  network         ArchitectureNetwork?     @relation(fields: [networkId], references: [id], onDelete: SetNull)
   outgoing        ArchitectureConnection[] @relation("ConnectionFrom")
   incoming        ArchitectureConnection[] @relation("ConnectionTo")
   zones           ArchitectureZone[]
@@ -494,6 +498,7 @@ model ArchitectureElement {
   @@unique([architectureId, key])
   @@index([architectureId])
   @@index([equipmentModelId])
+  @@index([networkId])
 }
 
 model ArchitectureConnection {
@@ -529,6 +534,27 @@ model ArchitectureZone {
   elements     ArchitectureElement[]
 
   @@unique([architectureId, key])
+}
+
+/// Plan d'adressage IP/VLAN (EF-207, partie « plan d'adressage » d'EF-205).
+model ArchitectureNetwork {
+  id             String  @id @default(uuid()) @db.Uuid
+  organizationId String  @db.Uuid
+  architectureId String  @db.Uuid
+  /// Identifiant du réseau dans le document (ex. « lan-01 »).
+  key            String
+  name           String
+  vlanId         Int
+  cidr           String
+  gateway        String?
+  dhcpRangeStart String?
+  dhcpRangeEnd   String?
+
+  architecture Architecture          @relation(fields: [architectureId], references: [id], onDelete: Cascade)
+  elements     ArchitectureElement[]
+
+  @@unique([architectureId, key])
+  @@index([architectureId])
 }
 
 /// Version sauvegardée : snapshot immuable, auto-porteur, caractéristiques du modèle figées (ADR 0001).

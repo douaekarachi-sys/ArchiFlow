@@ -154,6 +154,55 @@ describe('conception d’architecture (EF-101 à EF-107, architecture.edit) — 
     );
   });
 
+  it('sauvegarde un plan d’adressage IP/VLAN, le relit et le rattache à un équipement (EF-207)', async () => {
+    const switchModelId = await createModel('switch');
+    const document: ArchitectureDocument = {
+      elements: [{ id: 'sw-01', type: 'switch', equipmentModelId: switchModelId, label: 'Switch', position: { x: 0, y: 0 }, config: {}, networkId: 'lan-01' }],
+      connections: [],
+      zones: [],
+      networks: [
+        { id: 'lan-01', name: 'LAN utilisateurs', vlanId: 10, cidr: '192.168.10.0/24', gateway: '192.168.10.1', dhcpRangeStart: '192.168.10.100', dhcpRangeEnd: '192.168.10.200' },
+      ],
+    };
+
+    const saved = await server().put(`${API}/projects/${w.projectA1}/architecture`).set(architect.auth).send(document);
+    expect(saved.status).toBe(200);
+    expect(saved.body).toEqual(document);
+
+    const reloaded = await server().get(`${API}/projects/${w.projectA1}/architecture`).set(architect.auth);
+    expect(reloaded.status).toBe(200);
+    expect(reloaded.body).toEqual(document);
+  });
+
+  it('revalide l’adressage côté serveur (ADR 0003) : un chevauchement de sous-réseaux est refusé, rien n’est enregistré', async () => {
+    const document: ArchitectureDocument = {
+      elements: [],
+      connections: [],
+      zones: [],
+      networks: [
+        { id: 'a', name: 'A', vlanId: 10, cidr: '10.0.0.0/16' },
+        { id: 'b', name: 'B', vlanId: 20, cidr: '10.0.5.0/24' },
+      ],
+    };
+
+    const res = await server().put(`${API}/projects/${w.projectA1}/architecture`).set(architect.auth).send(document);
+    expect(res.status).toBe(422);
+    expect(res.body.error.details.anomalies).toContainEqual(expect.objectContaining({ severity: 'CRITICAL', code: 'validation.addressing.cidrOverlap' }));
+
+    const reloaded = await server().get(`${API}/projects/${w.projectA1}/architecture`).set(architect.auth);
+    expect(reloaded.body).toEqual({ elements: [], connections: [], zones: [] });
+  });
+
+  it('refuse un rattachement d’équipement vers un réseau inconnu (schéma partagé)', async () => {
+    const document: ArchitectureDocument = {
+      elements: [{ id: 'sw-01', type: 'switch', equipmentModelId: null, label: 'Switch', position: { x: 0, y: 0 }, config: {}, networkId: 'ghost' }],
+      connections: [],
+      zones: [],
+    };
+    const res = await server().put(`${API}/projects/${w.projectA1}/architecture`).set(architect.auth).send(document);
+    expect(res.status).toBe(400);
+  });
+
   it('refuse un equipmentModelId d’une autre organisation', async () => {
     const adminB = await login(t, w.users.adminB.email);
     const manufacturerB = await server().post(`${API}/catalog/manufacturers`).set(adminB.auth).send({ name: 'Fabricant B' });
