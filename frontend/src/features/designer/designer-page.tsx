@@ -24,7 +24,7 @@ import {
   type NodeProps,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { History, LayoutDashboard, Monitor, Redo2, Save, Undo2 } from 'lucide-react';
+import { Box, History, LayoutDashboard, Monitor, Redo2, Save, Undo2 } from 'lucide-react';
 import { type DragEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
@@ -328,9 +328,14 @@ function DesignerCanvas({ projectId }: { projectId: string }) {
             </div>
             <div className="flex items-center gap-2">
               {role && (
-                <Button asChild variant="ghost" size="sm" icon={<History />}>
-                  <Link to={`${ROLE_HOME[role]}/projects/${projectId}/versions`}>{t('designer.history')}</Link>
-                </Button>
+                <>
+                  <Button asChild variant="ghost" size="sm" icon={<Box />}>
+                    <Link to={`${ROLE_HOME[role]}/projects/${projectId}/3d`}>{t('designer3d.title')}</Link>
+                  </Button>
+                  <Button asChild variant="ghost" size="sm" icon={<History />}>
+                    <Link to={`${ROLE_HOME[role]}/projects/${projectId}/versions`}>{t('designer.history')}</Link>
+                  </Button>
+                </>
               )}
               {canEdit && (
                 <>

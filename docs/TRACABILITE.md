@@ -1,6 +1,6 @@
 # Traçabilité au cahier des charges
 
-**Statut : version 11 — export PDF, tranche T7 (20/09/2026).** Colonne *Lot* : ADR 0009.
+**Statut : version 12 — vue 3D en consultation, tranche T8 (21/09/2026).** Colonne *Lot* : ADR 0009.
 
 Les libellés de la colonne *Exigence* sont repris **mot pour mot** du cahier des charges
 (tableaux 3.1 à 3.5 et 5). Ils ne doivent pas être reformulés lors des mises à jour.
@@ -71,7 +71,7 @@ Statut :
 | EF-101 | Interface de conception par glisser-déposer (drag-and-drop) permettant de placer les éléments : serveurs, routeurs, pare-feu, commutateurs, répartiteurs de charge, stockage, postes clients. | Élevée | MVP | ✅ T3 | `frontend/src/features/designer/{equipment-palette,designer-page}.tsx` — palette du catalogue (archivedAt IS NULL) groupée par catégorie, glisser vers React Flow ; élément générique « Internet » pour ce qui n'a pas de modèle catalogue |
 | EF-102 | Bibliothèque d'icônes normalisées (symboles réseau standard) associées à chaque type d'équipement. | Élevée | MVP | ✅ T3 | `frontend/src/features/designer/category-icons.ts` — une icône par catégorie, couleur `tokens.css` §cat-* (déjà utilisée par `CategoryBadge` depuis T1) |
 | EF-103 | Tracé de connexions réseau visuelles entre éléments, avec libellés (débit, protocole, type de lien filaire/sans fil). | Élevée | MVP | ✅ T3 | `frontend/src/features/designer/labeled-edge.tsx` — tracé et couleur distincts par `linkType` (cuivre/fibre/sans fil/virtuel), libellé flottant débit + protocole |
-| EF-104 | Basculement entre une vue 2D (schéma logique) et une vue 3D (implantation physique : baies, salle serveur). | Moyenne | V2 ⚠ | 🕓 Phase 9 | — |
+| EF-104 | Basculement entre une vue 2D (schéma logique) et une vue 3D (implantation physique : baies, salle serveur). | Moyenne | V2 ⚠ | 🔨 T8 — consultation uniquement, anticipée avant la Phase 9 | `frontend/src/features/designer3d/` (`Designer3DPage`, `buildScene3D`) — test `scene-layout.test.ts`, `designer-3d-page.test.tsx` |
 | EF-105 | Navigation fluide : zoom, panoramique, grille magnétique et alignement automatique des éléments. | Moyenne | V1 (§3) | 🔨 T3 | Zoom/panoramique/grille magnétique livrés (`snapGrid`, `--canvas-snap`) ; « alignement automatique » interprété comme l'accrochage à la grille — pas d'outil d'alignement multi-sélection dédié |
 | EF-106 | Mise à jour en temps réel du plan à chaque ajout, modification ou suppression d'un élément. | Élevée | MVP (§3) | ✅ T3 | `frontend/src/features/designer/document-adapter.ts` (`toFlow`/`fromFlow`) + `use-designer-history.ts` — mise à jour locale immédiate (ADR 0003), historique par patchs Immer (undo/redo), document `packages/shared` comme seule source de vérité |
 | EF-107 | Regroupement des éléments en zones logiques (DMZ, LAN, WAN, sites distants). | Moyenne | V1 (§3) | 🔨 T3 | `frontend/src/features/designer/element-inspector.tsx` — zones créables et assignables par élément (panneau « Zones logiques ») ; regroupement visuel par étiquette de couleur, pas encore par conteneur géométrique déplaçable |
@@ -87,6 +87,16 @@ Statut :
 > (`backend/src/modules/architecture/`, `GET`/`PUT /projects/:id/architecture`, permission
 > `architecture.edit` réservée à ARCHITECT/ADMIN) et 8 tests e2e. Aucune nouvelle migration.
 > Validation locale de compatibilité/capacité (second volet de l'ADR 0003) : T4.
+>
+> **T8 — vue 3D, périmètre volontairement réduit.** `buildScene3D` dérive la scène du MÊME
+> document que le designer 2D (ADR 0001, aucun second modèle) : orbite, zoom, sélection d'un
+> équipement avec panneau d'informations, bascule 2D ↔ 3D, chunk Three.js chargé paresseusement
+> (jamais atteint depuis un tableau de bord). **Écarts assumés, à annoncer** : (1) navigation
+> bâtiment → étage → salle → baie dépend de `placement`, posé par la construction physique
+> (Phase 6, pas encore livrée) — tant qu'aucun élément n'a de `placement`, la vue retombe
+> honnêtement sur un plan à plat plutôt que de simuler une hiérarchie inexistante ; (2) chaque
+> équipement est un maillage individuel, pas une instance géométrique groupée — correct pour les
+> tailles de plan de démonstration, pas optimisé pour plusieurs centaines d'éléments (ENF-01).
 
 ---
 

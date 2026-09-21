@@ -36,6 +36,8 @@ const VersionsDetailPage = lazy(() => versions().then((m) => ({ default: m.Versi
 const bom = () => import('@/features/bom/bom-page');
 const BomPickerPage = lazy(() => bom().then((m) => ({ default: m.BomPickerPage })));
 const BomDetailPage = lazy(() => bom().then((m) => ({ default: m.BomDetailPage })));
+// Chunk 3D (Three.js) : jamais atteint depuis un tableau de bord, chargé seulement sur cette route.
+const Designer3DPage = lazy(() => import('@/features/designer3d/designer-3d-page').then((m) => ({ default: m.Designer3DPage })));
 // `import.meta.env.DEV` est remplacé statiquement à la build : en production, Rollup élimine
 // entièrement cet import dynamique — la page de référence des composants n'existe pas dans
 // dist/, pas seulement hors des routes.
@@ -81,6 +83,8 @@ const portalRoute = (role: Role): RouteObject => ({
       : [
           { path: 'projects', element: <Lazy><ProjectsPage role={role} /></Lazy> },
           { path: 'projects/:id/design', element: <Lazy><DesignerPage /></Lazy> },
+          // Vue 3D en consultation (EF-104) : même document que le concepteur 2D (ADR 0001).
+          { path: 'projects/:id/3d', element: <Lazy><Designer3DPage /></Lazy> },
           // Historique des versions (EF-405) : par-projet comme le concepteur, ouvert à tout
           // rôle interne (architecture.read) — le serveur revérifie.
           { path: 'versions', element: <Lazy><VersionsPickerPage role={role} /></Lazy> },

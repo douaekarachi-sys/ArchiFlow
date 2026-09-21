@@ -586,6 +586,17 @@
       "internet": "Internet"
     }
   },
+  "designer3d": {
+    "title": "Vue 3D",
+    "backTo2d": "Vue 2D",
+    "empty": "Le plan est vide",
+    "emptyHint": "Ajoutez des équipements depuis le concepteur 2D pour les voir apparaître ici.",
+    "noPhysicalPlacement": "Aucun bâtiment/salle/baie renseigné pour ce plan (construction physique, Phase 6) : vue à plat depuis les positions du schéma logique.",
+    "category": "Catégorie",
+    "equipmentModel": "Modèle catalogue",
+    "fromCatalog": "Associé à un modèle du catalogue",
+    "noModel": "Aucun modèle associé"
+  },
   "designer": {
     "title": "Concepteur d'architecture",
     "readOnly": "Lecture seule : vous n'avez pas les droits de modification",
