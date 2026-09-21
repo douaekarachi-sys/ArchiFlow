@@ -227,6 +227,7 @@ async function main(): Promise<void> {
   });
 
   let modelCount = 0;
+  const modelIdByReference: Record<string, string> = {};
   for (const entry of CATALOG) {
     const manufacturer = await prisma.equipmentManufacturer.create({
       data: { organizationId: org.id, name: entry.manufacturer, website: entry.website },
@@ -235,7 +236,7 @@ async function main(): Promise<void> {
       data: { organizationId: org.id, manufacturerId: manufacturer.id, name: entry.manufacturer },
     });
     for (const model of entry.models) {
-      await prisma.equipmentModel.create({
+      const created = await prisma.equipmentModel.create({
         data: {
           organizationId: org.id,
           brandId: brand.id,
@@ -255,6 +256,7 @@ async function main(): Promise<void> {
           isDemoData: true,
         },
       });
+      modelIdByReference[model.reference] = created.id;
       modelCount++;
     }
   }
