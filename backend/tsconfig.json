@@ -11,8 +11,9 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "useUnknownInCatchVariables": true,
-    "types": ["node"]
+    "types": ["node"],
+    "jsx": "react-jsx"
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["src/**/*.spec.ts", "test/**/*"]
 }

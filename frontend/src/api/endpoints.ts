@@ -193,3 +193,7 @@ export const architectureApi = {
 export const bomApi = {
   get: (projectId: string) => api.get<BillOfMaterials>(`/projects/${projectId}/bom`),
 };
+
+export const reportsApi = {
+  downloadPdf: (projectId: string) => api.getBlob(`/projects/${projectId}/report/pdf`),
+};

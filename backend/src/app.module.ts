@@ -14,6 +14,7 @@ import { CatalogModule } from './modules/catalog/catalog.module';
 import { HealthModule } from './modules/health/health.controller';
 import { MailModule } from './modules/mail/mail.module';
 import { ProjectsModule } from './modules/projects/projects.module';
+import { ReportsModule } from './modules/reports/reports.module';
 import { UsersModule } from './modules/users/users.module';
 import { JwtAuthGuard } from './security/guards/jwt-auth.guard';
 import { PermissionsGuard } from './security/guards/permissions.guard';
@@ -40,6 +41,7 @@ import { WorkersModule } from './workers/retention.worker';
     CatalogModule,
     ProjectsModule,
     ArchitectureModule,
+    ReportsModule,
     HealthModule,
     WorkersModule,
   ],

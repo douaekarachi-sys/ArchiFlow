@@ -1,10 +1,11 @@
-import { FileSpreadsheet } from 'lucide-react';
+import { Download, FileSpreadsheet } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import type { Role } from '@archiflow/shared';
 import { ROLE_HOME } from '@archiflow/shared';
-import { bomApi } from '@/api/endpoints';
+import { bomApi, reportsApi } from '@/api/endpoints';
+import { Button } from '@/components/ui/button';
 import { MultiColumnStat } from '@/components/ui/multi-column-stat';
 import { PageHeader } from '@/components/ui/page-header';
 import { Panel } from '@/components/ui/panel';
@@ -31,10 +32,30 @@ export function BomDetailPage() {
   const { id: projectId } = useParams<{ id: string }>();
   const project = useProject(projectId ?? null);
   const bom = useQuery({ queryKey: ['bom', projectId], queryFn: () => bomApi.get(projectId!), enabled: !!projectId });
+  const pdf = useMutation({
+    mutationFn: () => reportsApi.downloadPdf(projectId!),
+    onSuccess: (blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `architecture-${projectId}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    },
+  });
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={project.data?.name ?? t('nav.bom')} subtitle={t('bom.detailDescription')} />
+      <PageHeader
+        title={project.data?.name ?? t('nav.bom')}
+        subtitle={t('bom.detailDescription')}
+        action={
+          <Button icon={<Download />} variant="secondary" loading={pdf.isPending} onClick={() => pdf.mutate()}>
+            {t('bom.downloadPdf')}
+          </Button>
+        }
+      />
+      {pdf.isError && <ErrorState message={errorMessage(t, pdf.error)} onRetry={() => pdf.mutate()} />}
       {bom.isPending ? (
         <div className="flex flex-col gap-3" aria-busy="true">
           <Skeleton className="h-20" />

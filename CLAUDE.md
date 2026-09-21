@@ -23,7 +23,7 @@ hors Zod (ADR 0002) · Node ≥ 22.12 (`.nvmrc` : 24) · Vitest partout.
   `CLIENT_APPROVED`.
 - D-14 (ADR 0010) : pas d'inscription publique, admin crée les comptes CLIENT,
   anti-énumération.
-- Ouvertes, sans effet sur le code actuel : D-05 (Phase 10), D-11 (Phase 5), D-12 (Phase 13),
+- Ouvertes, sans effet sur le code actuel : D-05 (Phase 10), D-12 (Phase 13),
   D-17 (env. local seulement).
 
 ## Conventions

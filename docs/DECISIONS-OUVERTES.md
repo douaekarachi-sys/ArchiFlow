@@ -1,7 +1,7 @@
 # Registre des décisions techniques
 
-*Anciennement « décisions ouvertes ». Quinze arbitrages sont tranchés, un est sans objet,
-quatre restent ouverts.*
+*Anciennement « décisions ouvertes ». Seize arbitrages sont tranchés, un est sans objet,
+trois restent ouverts.*
 
 | Réf. | Sujet | État | ADR | Bloque |
 |---|---|---|---|---|
@@ -15,7 +15,7 @@ quatre restent ouverts.*
 | D-08 | Priorité (§3) et lot (§8.1) du CDC | ✅ Rouverte puis tranchée — §8.1 pour le lot, §3 pour la priorité | [0009](ADR/0009-priorite-et-lot-du-cdc.md) | — |
 | D-09 | Multi-tenancy | ✅ Tranché — deux niveaux | [0006](ADR/0006-tenancy-deux-niveaux.md) | — |
 | D-10 | shadcn/ui, format des tokens | ✅ Tranché — re-thémé, tokens HSL | [0007](ADR/0007-shadcn-retheme-sur-tokens.md) | — |
-| D-11 | Génération du PDF | 🕓 Ouvert | — | Phase 5 |
+| D-11 | Génération du PDF | ✅ Tranché — `@react-pdf/renderer`, serveur | [0017](ADR/0017-pdf-react-pdf-renderer.md) | — |
 | D-12 | Fournisseur LLM du chatbot | 🕓 Ouvert | — | Phase 13 |
 | D-13 | Suppression au catalogue | ✅ Tranché — archivage | [0008](ADR/0008-archivage-catalogue.md) | — |
 | D-14 | Création des comptes CLIENT | ✅ Tranché — par l'administrateur, anti-énumération | [0010](ADR/0010-comptes-client-crees-par-admin.md) | — |
@@ -27,8 +27,8 @@ quatre restent ouverts.*
 | D-20 | Mot de passe et sessions | ✅ Tranché — 12 caractères, rotation, détection de réutilisation | [0014](ADR/0014-politique-mot-de-passe-et-sessions.md) | — |
 | D-21 | Thème par défaut et couleur d'action | ✅ Tranché — clair par défaut, violet unique | [0015](ADR/0015-theme-clair-par-defaut-accent-violet.md) | — |
 
-**Aucune décision ne bloque la Phase 1.** Restent D-11 (Phase 5), D-05 (Phase 10), D-12
-(Phase 13) et D-17 (environnement de développement, non bloquant pour le code).
+**Aucune décision ne bloque la Phase 1.** Restent D-05 (Phase 10), D-12 (Phase 13) et D-17
+(environnement de développement, non bloquant pour le code).
 
 Ce registre donne l'état ; les ADR portent le raisonnement. En cas de divergence, l'ADR fait
 foi.
@@ -262,18 +262,17 @@ La cible ENF-01 de 500 ms est atteignable dès A.
 
 ---
 
-## D-11 — Génération du PDF
+## D-11 — Génération du PDF : **tranchée — `@react-pdf/renderer`, côté serveur**
 
-**Remontée en Phase 5**, EF-301 étant en lot MVP.
+**Décision (T7, 20/09/2026).** Option B retenue plutôt que la recommandation initiale (Puppeteer,
+option A) : pas de dépendance Chromium pour un premier export fonctionnel, mise en page réécrite
+à la main via des composants React rendus en PDF (`backend/src/modules/reports/`). Le schéma
+logique est dessiné en vectoriel directement depuis les positions du document d'architecture —
+même donnée que le designer 2D, pas de second modèle (ADR 0001). Détail et alternative écartée :
+[ADR 0017](ADR/0017-pdf-react-pdf-renderer.md).
 
-| Option | Rendu | Coût |
-|---|---|---|
-| **A** *(recommandée)* — Puppeteer côté serveur, sur un worker | Excellent : réutilise le rendu HTML/CSS réel, schémas exportés en SVG | Dépendance Chromium, image plus lourde |
-| **B** — `@react-pdf/renderer` | Correct, mise en page à réécrire entièrement | Pas de Chromium, mais duplication du design |
-| **C** — génération côté client | Variable | Dépend de la machine de l'utilisateur, difficile à automatiser |
-
-**Contrainte commune** : le PDF s'imprime en noir et blanc. Aucun statut ni catégorie n'y est
-porté par la couleur seule.
+**Contrainte commune, respectée** : le PDF s'imprime en noir et blanc. Aucun statut ni catégorie
+n'y est porté par la couleur seule.
 
 ---
 

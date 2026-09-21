@@ -106,10 +106,25 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   return (await res.json()) as T;
 }
 
+/** Téléchargement binaire (export PDF) : même auth/retry que apiRequest, mais pas de JSON. */
+async function apiRequestBlob(path: string, options: RequestOptions = {}): Promise<Blob> {
+  let res = await send(path, options);
+  if (res.status === 401 && options.auth !== false) {
+    const error = await toError(res);
+    if (!RETRYABLE.has(error.code)) throw error;
+    const renewed = await refreshSession();
+    if (!renewed) throw error;
+    res = await send(path, options);
+  }
+  if (!res.ok) throw await toError(res);
+  return res.blob();
+}
+
 export const api = {
   get: <T>(path: string, query?: Query, signal?: AbortSignal) => apiRequest<T>(path, { query, signal }),
   post: <T>(path: string, body?: unknown, auth = true) => apiRequest<T>(path, { method: 'POST', body, auth }),
   patch: <T>(path: string, body?: unknown) => apiRequest<T>(path, { method: 'PATCH', body }),
   put: <T>(path: string, body?: unknown) => apiRequest<T>(path, { method: 'PUT', body }),
   delete: <T>(path: string) => apiRequest<T>(path, { method: 'DELETE' }),
+  getBlob: (path: string) => apiRequestBlob(path),
 };

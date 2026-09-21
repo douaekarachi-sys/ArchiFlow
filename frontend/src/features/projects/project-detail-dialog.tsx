@@ -1,11 +1,11 @@
-import { ArrowRight, Calculator, ClipboardList, History, LayoutPanelTop, Undo2, UserPlus } from 'lucide-react';
+import { ArrowRight, Calculator, ClipboardList, Download, History, LayoutPanelTop, Undo2, UserPlus } from 'lucide-react';
 import { ROLE_HOME } from '@archiflow/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import type { AvailableTransition } from '@/api/endpoints';
-import { projectsApi, usersApi } from '@/api/endpoints';
+import { projectsApi, reportsApi, usersApi } from '@/api/endpoints';
 import { ProjectStatusBadge } from '@/components/patterns/project-status';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Field } from '@/components/ui/field';
 import { ErrorState, Skeleton } from '@/components/ui/states';
 import { useApplyTransition, useAvailableTransitions, useProject, useProjectHistory } from '@/hooks/use-projects';
+import { useCan } from '@/permissions/portals';
 import { useSession } from '@/auth/session-store';
 import { errorMessage } from '@/utils/errors';
 import { RequestOverview } from './request-overview';
@@ -83,6 +84,12 @@ export function ProjectDetailDialog({ projectId, onClose }: { projectId: string 
                       </Button>
                     </>
                   )}
+                  <PdfDownloadButton projectId={projectId} />
+                </div>
+              )}
+              {role === 'CLIENT' && (
+                <div className="flex flex-wrap gap-2">
+                  <PdfDownloadButton projectId={projectId} />
                 </div>
               )}
               <RequestOverview request={project.data.request} />
@@ -94,6 +101,29 @@ export function ProjectDetailDialog({ projectId, onClose }: { projectId: string 
         </DialogContent>
       )}
     </Dialog>
+  );
+}
+
+/** Export PDF (EF-301) — visible à quiconque a bom.read, y compris le CLIENT sur son projet. */
+function PdfDownloadButton({ projectId }: { projectId: string }) {
+  const { t } = useTranslation();
+  const canDownload = useCan('bom.read');
+  const download = useMutation({
+    mutationFn: () => reportsApi.downloadPdf(projectId),
+    onSuccess: (blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `architecture-${projectId}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    },
+  });
+  if (!canDownload) return null;
+  return (
+    <Button variant="secondary" size="sm" icon={<Download />} loading={download.isPending} onClick={() => download.mutate()}>
+      {t('bom.downloadPdf')}
+    </Button>
   );
 }
 

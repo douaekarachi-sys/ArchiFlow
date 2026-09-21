@@ -547,6 +547,7 @@
   "bom": {
     "pickerDescription": "Choisissez un projet pour consulter sa nomenclature et ses coûts.",
     "detailDescription": "Nomenclature et coûts dérivés de la dernière version sauvegardée — jamais saisis à la main (EF-302, EF-303).",
+    "downloadPdf": "Télécharger le PDF",
     "empty": "Aucun équipement chiffré",
     "emptyHint": "Le BOM se remplit dès qu'une architecture avec des équipements du catalogue est sauvegardée.",
     "materialTotal": "Matériel",

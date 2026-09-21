@@ -8,5 +8,6 @@ import { BomController } from './bom.controller';
   imports: [ProjectsModule],
   controllers: [ArchitectureController, BomController],
   providers: [ArchitectureService],
+  exports: [ArchitectureService],
 })
 export class ArchitectureModule {}

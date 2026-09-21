@@ -1,6 +1,6 @@
 # Traçabilité au cahier des charges
 
-**Statut : version 10 — nomenclature et coûts, tranche T6 (20/09/2026).** Colonne *Lot* : ADR 0009.
+**Statut : version 11 — export PDF, tranche T7 (20/09/2026).** Colonne *Lot* : ADR 0009.
 
 Les libellés de la colonne *Exigence* sont repris **mot pour mot** du cahier des charges
 (tableaux 3.1 à 3.5 et 5). Ils ne doivent pas être reformulés lors des mises à jour.
@@ -142,14 +142,17 @@ Statut :
 
 | Réf. | Exigence | Priorité | Lot | Statut | Où c'est implémenté |
 |---|---|---|---|---|---|
-| EF-301 | Export PDF de l'architecture (schémas, légende, mise en page soignée). | Élevée | MVP | 🕓 Phases 5 et 12 | — |
+| EF-301 | Export PDF de l'architecture (schémas, légende, mise en page soignée). | Élevée | MVP | 🔨 T7 — informations client, schéma logique vectoriel, équipements, BOM, coûts ; personnalisation (logo, charte) reportée Phase 12 | `backend/src/modules/reports/` (`ReportsService`, `pdf-document.tsx`) — test `reports.e2e-spec.ts` |
 | EF-302 | Génération automatique des spécifications techniques et de la nomenclature (BOM). | Élevée | MVP (§3) | ✅ T6 | `packages/shared/src/architecture/bom.ts` (`buildBom`) — `backend/src/modules/architecture/bom.controller.ts` (`GET /projects/:id/bom`), `frontend/src/features/bom/bom-page.tsx` — tests `bom.spec.ts`, `architecture.e2e-spec.ts`, `bom-page.test.tsx` |
 | EF-303 | Estimation des coûts : matériel, licences et, en option, mise en œuvre. | Élevée | MVP (§3) | 🔨 T6 — matériel et licences dérivés et chiffrés ; mise en œuvre honnêtement non estimée (aucune donnée de tarif horaire au catalogue, exigence « en option ») | même implémentation qu'EF-302 |
 | EF-304 | Production d'une documentation technique (description des flux, adressage, inventaire des équipements). | Moyenne | V1 (§3) | 🕓 Phase 12 | — |
 | EF-305 | Personnalisation des rapports : logo, en-tête client, charte graphique. | Moyenne | V1 | 🕓 Phase 12 | — |
 | EF-306 | Export dans d'autres formats : Word, Excel, image, Visio (VSDX). | Moyenne | V1 (§3) ⚑ | 🕓 Phase 12 | — |
 
-> **EF-301** : un PDF minimal est livré dès la fin de la Phase 5, puis enrichi en Phase 12.
+> **EF-301** : le PDF minimal prévu pour la fin de la Phase 5 est livré en T7 (D-11 tranchée,
+> [ADR 0017](ADR/0017-pdf-react-pdf-renderer.md)) — contenu dérivé de la dernière version
+> sauvegardée (ADR 0001), jamais du catalogue courant. Enrichissement (logo, charte, formats
+> additionnels) en Phase 12.
 >
 > **T6 — BOM et coûts.** `buildBom` agrège les éléments d'un document par modèle catalogue
 > (quantité, prix unitaire, sous-total), à partir du snapshot de la **dernière version
