@@ -197,3 +197,15 @@ export const bomApi = {
 export const reportsApi = {
   downloadPdf: (projectId: string) => api.getBlob(`/projects/${projectId}/report/pdf`),
 };
+
+export interface ChatAnswer {
+  key: string;
+  params?: Record<string, string | number>;
+  steps: { key: string; params?: Record<string, string | number> }[];
+  shouldEscalate: boolean;
+}
+
+export const chatbotApi = {
+  ask: (projectId: string, message: string) => api.post<ChatAnswer>(`/projects/${projectId}/chat`, { message }),
+  escalate: (projectId: string, message: string) => api.post<{ escalated: true }>(`/projects/${projectId}/chat/escalate`, { message }),
+};

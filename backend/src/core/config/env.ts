@@ -22,6 +22,8 @@ const envSchema = z
     THROTTLE_AUTH_TTL_MS: z.coerce.number().int().positive().default(60_000),
     BACKUP_DIR: z.string().optional(),
     BACKUP_MAX_AGE_HOURS: z.coerce.number().positive().default(26),
+    /** Chatbot (T9) : absente = repli local par défaut, jamais d'appel externe sans clé. */
+    AI_PROVIDER_API_KEY: z.string().min(1).optional(),
   })
   .superRefine((env, ctx) => {
     // En production, un coût bcrypt affaibli ou un transport « memory » serait une faute.

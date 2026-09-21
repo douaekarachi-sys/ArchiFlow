@@ -16,7 +16,7 @@ trois restent ouverts.*
 | D-09 | Multi-tenancy | ✅ Tranché — deux niveaux | [0006](ADR/0006-tenancy-deux-niveaux.md) | — |
 | D-10 | shadcn/ui, format des tokens | ✅ Tranché — re-thémé, tokens HSL | [0007](ADR/0007-shadcn-retheme-sur-tokens.md) | — |
 | D-11 | Génération du PDF | ✅ Tranché — `@react-pdf/renderer`, serveur | [0017](ADR/0017-pdf-react-pdf-renderer.md) | — |
-| D-12 | Fournisseur LLM du chatbot | 🕓 Ouvert | — | Phase 13 |
+| D-12 | Fournisseur LLM du chatbot | 🔨 Mode par défaut tranché (repli local) | [0018](ADR/0018-chatbot-repli-local-par-defaut.md) | Fournisseur externe, si choisi |
 | D-13 | Suppression au catalogue | ✅ Tranché — archivage | [0008](ADR/0008-archivage-catalogue.md) | — |
 | D-14 | Création des comptes CLIENT | ✅ Tranché — par l'administrateur, anti-énumération | [0010](ADR/0010-comptes-client-crees-par-admin.md) | — |
 | D-15 | Format du paquet partagé | ✅ Tranché — ESM | [0011](ADR/0011-paquet-partage-esm.md) | — |
@@ -276,16 +276,15 @@ n'y est porté par la couleur seule.
 
 ---
 
-## D-12 — Fournisseur LLM du chatbot
+## D-12 — Fournisseur LLM du chatbot : **mode par défaut tranché, fournisseur externe reste ouvert**
 
-**À trancher avant la Phase 13.** L'abstraction `AIService` est écrite dès le départ pour que
-le choix reste réversible.
+**Décision (T9, 21/09/2026).** Le mode par défaut est le repli LOCAL, sans LLM, sans réseau —
+option explicitement validée par le registre comme « viable et défendable en soutenance ».
+Détail : [ADR 0018](ADR/0018-chatbot-repli-local-par-defaut.md).
 
-À décider : quel fournisseur, quel budget, et surtout **quelles données ont le droit de
-sortir**. Recommandation par défaut : uniquement des agrégats du besoin (nombres d'employés,
-de postes, de sites) et des extraits du catalogue — **jamais** de noms de clients, d'adresses
-IP, de schémas complets ni de données nominatives. Cohérent avec ENF-02.
-
-Si aucun envoi externe n'est acceptable, le chatbot se réduit à un assistant local branché sur
-les règles de dimensionnement, sans LLM. Option viable et défendable en soutenance.
+**Reste ouvert, si un fournisseur externe est choisi plus tard** : quel fournisseur, quel
+budget, et surtout **quelles données ont le droit de sortir**. Recommandation inchangée :
+uniquement des agrégats du besoin (nombres d'employés, de postes, de sites) et des extraits du
+catalogue — **jamais** de noms de clients, d'adresses IP, de schémas complets ni de données
+nominatives. Cohérent avec ENF-02. `AIService` reste écrite pour que ce choix reste réversible.
 

@@ -38,6 +38,7 @@ const BomPickerPage = lazy(() => bom().then((m) => ({ default: m.BomPickerPage }
 const BomDetailPage = lazy(() => bom().then((m) => ({ default: m.BomDetailPage })));
 // Chunk 3D (Three.js) : jamais atteint depuis un tableau de bord, chargé seulement sur cette route.
 const Designer3DPage = lazy(() => import('@/features/designer3d/designer-3d-page').then((m) => ({ default: m.Designer3DPage })));
+const ChatbotPage = lazy(() => import('@/features/chatbot/chatbot-page').then((m) => ({ default: m.ChatbotPage })));
 // `import.meta.env.DEV` est remplacé statiquement à la build : en production, Rollup élimine
 // entièrement cet import dynamique — la page de référence des composants n'existe pas dans
 // dist/, pas seulement hors des routes.
@@ -79,7 +80,10 @@ const portalRoute = (role: Role): RouteObject => ({
   children: [
     { index: true, element: <Lazy><DashboardPage role={role} /></Lazy> },
     ...(role === 'CLIENT'
-      ? [{ path: 'request', element: <Lazy><RequestPage /></Lazy> }]
+      ? [
+          { path: 'request', element: <Lazy><RequestPage /></Lazy> },
+          { path: 'assistant', element: <Lazy><ChatbotPage /></Lazy> },
+        ]
       : [
           { path: 'projects', element: <Lazy><ProjectsPage role={role} /></Lazy> },
           { path: 'projects/:id/design', element: <Lazy><DesignerPage /></Lazy> },

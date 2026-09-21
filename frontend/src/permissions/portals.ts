@@ -1,6 +1,7 @@
 import { hasPermission, type Permission, type Role } from '@archiflow/shared';
 import {
   AlertTriangle,
+  Bot,
   BookOpen,
   Building2,
   Calculator,
@@ -139,6 +140,7 @@ export const PORTAL_NAV: Record<Role, RoleNav> = {
     main: [
       { key: 'myProject', icon: LayoutDashboard, path: '/client' },
       { key: 'request', icon: MessageSquarePlus, path: '/client/request' },
+      { key: 'assistant', icon: Bot, path: '/client/assistant' },
       { key: 'documents', icon: FileText, phase: 12 },
       { key: 'messages', icon: MessageSquare, phase: 10 },
     ],

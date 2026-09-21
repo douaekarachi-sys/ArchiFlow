@@ -11,6 +11,7 @@ import {
   EQUIPMENT_CATEGORIES,
   PROJECT_STATUSES,
   PROJECT_TRANSITIONS,
+  REQUEST_STEPS,
   ROLES,
 } from '@archiflow/shared';
 import { describe, expect, it } from 'vitest';
@@ -88,5 +89,21 @@ describe('traductions (ENF-03)', () => {
     const codes = [...block.matchAll(/^\s+([A-Z_]+):/gm)].map((m) => m[1]!);
     expect(codes.length).toBeGreaterThan(5);
     expect(codes.filter((c) => !has(`errors.${c}`))).toEqual([]);
+  });
+
+  it('chaque réponse du chatbot (T9) est une clé traduite', () => {
+    // Les clés littérales (`chatbot.fallback`, `chatbot.sizingPorts`…) suivent le même piège que
+    // `validation.*` et `sizing.*`. Les clés composées dynamiquement (`chatbot.categoryDescription.
+    // ${category}`, `chatbot.needStep.${step}`) échappent à un scan par expression régulière : on
+    // vérifie directement, pour CHAQUE valeur possible, que la traduction existe.
+    const sharedSrc = resolve(src, '..', '..', 'packages', 'shared', 'src');
+    const literalKeys = sourceFiles(sharedSrc).flatMap((f) =>
+      [...readFileSync(f, 'utf8').matchAll(/'(chatbot\.\w+)'/g)].map((m) => m[1]!),
+    );
+    expect(literalKeys.length).toBeGreaterThan(3);
+    expect(literalKeys.filter((k) => !has(k))).toEqual([]);
+
+    for (const category of EQUIPMENT_CATEGORIES) expect(has(`chatbot.categoryDescription.${category}`), category).toBe(true);
+    for (const step of REQUEST_STEPS) expect(has(`chatbot.needStep.${step}`), step).toBe(true);
   });
 });

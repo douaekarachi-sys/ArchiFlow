@@ -51,6 +51,9 @@ export const PERMISSIONS = [
   // Collaboration (EF-403)
   'comment.create',
 
+  // Chatbot client (T9)
+  'chat.use',
+
   // Tracabilite (ENF-07)
   'audit.read',
 ] as const;
@@ -131,6 +134,7 @@ export const PERMISSION_MATRIX: Record<Role, readonly Permission[]> = {
     'bom.read',
     'cost.read',
     'comment.create',
+    'chat.use',
   ],
 };
 

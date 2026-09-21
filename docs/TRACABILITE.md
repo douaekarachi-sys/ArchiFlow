@@ -1,6 +1,6 @@
 # Traçabilité au cahier des charges
 
-**Statut : version 12 — vue 3D en consultation, tranche T8 (21/09/2026).** Colonne *Lot* : ADR 0009.
+**Statut : version 13 — chatbot client, repli local, tranche T9 (21/09/2026).** Colonne *Lot* : ADR 0009.
 
 Les libellés de la colonne *Exigence* sont repris **mot pour mot** du cahier des charges
 (tableaux 3.1 à 3.5 et 5). Ils ne doivent pas être reformulés lors des mises à jour.
@@ -293,10 +293,24 @@ aucune exigence du CDC. Numérotation proposée, à valider :
 | EF-507 | Portail client d'expression du besoin : formulaire multi-étapes, sauvegarde en brouillon, soumission. | Élevée | V1 | 🔨 T2 — cadrage, bâtiments/départements (`useFieldArray`), capacité, réseau et sécurité structurés ; sauvegarde en brouillon locale (par profil) et transaction ProjectRequest (buildings/departments inclus) livrées ; reprise de brouillon **côté serveur** (multi-appareil) sciemment différée — `updateRequestSchema` existe déjà côté `packages/shared` mais n'est câblé à aucune route ; à faire quand un besoin réel de reprise multi-appareil apparaît | `frontend/src/features/request/request-page.tsx`, `backend/src/modules/projects/projects.service.ts` — test `request-page.test.tsx` |
 | EF-508 | Consultation, commentaire et validation d'une version publiée par le client. | Moyenne | V1 | 🕓 Phase 11 |
 
-### 4. Chatbot d'assistance client — hors périmètre initial
+### 4. Chatbot d'assistance client — hors périmètre initial, livré en T9 (🔨)
 
 Aucune exigence du CDC ne couvre l'assistant conversationnel. C'est une **extension hors
 périmètre**, à annoncer comme telle.
+
+**T9 (21/09/2026).** `packages/shared/src/chatbot/local-engine.ts` (`answerLocally`, fonction
+pure, testée) — moteur de repli **local, sans réseau**, mode par défaut (D-12,
+[ADR 0018](ADR/0018-chatbot-repli-local-par-defaut.md)) : réutilise `calculateSizing` (T4) pour
+les questions de volumétrie avec le détail du calcul, explique les catégories d'équipement,
+détecte les rubriques manquantes du besoin exprimé via `requestStepDone` (T2). Ne décide jamais
+seul : hors de ces trois familles de questions, propose de transmettre à l'équipe technique —
+`POST /projects/:id/chat/escalate` journalise réellement dans l'audit (ENF-07), pas un accusé de
+réception fictif. Accès scopé au projet du CLIENT connecté (ADR 0006, 404 hors périmètre).
+Fournisseur LLM externe : abstraction prête (`ChatbotService.answer`, `AI_PROVIDER_API_KEY`),
+aucune implémentation réelle câblée — aucune clé disponible dans cet environnement, aucun
+fournisseur choisi. Page `frontend/src/features/chatbot/`, nav CLIENT « Assistant ». Tests :
+`local-engine.spec.ts` (9 cas), `chatbot.e2e-spec.ts` (5 cas, dont l'audit réel et l'isolation
+entre sociétés clientes), `chatbot-page.test.tsx`.
 
 ---
 
