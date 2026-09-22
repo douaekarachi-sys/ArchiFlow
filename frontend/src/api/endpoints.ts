@@ -1,13 +1,16 @@
 import type {
+  AdminResetPasswordInput,
   ArchitectureDiff,
   ArchitectureDocument,
   BillOfMaterials,
   AuthResult,
   ChangePasswordInput,
   CreateBrandInput,
+  CreateClientCompanyInput,
   CreateEquipmentModelInput,
   CreateManufacturerInput,
   CreateRequestInput,
+  CreateUserInput,
   ForgotPasswordInput,
   LoginInput,
   ProjectShareRight,
@@ -15,7 +18,9 @@ import type {
   ResetPasswordInput,
   Role,
   TransitionRequestInput,
+  UpdateClientCompanyInput,
   UpdateEquipmentModelInput,
+  UpdateUserInput,
   UserProfile,
 } from '@archiflow/shared';
 import { api } from './client';
@@ -89,6 +94,8 @@ export interface UserSummary {
   lastName: string;
   email: string;
   role: Role;
+  clientCompanyId: string | null;
+  mustChangePassword: boolean;
   deletedAt: string | null;
   lastLoginAt: string | null;
   createdAt: string;
@@ -168,8 +175,43 @@ export const usersApi = {
   count: () => api.get<Page<unknown>>('/users', { pageSize: 1 }),
   list: (query: { page?: number; pageSize?: number; q?: string; role?: Role; includeInactive?: boolean } = {}) =>
     api.get<Page<UserSummary>>('/users', query),
+  create: (input: CreateUserInput) => api.post<{ status: 'accepted' }>('/users', input),
+  update: (id: string, input: UpdateUserInput) => api.patch<UserSummary>(`/users/${id}`, input),
+  changeRole: (id: string, role: Role) => api.patch<UserSummary>(`/users/${id}/role`, { role }),
+  resetPassword: (id: string, input: AdminResetPasswordInput) => api.post<UserSummary>(`/users/${id}/reset-password`, input),
   deactivate: (id: string) => api.post<UserSummary>(`/users/${id}/deactivate`),
   reactivate: (id: string) => api.post<UserSummary>(`/users/${id}/reactivate`),
+};
+
+export interface ClientCompanyItem {
+  id: string;
+  name: string;
+  city: string | null;
+  country: string | null;
+  deletedAt: string | null;
+}
+
+export const clientCompaniesApi = {
+  list: (query: { includeArchived?: boolean } = {}) => api.get<ClientCompanyItem[]>('/client-companies', query),
+  create: (input: CreateClientCompanyInput) => api.post<ClientCompanyItem>('/client-companies', input),
+  update: (id: string, input: UpdateClientCompanyInput) => api.patch<ClientCompanyItem>(`/client-companies/${id}`, input),
+  archive: (id: string) => api.post<ClientCompanyItem>(`/client-companies/${id}/archive`),
+};
+
+export interface AuditLogEntry {
+  id: string;
+  action: string;
+  targetType: string;
+  targetId: string | null;
+  projectId: string | null;
+  details: Record<string, unknown> | null;
+  createdAt: string;
+  actor: { id: string; firstName: string; lastName: string } | null;
+}
+
+export const auditApi = {
+  list: (query: { page?: number; pageSize?: number; action?: string; projectId?: string } = {}) =>
+    api.get<Page<AuditLogEntry>>('/audit-logs', query),
 };
 
 export const catalogApi = {

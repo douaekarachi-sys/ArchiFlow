@@ -64,9 +64,9 @@ export const PORTAL_NAV: Record<Role, RoleNav> = {
       key: 'administration',
       items: [
         { key: 'users', icon: Users, path: '/admin/users' },
-        { key: 'clientCompanies', icon: Building2, phase: 3 },
+        { key: 'clientCompanies', icon: Building2, path: '/admin/client-companies' },
         { key: 'catalog', icon: BookOpen, path: '/admin/catalog' },
-        { key: 'audit', icon: ScrollText, phase: 3 },
+        { key: 'audit', icon: ScrollText, path: '/admin/audit' },
       ],
     },
   },

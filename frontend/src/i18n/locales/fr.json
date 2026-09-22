@@ -179,8 +179,50 @@
     "never": "Jamais",
     "deactivate": "Désactiver",
     "reactivate": "Réactiver",
+    "new": "Nouveau compte",
+    "newHint": "Le mot de passe est provisoire : il devra être changé à la première connexion.",
+    "edit": "Modifier",
+    "resetPassword": "Réinitialiser le mot de passe",
+    "resetPasswordWarning": "Un nouveau mot de passe provisoire remplacera l'ancien et déconnectera l'utilisateur de ses sessions en cours.",
+    "resetPasswordDone": "Mot de passe réinitialisé. Communiquez-le à l'utilisateur par un canal sûr — il ne sera plus affiché ensuite.",
     "state": { "active": "Actif", "inactive": "Désactivé" },
-    "columns": { "name": "Utilisateur", "role": "Rôle", "lastLogin": "Dernière connexion", "state": "État" }
+    "columns": { "name": "Utilisateur", "role": "Rôle", "company": "Société", "lastLogin": "Dernière connexion", "state": "État" },
+    "form": {
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "email": "Adresse e-mail",
+      "role": "Rôle",
+      "company": "Société cliente",
+      "chooseCompany": "Choisir une société",
+      "temporaryPassword": "Mot de passe provisoire",
+      "temporaryPasswordHint": "Généré automatiquement, modifiable. L'utilisateur devra le changer à sa première connexion.",
+      "generate": "Générer"
+    }
+  },
+  "clientCompanies": {
+    "title": "Sociétés clientes",
+    "subtitle": "Entreprises pour lesquelles vos équipes conçoivent des architectures.",
+    "listTitle": "Sociétés",
+    "empty": "Aucune société cliente",
+    "emptyHint": "Créez une société pour pouvoir y rattacher des comptes CLIENT et des projets.",
+    "new": "Nouvelle société",
+    "edit": "Modifier",
+    "archiveAction": "Archiver",
+    "archiveConsequence": "La société n'apparaîtra plus dans les listes actives ; ses comptes et projets existants restent intacts.",
+    "state": { "active": "Active", "archived": "Archivée" },
+    "columns": { "name": "Société", "city": "Ville", "country": "Pays", "state": "État" },
+    "form": { "name": "Nom", "city": "Ville", "country": "Pays", "countryHint": "Code ISO à deux lettres, ex. MA" }
+  },
+  "audit": {
+    "title": "Journal d'audit",
+    "subtitle": "Chaque action sensible, tracée : qui, quoi, quand.",
+    "listTitle": "Événements",
+    "count_one": "{{count}} événement",
+    "count_other": "{{count}} événements",
+    "empty": "Aucun événement pour ce filtre",
+    "filterPlaceholder": "Filtrer par action (ex. user.create)",
+    "systemActor": "Système",
+    "columns": { "date": "Date", "actor": "Auteur", "action": "Action", "target": "Cible" }
   },
   "adminRequests": {
     "eyebrow": "File de travail",
@@ -218,7 +260,9 @@
     "licenseAnnualCost": "Licence (par an)",
     "archived": "Archivé",
     "archiveAction": "Archiver",
-    "archiveConsequence": "Il restera visible dans les architectures existantes mais ne pourra plus être ajouté à une nouvelle conception (ADR 0008)."
+    "archiveConsequence": "Il restera visible dans les architectures existantes mais ne pourra plus être ajouté à une nouvelle conception (ADR 0008).",
+    "editAction": "Modifier",
+    "editModel": "Modifier le modèle"
   },
   "auth": {
     "login": {
@@ -390,6 +434,15 @@
   "projects": {
     "title": "Projets",
     "subtitle": "Suivi des architectures et des demandes de votre espace.",
+    "new": "Nouveau projet",
+    "newHint": "Un nom et une société suffisent — le besoin, la conception et le chiffrage se complètent ensuite.",
+    "form": {
+      "name": "Nom du projet",
+      "namePlaceholder": "Nouveau siège Casablanca",
+      "company": "Société cliente",
+      "chooseCompany": "Choisir une société",
+      "description": "Description (facultatif)"
+    },
     "empty": {
       "title": "Aucun projet pour le moment",
       "CLIENT": "Vos projets apparaîtront ici dès leur création.",

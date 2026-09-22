@@ -1,6 +1,13 @@
 # Traçabilité au cahier des charges
 
-**Statut : version 17 — partage et droits, tranche T13 (21/09/2026).** Colonne *Lot* : ADR 0009.
+**Statut : version 18 — recette automatisée + gestion des données par l'interface, tranche T14/T15 (22/09/2026).** Colonne *Lot* : ADR 0009.
+
+> **Mode « recette » (22/09/2026).** Un audit manuel a montré un écart entre les comptes rendus
+> précédents et l'application réellement testée (entrées « Bientôt disponible » toujours grisées,
+> onglets sans effet). Depuis ce point, « terminé » signifie : vérifié par `e2e/recette.spec.ts`
+> (Playwright, `npm run test:e2e`), qui se connecte réellement avec chacun des six comptes et
+> clique chaque entrée de navigation. Score courant : **25/36 vérifications passent** — le détail
+> des 11 restantes est sous chaque exigence concernée ci-dessous et dans `.tmp/recette/findings.json`.
 
 Les libellés de la colonne *Exigence* sont repris **mot pour mot** du cahier des charges
 (tableaux 3.1 à 3.5 et 5). Ils ne doivent pas être reformulés lors des mises à jour.
@@ -303,11 +310,11 @@ Statut :
 
 | Réf. | Exigence | Priorité | Lot | Statut | Où c'est implémenté |
 |---|---|---|---|---|---|
-| EF-501 | Création et gestion des comptes utilisateurs et des organisations. | Élevée | MVP | 🔨 Phases 1 et 3 — API comptes (création, rôle, désactivation, anonymisation) et sociétés clientes, testées ; liste, recherche et activation/désactivation des comptes livrées ; création et sociétés clientes à poursuivre | `backend/src/modules/users/`, `backend/src/modules/client-companies/`, `frontend/src/features/admin/users-page.tsx` |
+| EF-501 | Création et gestion des comptes utilisateurs et des organisations. | Élevée | MVP | ✅ T15 — création, modification (identité, rattachement société), changement de rôle, réinitialisation de mot de passe, désactivation/réactivation ; sociétés clientes : créer/modifier/archiver ; tout depuis l'interface, plus l'API seule | `backend/src/modules/users/`, `backend/src/modules/client-companies/`, `frontend/src/features/admin/users-page.tsx`, `frontend/src/features/admin/client-companies-page.tsx` — tests `users.e2e-spec.ts`, `client-companies.e2e-spec.ts` |
 | EF-502 | Authentification sécurisée (identifiant / mot de passe, SSO ou OAuth en option). | Élevée | MVP (§3) | ✅ Phase 1 — identifiant / mot de passe ; SSO et OAuth (optionnels) non implémentés | `backend/src/modules/auth/`, `backend/src/security/`, `frontend/src/features/auth/` — tests `backend/test/auth.e2e-spec.ts` |
 | EF-503 | Gestion des rôles et permissions (administrateur, concepteur, invité). | Élevée | MVP (§3) | ✅ Phase 1 | `packages/shared/src/rbac/`, `backend/src/security/guards/` — tests `check-permissions.spec.ts`, `users.e2e-spec.ts` |
 | EF-504 | Tableau de bord des projets : liste, recherche, filtres, statut. | Moyenne | V1 (§3) | 🔨 Phases 1 et 3 — liste et statut par portail (API : recherche et filtre par statut) ; recherche et filtres à l’écran en Phase 3 | `frontend/src/features/projects/`, `frontend/src/features/dashboard/` |
-| EF-505 | Gestion du catalogue de composants par l'administrateur (ajout, mise à jour). | Moyenne | V1 | ✅ T1 — ajout, modification, archivage (ADR 0008) ; `catalog.manage` réservé à l'administrateur, testé | `backend/src/modules/catalog/catalog.service.ts`, `frontend/src/features/admin/catalog-page.tsx` — tests `backend/test/catalog.e2e-spec.ts` |
+| EF-505 | Gestion du catalogue de composants par l'administrateur (ajout, mise à jour). | Moyenne | V1 | ✅ T1 (ajout) + T15 (modification câblée à l'écran — l'API existait, le formulaire d'édition manquait) ; archivage (ADR 0008) ; `catalog.manage` réservé à l'administrateur, testé | `backend/src/modules/catalog/catalog.service.ts`, `frontend/src/features/admin/catalog-page.tsx` — tests `backend/test/catalog.e2e-spec.ts` |
 
 > **EF-502 — ADR 0010.** Pas d'inscription publique : l'administrateur crée les comptes. La
 > création répond de manière identique que l'adresse soit libre ou non (anti-énumération).
@@ -350,7 +357,7 @@ Statut :
 > seed peuplant **trois** sociétés clientes distinctes avec comptes CLIENT et projets séparés
 > (`backend/prisma/seed/index.ts`), et test renforcé reproduisant le symptôme observé (13 projets
 > supplémentaires dans une autre société, toujours 0 fuite).
-| ENF-07 | Traçabilité | Journalisation des actions (audit) et historisation des versions de projet. | 🔨 Phases 1 et 10 — journal d’audit et historique des statuts livrés et testés ; historisation des versions d’architecture en Phase 10 | `backend/src/modules/audit/`, `ProjectStatusHistory` |
+| ENF-07 | Traçabilité | Journalisation des actions (audit) et historisation des versions de projet. | ✅ Phases 1, 5 et T15 — journal d’audit (API + écran `/admin/audit`, auteur résolu), historique des statuts et versions d’architecture livrés et testés | `backend/src/modules/audit/`, `frontend/src/features/admin/audit-page.tsx`, `ProjectStatusHistory` |
 
 ---
 

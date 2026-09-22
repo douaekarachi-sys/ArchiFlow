@@ -58,6 +58,15 @@ export class AuditService {
       this.prisma.system.auditLog.findMany({ where, orderBy: { createdAt: 'desc' }, ...skipTake(pagination) }),
       this.prisma.system.auditLog.count({ where }),
     ]);
-    return toPage(data, total, pagination);
+
+    // Résolution du nom de l'auteur — un journal d'audit illisible (UUID nus) n'est pas présentable.
+    const actorIds = [...new Set(data.map((entry) => entry.actorId).filter((id): id is string => id != null))];
+    const actors = actorIds.length
+      ? await this.prisma.system.user.findMany({ where: { id: { in: actorIds } }, select: { id: true, firstName: true, lastName: true } })
+      : [];
+    const actorById = new Map(actors.map((a) => [a.id, a]));
+    const enriched = data.map((entry) => ({ ...entry, actor: entry.actorId ? (actorById.get(entry.actorId) ?? null) : null }));
+
+    return toPage(enriched, total, pagination);
   }
 }

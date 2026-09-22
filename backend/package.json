@@ -16,6 +16,7 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed/index.ts",
+    "db:seed:minimal": "tsx prisma/seed/index.ts minimal",
     "db:ephemeral": "tsx scripts/ephemeral-db.ts",
     "db:backup": "tsx scripts/backup.ts",
     "db:restore": "tsx scripts/restore.ts",

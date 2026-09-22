@@ -76,6 +76,21 @@ export const changeRoleSchema = z.object({
 });
 export type ChangeRoleInput = z.infer<typeof changeRoleSchema>;
 
+/** Modification par l'administrateur : identité, et rattachement à une société pour un CLIENT. */
+export const updateUserSchema = z.object({
+  firstName: z.string().trim().min(1, 'validation.firstName.required').max(80).optional(),
+  lastName: z.string().trim().min(1, 'validation.lastName.required').max(80).optional(),
+  /** `null` détache explicitement un CLIENT de sa société — jamais pour un rôle interne. */
+  clientCompanyId: z.string().uuid().nullish(),
+});
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+
+/** Réinitialisation par l'administrateur (D-14) : un nouveau mot de passe PROVISOIRE, comme à la création. */
+export const adminResetPasswordSchema = z.object({
+  temporaryPassword: passwordSchema,
+});
+export type AdminResetPasswordInput = z.infer<typeof adminResetPasswordSchema>;
+
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, 'validation.password.currentRequired').max(128),

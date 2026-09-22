@@ -1,13 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { EQUIPMENT_CATEGORIES, type EquipmentCategory } from '@archiflow/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Archive, Cpu, Plus, Search } from 'lucide-react';
+import { Archive, Cpu, Pencil, Plus, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 import { catalogApi } from '@/api/endpoints';
 import { CategoryBadge } from '@/components/patterns/category-badge';
+import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConfirmDestructive } from '@/components/ui/confirm-destructive';
@@ -115,13 +116,16 @@ function EquipmentCard({
           {equipment.archivedAt ? (
             <Badge tone="neutral">{t('catalog.archived')}</Badge>
           ) : (
-            <ConfirmDestructive
-              action={t('catalog.archiveAction')}
-              target={equipment.name}
-              consequence={t('catalog.archiveConsequence')}
-              trigger={<Button variant="ghost" size="sm" icon={<Archive />}>{t('catalog.archiveAction')}</Button>}
-              onConfirm={() => archive.mutateAsync()}
-            />
+            <div className="flex gap-2">
+              <EditModelDialog equipment={equipment} />
+              <ConfirmDestructive
+                action={t('catalog.archiveAction')}
+                target={equipment.name}
+                consequence={t('catalog.archiveConsequence')}
+                trigger={<Button variant="ghost" size="sm" icon={<Archive />}>{t('catalog.archiveAction')}</Button>}
+                onConfirm={() => archive.mutateAsync()}
+              />
+            </div>
           )}
         </div>
       )}
@@ -210,6 +214,95 @@ function CreateModelDialog() {
             </Field>
             <Field label={t('catalog.reference')} error={validationMessage(t, errors.reference?.message)}>
               <Input {...form.register('reference')} mono placeholder="C9300-48P-E" />
+            </Field>
+          </div>
+          <div className="grid grid-cols-4 gap-3">
+            <Field label={t('catalog.ports')}><Input {...form.register('portCount')} inputMode="numeric" /></Field>
+            <Field label={t('catalog.throughput')}><Input {...form.register('throughputMbps')} inputMode="numeric" /></Field>
+            <Field label={t('catalog.power')}><Input {...form.register('powerDrawW')} inputMode="numeric" /></Field>
+            <Field label={t('catalog.rackUnits')}><Input {...form.register('rackUnits')} inputMode="numeric" /></Field>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <Field label={t('catalog.price')}><Input {...form.register('indicativePrice')} inputMode="decimal" /></Field>
+            <Field label={t('catalog.currency')}><Input {...form.register('currency')} mono /></Field>
+            <Field label={t('catalog.licenseAnnualCost')}><Input {...form.register('licenseAnnualCost')} inputMode="decimal" /></Field>
+          </div>
+          <div className="mt-2 flex justify-end gap-2">
+            <DialogClose asChild><Button variant="secondary">{t('common.cancel')}</Button></DialogClose>
+            <Button type="submit" loading={isSubmitting}>{t('common.save')}</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+const editModelFormSchema = z.object({
+  name: z.string().trim().min(1, 'validation.name.required').max(160),
+  reference: z.string().trim().min(1, 'validation.reference.required').max(120),
+  portCount: z.string().optional(),
+  throughputMbps: z.string().optional(),
+  powerDrawW: z.string().optional(),
+  rackUnits: z.string().optional(),
+  indicativePrice: z.string().optional(),
+  currency: z.string().max(3).optional(),
+  licenseAnnualCost: z.string().optional(),
+});
+type EditModelForm = z.infer<typeof editModelFormSchema>;
+
+/** Modification (EF-505) : tout sauf le fabricant/la marque/la catégorie — un changement de famille est une nouvelle fiche. */
+function EditModelDialog({ equipment }: { equipment: Awaited<ReturnType<typeof catalogApi.equipment>>['data'][number] }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const form = useForm<EditModelForm>({
+    resolver: zodResolver(editModelFormSchema),
+    defaultValues: {
+      name: equipment.name,
+      reference: equipment.reference,
+      portCount: equipment.portCount?.toString() ?? '',
+      throughputMbps: equipment.throughputMbps?.toString() ?? '',
+      powerDrawW: equipment.powerDrawW?.toString() ?? '',
+      rackUnits: equipment.rackUnits?.toString() ?? '',
+      indicativePrice: equipment.indicativePrice?.toString() ?? '',
+      currency: equipment.currency ?? 'MAD',
+      licenseAnnualCost: equipment.licenseAnnualCost?.toString() ?? '',
+    },
+  });
+  const { errors, isSubmitting } = form.formState;
+  const update = useMutation({
+    mutationFn: (values: EditModelForm) =>
+      catalogApi.updateModel(equipment.id, {
+        name: values.name,
+        reference: values.reference,
+        portCount: values.portCount ? Number(values.portCount) : undefined,
+        throughputMbps: values.throughputMbps ? Number(values.throughputMbps) : undefined,
+        powerDrawW: values.powerDrawW ? Number(values.powerDrawW) : undefined,
+        rackUnits: values.rackUnits ? Number(values.rackUnits) : undefined,
+        indicativePrice: values.indicativePrice ? Number(values.indicativePrice) : undefined,
+        currency: values.currency || undefined,
+        licenseAnnualCost: values.licenseAnnualCost ? Number(values.licenseAnnualCost) : undefined,
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['catalog'] });
+      setOpen(false);
+    },
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="sm" icon={<Pencil />}>{t('catalog.editAction')}</Button>
+      </DialogTrigger>
+      <DialogContent title={t('catalog.editModel')} description={`${equipment.brand.manufacturer.name} · ${equipment.brand.name}`}>
+        <form onSubmit={form.handleSubmit((v) => update.mutateAsync(v))} noValidate className="flex flex-col gap-4">
+          {update.isError && <Alert tone="critical">{errorMessage(t, update.error)}</Alert>}
+          <div className="grid grid-cols-2 gap-3">
+            <Field label={t('catalog.modelName')} error={validationMessage(t, errors.name?.message)}>
+              <Input {...form.register('name')} />
+            </Field>
+            <Field label={t('catalog.reference')} error={validationMessage(t, errors.reference?.message)}>
+              <Input {...form.register('reference')} mono />
             </Field>
           </div>
           <div className="grid grid-cols-4 gap-3">

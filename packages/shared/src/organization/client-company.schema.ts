@@ -12,3 +12,6 @@ export const createClientCompanySchema = z.object({
     .optional(),
 });
 export type CreateClientCompanyInput = z.infer<typeof createClientCompanySchema>;
+
+export const updateClientCompanySchema = createClientCompanySchema.partial();
+export type UpdateClientCompanyInput = z.infer<typeof updateClientCompanySchema>;

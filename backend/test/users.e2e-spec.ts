@@ -126,6 +126,63 @@ describe('changement de rôle — scénario 3', () => {
   });
 });
 
+describe('modification par l’administrateur (T15) — identité, rattachement à une société, mot de passe', () => {
+  it('modifie le prénom et le nom', async () => {
+    const res = await server().patch(`${API}/users/${w.users.salesA.id}`).set(admin.auth).send({ firstName: 'Nadia', lastName: 'Chraibi-Idrissi' });
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ firstName: 'Nadia', lastName: 'Chraibi-Idrissi' });
+  });
+
+  it('rattache un CLIENT à une autre société de la même organisation', async () => {
+    const res = await server().patch(`${API}/users/${w.users.clientA1.id}`).set(admin.auth).send({ clientCompanyId: w.companyA2 });
+    expect(res.status).toBe(200);
+    expect(res.body.clientCompanyId).toBe(w.companyA2);
+  });
+
+  it('refuse de rattacher une société à un rôle interne', async () => {
+    const res = await server().patch(`${API}/users/${w.users.salesA.id}`).set(admin.auth).send({ clientCompanyId: w.companyA1 });
+    expect(res.status).toBe(422);
+  });
+
+  it('refuse une société inconnue ou d’une autre organisation', async () => {
+    const companyB = (await t.prisma.system.clientCompany.findFirstOrThrow({ where: { organizationId: w.orgB } })).id;
+    const res = await server().patch(`${API}/users/${w.users.clientA1.id}`).set(admin.auth).send({ clientCompanyId: companyB });
+    expect(res.status).toBe(404);
+  });
+
+  it('réinitialise le mot de passe : nouveau mot de passe provisoire, sessions révoquées, connexion possible avec le nouveau', async () => {
+    const clientSession = await login(t, w.users.clientA1.email);
+    const before = await server().get(`${API}/projects`).set(clientSession.auth);
+    expect(before.status).toBe(200);
+
+    const res = await server()
+      .post(`${API}/users/${w.users.clientA1.id}/reset-password`)
+      .set(admin.auth)
+      .send({ temporaryPassword: 'nouveau-provisoire-2026!' });
+    expect(res.status).toBe(200);
+    expect(res.body.mustChangePassword).toBe(true);
+
+    // Le jeton d'accès reste signé valide (il est sans état), mais la base fait foi à chaque
+    // requête (comme un changement de rôle) : le mot de passe provisoire bloque le reste de l'API.
+    const blocked = await server().get(`${API}/projects`).set(clientSession.auth);
+    expect(blocked.status).toBe(403);
+    expect(blocked.body.error.code).toBe('PASSWORD_CHANGE_REQUIRED');
+
+    // Le jeton de RAFRAÎCHISSEMENT, lui, est bien révoqué : l'ancienne session ne peut pas se prolonger.
+    const oldRefresh = await server().post(`${API}/auth/refresh`).set('Cookie', clientSession.cookie);
+    expect(oldRefresh.status).toBe(401);
+
+    const relogin = await login(t, w.users.clientA1.email, 'nouveau-provisoire-2026!');
+    expect(relogin.auth.Authorization).toBeTruthy();
+  });
+
+  it('un rôle sans user.update est refusé', async () => {
+    const s = await login(t, w.users.pmA.email);
+    const res = await server().patch(`${API}/users/${w.users.salesA.id}`).set(s.auth).send({ firstName: 'X' });
+    expect(res.status).toBe(403);
+  });
+});
+
 describe('cycle de vie (ENF-02)', () => {
   it('désactivation réversible : la connexion échoue, puis revient', async () => {
     await server().post(`${API}/users/${w.users.salesA.id}/deactivate`).set(admin.auth).expect(200);

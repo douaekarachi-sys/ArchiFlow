@@ -1,11 +1,15 @@
 import { Body, Controller, Get, HttpCode, Param, Patch, Post, Query } from '@nestjs/common';
 import {
   ROLES,
+  adminResetPasswordSchema,
   changeRoleSchema,
   createUserSchema,
+  updateUserSchema,
+  type AdminResetPasswordInput,
   type AuthContext,
   type ChangeRoleInput,
   type CreateUserInput,
+  type UpdateUserInput,
 } from '@archiflow/shared';
 import { z } from 'zod';
 import { paginationSchema } from '../../common/http/pagination';
@@ -40,6 +44,23 @@ export class UsersController {
   @RequirePermission('user.create')
   create(@CurrentUser() ctx: AuthContext, @Body(zod(createUserSchema)) input: CreateUserInput) {
     return this.users.create(ctx, input);
+  }
+
+  @Patch(':id')
+  @RequirePermission('user.update')
+  update(@CurrentUser() ctx: AuthContext, @Param('id', uuidParam) id: string, @Body(zod(updateUserSchema)) input: UpdateUserInput) {
+    return this.users.update(ctx, id, input);
+  }
+
+  @Post(':id/reset-password')
+  @HttpCode(200)
+  @RequirePermission('user.update')
+  resetPassword(
+    @CurrentUser() ctx: AuthContext,
+    @Param('id', uuidParam) id: string,
+    @Body(zod(adminResetPasswordSchema)) input: AdminResetPasswordInput,
+  ) {
+    return this.users.resetPassword(ctx, id, input);
   }
 
   @Patch(':id/role')

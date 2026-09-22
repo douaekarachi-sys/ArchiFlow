@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import {
   isInternalRole,
+  type AdminResetPasswordInput,
   type AuthContext,
   type CreateUserAccepted,
   type CreateUserInput,
   type Role,
+  type UpdateUserInput,
 } from '@archiflow/shared';
 import { AppError, notFound } from '../../common/errors/app-error';
 import { skipTake, toPage, type Page, type Pagination } from '../../common/http/pagination';
@@ -134,6 +136,55 @@ export class UsersService {
   /** Aucun compte créé, aucune adresse journalisée : on trace le fait, pas la donnée. */
   private recordCollision(ctx: AuthContext): Promise<void> {
     return this.audit.record(ctx, { action: 'user.create.email_unavailable', targetType: 'user' });
+  }
+
+  /**
+   * Modification par l'administrateur : identité, et rattachement à une société pour un CLIENT
+   * (jamais pour un rôle interne — même règle qu'à la création).
+   */
+  async update(ctx: AuthContext, userId: string, input: UpdateUserInput): Promise<PublicUser> {
+    const target = await this.findInOrganization(ctx, userId);
+
+    let clientCompanyId: string | null | undefined;
+    if (input.clientCompanyId !== undefined) {
+      if (isInternalRole(target.role)) {
+        throw new AppError('UNPROCESSABLE', 'Un compte interne ne se rattache pas à une société cliente');
+      }
+      if (input.clientCompanyId) {
+        const company = await this.prisma.tenant.clientCompany.findFirst({
+          where: { id: input.clientCompanyId, organizationId: ctx.organizationId, deletedAt: null },
+          select: { id: true },
+        });
+        if (!company) throw notFound('Société cliente');
+      }
+      clientCompanyId = input.clientCompanyId;
+    }
+
+    const updated = await this.prisma.tenant.user.update({
+      where: { id: target.id, organizationId: ctx.organizationId },
+      data: {
+        ...(input.firstName !== undefined ? { firstName: input.firstName } : {}),
+        ...(input.lastName !== undefined ? { lastName: input.lastName } : {}),
+        ...(clientCompanyId !== undefined ? { clientCompanyId } : {}),
+      },
+      select: PUBLIC_USER,
+    });
+    await this.audit.record(ctx, { action: 'user.updated', targetType: 'user', targetId: target.id });
+    return updated;
+  }
+
+  /** Réinitialisation par l'administrateur (D-14) : nouveau mot de passe provisoire, sessions révoquées. */
+  async resetPassword(ctx: AuthContext, userId: string, input: AdminResetPasswordInput): Promise<PublicUser> {
+    const target = await this.findInOrganization(ctx, userId);
+    const passwordHash = await this.hasher.hash(input.temporaryPassword);
+    const updated = await this.prisma.tenant.user.update({
+      where: { id: target.id, organizationId: ctx.organizationId },
+      data: { passwordHash, mustChangePassword: true },
+      select: PUBLIC_USER,
+    });
+    await this.auth.revokeAllSessions(target.id);
+    await this.audit.record(ctx, { action: 'user.password.reset', targetType: 'user', targetId: target.id });
+    return updated;
   }
 
   // --- Changement de rôle — scénario 3 ------------------------------------------------------

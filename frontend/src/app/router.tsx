@@ -22,6 +22,8 @@ const RequestPage = lazy(() => import('@/features/request/request-page').then((m
 const ProjectsPage = lazy(() => import('@/features/projects/projects-page').then((m) => ({ default: m.ProjectsPage })));
 const DesignerPage = lazy(() => import('@/features/designer/designer-page').then((m) => ({ default: m.DesignerPage })));
 const UsersPage = lazy(() => import('@/features/admin/users-page').then((m) => ({ default: m.UsersPage })));
+const ClientCompaniesPage = lazy(() => import('@/features/admin/client-companies-page').then((m) => ({ default: m.ClientCompaniesPage })));
+const AuditPage = lazy(() => import('@/features/admin/audit-page').then((m) => ({ default: m.AuditPage })));
 const AdminRequestsPage = lazy(() => import('@/features/admin/requests-page').then((m) => ({ default: m.AdminRequestsPage })));
 const CatalogPage = lazy(() => import('@/features/admin/catalog-page').then((m) => ({ default: m.CatalogPage })));
 const needAnalysis = () => import('@/features/engineer/need-analysis-page');
@@ -100,6 +102,8 @@ const portalRoute = (role: Role): RouteObject => ({
           ...(role === 'ADMIN'
             ? [
                 { path: 'users', element: <Lazy><UsersPage /></Lazy> },
+                { path: 'client-companies', element: <Lazy><ClientCompaniesPage /></Lazy> },
+                { path: 'audit', element: <Lazy><AuditPage /></Lazy> },
                 { path: 'requests', element: <Lazy><AdminRequestsPage /></Lazy> },
                 { path: 'catalog', element: <Lazy><CatalogPage /></Lazy> },
               ]

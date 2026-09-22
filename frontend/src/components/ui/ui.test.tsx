@@ -1,3 +1,4 @@
+import type { Role } from '@archiflow/shared';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Plus } from 'lucide-react';
@@ -15,7 +16,7 @@ import { SeverityDots } from './severity-dots';
 import { Tabs } from './tabs';
 import { TooltipProvider } from './tooltip';
 
-function renderSidebar(role: 'ADMIN') {
+function renderSidebar(role: Role) {
   return render(
     <MemoryRouter>
       <TooltipProvider>
@@ -210,10 +211,10 @@ describe('Sidebar', () => {
   });
 
   it('grise les sections dont la fonctionnalité n’existe pas encore, avec leur phase', () => {
-    renderSidebar('ADMIN');
-    // Le groupe « Administration » est ouvert par défaut.
-    const clientCompanies = screen.getByText('Sociétés clientes').closest('[aria-disabled]');
-    expect(clientCompanies).toHaveAttribute('aria-disabled', 'true');
+    renderSidebar('ARCHITECT');
+    // Le groupe « Conception » est ouvert par défaut.
+    const physicalView = screen.getByText('Vue physique').closest('[aria-disabled]');
+    expect(physicalView).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('le groupe replié masque ses entrées, le chevron pivote', async () => {

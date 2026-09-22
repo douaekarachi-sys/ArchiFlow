@@ -172,6 +172,20 @@ const CATALOG: ManufacturerSeed[] = [
   },
 ];
 
+/** Un modèle par catégorie, pris dans le catalogue de démonstration ci-dessus — pas de données inventées. */
+function minimalCatalogEntries(): { manufacturer: ManufacturerSeed; model: ModelSeed }[] {
+  const seenCategories = new Set<string>();
+  const picked: { manufacturer: ManufacturerSeed; model: ModelSeed }[] = [];
+  for (const manufacturer of CATALOG) {
+    for (const model of manufacturer.models) {
+      if (seenCategories.has(model.category)) continue;
+      seenCategories.add(model.category);
+      picked.push({ manufacturer, model });
+    }
+  }
+  return picked;
+}
+
 function pathTo(status: ProjectStatus): ProjectStatus[] {
   return DETOURS[status] ?? HAPPY_PATH.slice(0, HAPPY_PATH.indexOf(status) + 1);
 }
@@ -204,6 +218,79 @@ async function reset(): Promise<void> {
   await prisma.equipmentManufacturer.deleteMany();
   await prisma.equipmentCategory.deleteMany();
   await prisma.organization.deleteMany();
+}
+
+/**
+ * Mode minimal (`npm run db:seed:minimal`) : un seul compte ADMIN, un catalogue de base (un
+ * modèle par catégorie), rien d'autre. Pour qui veut tout saisir soi-même depuis l'interface
+ * plutôt que de partir du scénario de démonstration.
+ */
+async function seedMinimal(): Promise<void> {
+  await reset();
+
+  const categoryIds: Record<string, string> = {};
+  for (const code of EQUIPMENT_CATEGORIES) {
+    const category = await prisma.equipmentCategory.create({ data: { code, labelKey: `equipment.category.${code}` } });
+    categoryIds[code] = category.id;
+  }
+
+  const org = await prisma.organization.create({ data: { name: 'ArchiFlow', slug: 'archiflow' } });
+
+  const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 12);
+  const admin = await prisma.user.create({
+    data: {
+      organizationId: org.id,
+      email: 'admin@archiflow.local',
+      firstName: 'Admin',
+      lastName: 'ArchiFlow',
+      passwordHash,
+      role: 'ADMIN',
+      mustChangePassword: true,
+    },
+  });
+
+  const manufacturerIdByName: Record<string, string> = {};
+  const brandIdByName: Record<string, string> = {};
+  let modelCount = 0;
+  for (const { manufacturer, model } of minimalCatalogEntries()) {
+    if (!manufacturerIdByName[manufacturer.manufacturer]) {
+      const createdManufacturer = await prisma.equipmentManufacturer.create({
+        data: { organizationId: org.id, name: manufacturer.manufacturer, website: manufacturer.website },
+      });
+      manufacturerIdByName[manufacturer.manufacturer] = createdManufacturer.id;
+      const createdBrand = await prisma.equipmentBrand.create({
+        data: { organizationId: org.id, manufacturerId: createdManufacturer.id, name: manufacturer.manufacturer },
+      });
+      brandIdByName[manufacturer.manufacturer] = createdBrand.id;
+    }
+    await prisma.equipmentModel.create({
+      data: {
+        organizationId: org.id,
+        brandId: brandIdByName[manufacturer.manufacturer]!,
+        categoryId: categoryIds[model.category]!,
+        name: model.name,
+        reference: model.reference,
+        description: model.description,
+        portCount: model.portCount,
+        portType: model.portType,
+        throughputMbps: model.throughputMbps,
+        poeBudgetW: model.poeBudgetW,
+        powerDrawW: model.powerDrawW,
+        rackUnits: model.rackUnits,
+        indicativePrice: model.indicativePrice,
+        currency: 'MAD',
+        licenseAnnualCost: model.licenseAnnualCost,
+        isDemoData: true,
+      },
+    });
+    modelCount++;
+  }
+
+  console.log('Seed minimal terminé.');
+  console.log(`  Organisation : ${org.name}`);
+  console.log(`  Compte (mot de passe « ${DEMO_PASSWORD} ») : ADMIN ${admin.email}`);
+  console.log(`  Catalogue de base : ${Object.keys(manufacturerIdByName).length} fabricants, ${modelCount} modèles, un par catégorie (DEMO DATA).`);
+  console.log('  Aucun autre compte, aucune société cliente, aucun projet : à créer depuis l’interface.');
 }
 
 async function main(): Promise<void> {
@@ -601,7 +688,9 @@ async function main(): Promise<void> {
   console.log('  Scénario de démonstration : voir README.md « Démonstration en 5 minutes ».');
 }
 
-main()
+// Argument CLI plutôt qu'une variable d'environnement : `SEED_MODE=minimal` n'a pas la même
+// syntaxe entre shells POSIX et Windows, un argument, si.
+(process.argv[2] === 'minimal' ? seedMinimal() : main())
   .catch((error: unknown) => {
     console.error(error);
     process.exitCode = 1;
