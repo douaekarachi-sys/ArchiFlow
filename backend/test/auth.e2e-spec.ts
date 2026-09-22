@@ -226,4 +226,44 @@ describe('limitation de débit sur /auth', () => {
       await limited.close();
     }
   });
+
+  it('/auth/refresh, /auth/logout et /auth/me échappent à la limite qui bloque /auth/login', async () => {
+    // Régression : @SkipThrottle() seul ne dispense QUE d'un limiteur nommé « default ». Ce
+    // service nomme le sien « auth » (ThrottlerModule.forRootAsync) — sans @SkipThrottle({ auth:
+    // true }), le rafraîchissement se faisait bloquer par le même compteur que la connexion,
+    // déconnectant silencieusement un utilisateur après quelques rechargements de page (observé
+    // en conditions réelles lors de la passe visuelle T14 : plusieurs comptes perdaient leur
+    // session après une poignée de navigations).
+    const limited = await createTestApp({ THROTTLE_AUTH_LIMIT: '2' });
+    try {
+      const limitedServer = () => request(limited.app.getHttpServer());
+      const limitedWorld = await buildWorld(limited.prisma);
+
+      const loggedIn = await limitedServer().post(`${API}/auth/login`).send({ email: limitedWorld.users.adminA.email, password: PASSWORD });
+      expect(loggedIn.status).toBe(200);
+      const readCookie = (res: request.Response) =>
+        ([] as string[]).concat(res.headers['set-cookie'] ?? []).find((c) => c.startsWith('af_rt='))!.split(';')[0]!;
+      let cookie = readCookie(loggedIn);
+
+      // Épuise la limite de connexion (2 tentatives par minute) sur des essais indépendants.
+      await limitedServer().post(`${API}/auth/login`).send({ email: 'x@test.local', password: 'faux' });
+      await limitedServer().post(`${API}/auth/login`).send({ email: 'x@test.local', password: 'faux' });
+      const blockedLogin = await limitedServer().post(`${API}/auth/login`).send({ email: 'x@test.local', password: 'faux' });
+      expect(blockedLogin.status).toBe(429);
+
+      // La limite de /auth/login est bien atteinte — /auth/refresh, /auth/me et /auth/logout
+      // n'en sont pourtant jamais affectés : chacun peut être appelé plus de fois que la limite.
+      for (let i = 0; i < 3; i++) {
+        const refreshed = await limitedServer().post(`${API}/auth/refresh`).set('Cookie', cookie);
+        expect(refreshed.status).toBe(200);
+        cookie = readCookie(refreshed);
+      }
+      const me = await limitedServer().get(`${API}/auth/me`).set('Authorization', `Bearer ${loggedIn.body.accessToken}`);
+      expect(me.status).toBe(200);
+      const logout = await limitedServer().post(`${API}/auth/logout`).set('Cookie', cookie);
+      expect(logout.status).toBe(204);
+    } finally {
+      await limited.close();
+    }
+  });
 });

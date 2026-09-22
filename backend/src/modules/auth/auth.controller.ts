@@ -62,7 +62,7 @@ export class AuthController {
   }
 
   @Public()
-  @SkipThrottle()
+  @SkipThrottle({ auth: true })
   @Post('refresh')
   @HttpCode(200)
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
@@ -75,7 +75,7 @@ export class AuthController {
   }
 
   @Public()
-  @SkipThrottle()
+  @SkipThrottle({ auth: true })
   @Post('logout')
   @HttpCode(204)
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<void> {
@@ -83,7 +83,7 @@ export class AuthController {
     res.clearCookie(REFRESH_COOKIE, { path: REFRESH_COOKIE_PATH });
   }
 
-  @SkipThrottle()
+  @SkipThrottle({ auth: true })
   @AllowPendingPasswordChange()
   @Get('me')
   me(@CurrentUser() ctx: AuthContext) {
