@@ -70,7 +70,7 @@ function DesignerCanvas({ projectId }: { projectId: string }) {
   const history = useDesignerHistory(EMPTY_DOCUMENT);
   const catalogQuery = useQuery({
     queryKey: ['catalog', 'equipment', 'designer'],
-    queryFn: () => catalogApi.equipment({ page: 1, pageSize: 500 }),
+    queryFn: () => catalogApi.equipment({ page: 1, pageSize: 100 }),
     staleTime: 60_000,
   });
   const { screenToFlowPosition } = useReactFlow();

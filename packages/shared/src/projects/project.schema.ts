@@ -41,3 +41,9 @@ export const createShareSchema = z.object({
   right: z.enum(PROJECT_SHARE_RIGHTS),
 });
 export type CreateShareInput = z.infer<typeof createShareSchema>;
+
+/** Messages (T17, point 1) — un fil de commentaires partagé entre le client et l'équipe interne. */
+export const createCommentSchema = z.object({
+  body: z.string().trim().min(1, 'validation.comment.required').max(4000, 'validation.comment.tooLong'),
+});
+export type CreateCommentInput = z.infer<typeof createCommentSchema>;

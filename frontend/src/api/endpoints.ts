@@ -7,6 +7,7 @@ import type {
   ChangePasswordInput,
   CreateBrandInput,
   CreateClientCompanyInput,
+  CreateCommentInput,
   CreateEquipmentModelInput,
   CreateManufacturerInput,
   CreateRequestInput,
@@ -252,6 +253,18 @@ export const bomApi = {
 
 export const reportsApi = {
   downloadPdf: (projectId: string) => api.getBlob(`/projects/${projectId}/report/pdf`),
+};
+
+export interface ProjectCommentItem {
+  id: string;
+  body: string;
+  createdAt: string;
+  author: { id: string; firstName: string; lastName: string; role: Role } | null;
+}
+
+export const commentsApi = {
+  list: (projectId: string) => api.get<ProjectCommentItem[]>(`/projects/${projectId}/comments`),
+  create: (projectId: string, input: CreateCommentInput) => api.post<ProjectCommentItem>(`/projects/${projectId}/comments`, input),
 };
 
 export interface ChatAnswer {

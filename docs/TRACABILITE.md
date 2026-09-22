@@ -1,20 +1,23 @@
 # Traçabilité au cahier des charges
 
-**Statut : version 18 — recette automatisée + gestion des données par l'interface, tranche T14/T15 (22/09/2026).** Colonne *Lot* : ADR 0009.
+**Statut : version 19 — recette automatisée au vert, plus aucune entrée grisée, livraison v1.0 (22/09/2026).** Colonne *Lot* : ADR 0009.
 
-> **Mode « recette » (22/09/2026).** Un audit manuel a montré un écart entre les comptes rendus
-> précédents et l'application réellement testée (entrées « Bientôt disponible » toujours grisées,
-> onglets sans effet). Depuis ce point, « terminé » signifie : vérifié par `e2e/recette.spec.ts`
-> (Playwright, `npm run test:e2e`), qui se connecte réellement avec chacun des six comptes et
-> clique chaque entrée de navigation. Score courant : **25/36 vérifications passent** — le détail
-> des 11 restantes est sous chaque exigence concernée ci-dessous et dans `.tmp/recette/findings.json`.
+> **Mode « recette » (22/09/2026).** Un audit manuel avait montré un écart entre les comptes
+> rendus précédents et l'application réellement testée (entrées « Bientôt disponible » toujours
+> grisées, onglets sans effet). Depuis ce point, « terminé » signifie : vérifié par
+> `e2e/recette.spec.ts` (Playwright, `npm run test:e2e`), qui se connecte réellement avec chacun
+> des six comptes et clique chaque entrée de navigation et chaque onglet. **Score final :
+> 41/41 vérifications passent (100 %), zéro entrée grisée, zéro clic mort, zéro erreur console,
+> zéro débordement horizontal.** Toute entrée qui n'a pas pu être livrée fonctionnelle avant ce
+> point a été retirée de la navigation plutôt que laissée grisée (règle explicite de la tranche
+> T17) : il ne reste aucun « Bientôt disponible » dans l'application livrée.
 
 Les libellés de la colonne *Exigence* sont repris **mot pour mot** du cahier des charges
 (tableaux 3.1 à 3.5 et 5). Ils ne doivent pas être reformulés lors des mises à jour.
 
 Mise à jour : à chaque fin de phase.
 
-## État global (21/09/2026, fin de la tranche T13)
+## État global (22/09/2026, fin de la tranche T17 — livraison v1.0)
 
 **✅ Livré et testé** : authentification et RBAC (Phase 1), tenancy à deux niveaux (Phase 1),
 machine à états et workflow (Phase 1), catalogue — lecture et administration (T1, EF-201/505),
@@ -28,7 +31,15 @@ passerelle, plage DHCP, rattachement aux équipements, validation des chevauchem
 tableau dans le PDF (T11, EF-207), construction physique minimale — bâtiment → étage → salle →
 baie → position U, rattachement d'un équipement, navigation dans la vue 3D (T12, partie « schéma
 physique » d'EF-205), partage d'un projet — inviter un utilisateur de l'organisation avec un
-droit lecture/commentaire/édition, vérifié côté serveur (T13, EF-401/402).
+droit lecture/commentaire/édition, vérifié côté serveur (T13, EF-401/402), gestion complète des
+données depuis l'interface — utilisateurs, sociétés clientes, catalogue, deux modes de seed
+(T15, EF-501/505), échéance de projet et vues dérivées Planning/Kanban/Risques pour le chef de
+projet, Alertes pour l'ingénieur, Vue physique/Plan d'adressage/Validation pour l'architecte,
+Propositions/Publication client pour le commercial — aucun nouveau modèle hors `Project.dueDate`
+(T16, EF-504), Documents et Messages pour le client — le PDF/BOM/versions déjà produits d'un
+côté, un fil de commentaires partagé client/équipe par projet de l'autre, seul nouveau modèle de
+cette tranche (T17, EF-403 partiel), recette automatisée au vert sur les six rôles, plus aucune
+entrée de navigation grisée (T14/T17).
 
 **🔨 Livré en périmètre réduit, écart documenté** : détection d'anomalies structurelles limitée
 au graphe logique, les anomalies physiques restent à faire (dépassement de capacité d'une salle,
@@ -247,6 +258,12 @@ Statut :
 > aurait été une donnée fictive présentée comme réelle ; le CDC la classe « en option ».
 > Visible dans le portail Commercial (`/sales/bom`), et pour ADMIN/PROJECT_MANAGER.
 >
+> **T17 — Documents (client, 22/09/2026).** Dernière entrée grisée du portail client : une vue
+> dérivée listant, par projet visible, le téléchargement du PDF (EF-301 ci-dessus), un lien vers
+> le BOM (EF-302/303 ci-dessus) et l'historique des versions publiées (EF-405, §3.4) — aucun
+> nouveau modèle, aucune nouvelle route. `frontend/src/features/client/client-tools-page.tsx`
+> (`DocumentsPage`).
+>
 > **⚑ EF-306** — §4.3 range les exports VSDX, image et Excel sous « Intégrations et
 > interopérabilité ». Si le thème « intégrations » de §8.1 les englobe, EF-306 passe en **V2**.
 > Arbitrage attendu.
@@ -259,7 +276,7 @@ Statut :
 |---|---|---|---|---|---|
 | EF-401 | Partage d'un projet avec d'autres utilisateurs (lien ou invitation). | Élevée | MVP | ✅ T13 — invitation par identifiant utilisateur, jamais de lien public (demande explicite) | `backend/src/modules/projects/projects.service.ts` (`share`/`unshare`), `frontend/src/features/projects/project-detail-dialog.tsx` (`ShareActions`) — test `projects.e2e-spec.ts` |
 | EF-402 | Gestion fine des droits d'accès : lecture, commentaire, édition. | Élevée | MVP (§3) ⚑ | 🔨 T13 — droit borné par projet (`ProjectShare.right`), vérifié côté serveur ; lecture et édition pleinement fonctionnelles, commentaire stocké mais sans action à gater tant qu'EF-403 n'existe pas | `backend/prisma/schema.prisma` (`ProjectShare`), `packages/shared/src/projects/project.schema.ts` (`createShareSchema`) — test `projects.e2e-spec.ts` (describe « partage (T13, EF-401/402) ») |
-| EF-403 | Commentaires et annotations en temps réel, positionnés sur les éléments. | Moyenne | V1 | 🕓 Phase 10 | — |
+| EF-403 | Commentaires et annotations en temps réel, positionnés sur les éléments. | Moyenne | V1 | 🔨 T17 — fil de commentaires par projet, partagé client/équipe, chronologique, auteur+date ; ni temps réel, ni positionné sur un élément du schéma (Phase 10, dépend de D-05) | `backend/src/modules/comments/`, `frontend/src/features/client/client-tools-page.tsx` (`MessagesPickerPage`/`MessagesDetailPage`) — test `backend/test/comments.e2e-spec.ts` |
 | EF-404 | Édition collaborative simultanée avec indication de la présence des utilisateurs. | Moyenne | V2 ⚠ | 🕓 Phase 10 (présence) · post-V2 (co-édition) | — |
 | EF-405 | Historique et gestion des versions : comparaison et restauration d'une version antérieure. | Élevée | V1 ⚠ | ✅ T5 | `backend/src/modules/architecture/architecture.service.ts` (`persist`/`listVersions`/`getVersion`/`diffVersions`/`restoreVersion`), `packages/shared/src/architecture/diff.ts` (`diffArchitecture`) — `frontend/src/features/versions/versions-page.tsx` — tests `backend/test/architecture.e2e-spec.ts`, `diff.spec.ts`, `versions-page.test.tsx` |
 | EF-406 | Notifications lors d'une modification, d'un commentaire ou d'un partage. | Faible | V2 (§3) ⚑ | 🔨 T10 — notification e-mail *best-effort* aux transitions du workflow client (publication, commentaire, validation) uniquement ; pas encore sur une modification ou un partage quelconque | `backend/src/modules/projects/projects.service.ts` (`notifyTransition`), `backend/src/modules/mail/` |
@@ -292,6 +309,18 @@ Statut :
 > pourra s'appuyer directement sur cette permission et sur le droit `COMMENT` du partage sans
 > nouvelle décision RBAC.
 >
+> **T17 — Messages (EF-403 partiel, 22/09/2026).** `ProjectComment` (modèle déjà présent dans le
+> schéma depuis la Phase 2, jamais câblé) reçoit enfin son module : `GET`/`POST
+> /projects/:id/comments`, gardés par `project.read` (visibilité, D-09) et `comment.create` (déjà
+> accordé à tous les rôles depuis la Phase 1). Liste chronologique, auteur résolu, isolation par
+> société cliente et par organisation testées (404, jamais 403). **Écart assumé** : le droit
+> `COMMENT` du partage (T13) n'est toujours pas distinctement vérifié — tout utilisateur qui voit
+> le projet peut déjà commenter via son rôle, `COMMENT` reste donc équivalent à `READ` en
+> pratique ; ni temps réel (pas de présence, pas de rafraîchissement automatique — dépend de
+> D-05), ni annotation positionnée sur un élément du schéma. Portail CLIENT uniquement pour cette
+> tranche (nav « Messages ») ; le backend est générique et accessible à tout rôle interne visible
+> sur le projet, une entrée de navigation interne pourra être ajoutée sans nouveau travail serveur.
+>
 > **T5 — versions (ADR 0001).** Chaque sauvegarde de l'architecture (y compris une restauration)
 > crée une nouvelle `ArchitectureVersion`, jamais n'écrase la précédente : snapshot auto-porteur
 > (`frozenSpec` par élément — nom, référence, caractéristiques, **prix et devise au moment du
@@ -313,7 +342,7 @@ Statut :
 | EF-501 | Création et gestion des comptes utilisateurs et des organisations. | Élevée | MVP | ✅ T15 — création, modification (identité, rattachement société), changement de rôle, réinitialisation de mot de passe, désactivation/réactivation ; sociétés clientes : créer/modifier/archiver ; tout depuis l'interface, plus l'API seule | `backend/src/modules/users/`, `backend/src/modules/client-companies/`, `frontend/src/features/admin/users-page.tsx`, `frontend/src/features/admin/client-companies-page.tsx` — tests `users.e2e-spec.ts`, `client-companies.e2e-spec.ts` |
 | EF-502 | Authentification sécurisée (identifiant / mot de passe, SSO ou OAuth en option). | Élevée | MVP (§3) | ✅ Phase 1 — identifiant / mot de passe ; SSO et OAuth (optionnels) non implémentés | `backend/src/modules/auth/`, `backend/src/security/`, `frontend/src/features/auth/` — tests `backend/test/auth.e2e-spec.ts` |
 | EF-503 | Gestion des rôles et permissions (administrateur, concepteur, invité). | Élevée | MVP (§3) | ✅ Phase 1 | `packages/shared/src/rbac/`, `backend/src/security/guards/` — tests `check-permissions.spec.ts`, `users.e2e-spec.ts` |
-| EF-504 | Tableau de bord des projets : liste, recherche, filtres, statut. | Moyenne | V1 (§3) | 🔨 Phases 1 et 3 — liste et statut par portail (API : recherche et filtre par statut) ; recherche et filtres à l’écran en Phase 3 | `frontend/src/features/projects/`, `frontend/src/features/dashboard/` |
+| EF-504 | Tableau de bord des projets : liste, recherche, filtres, statut. | Moyenne | V1 (§3) | 🔨 Phases 1, 3 et T16 — liste et statut par portail (API : recherche et filtre par statut), recherche et filtres à l'écran (Phase 3), vues dérivées Planning (échéance) et Kanban (colonnes par statut, glisser-déposer) pour le chef de projet | `frontend/src/features/projects/`, `frontend/src/features/dashboard/`, `frontend/src/features/pm/pm-tools-page.tsx` |
 | EF-505 | Gestion du catalogue de composants par l'administrateur (ajout, mise à jour). | Moyenne | V1 | ✅ T1 (ajout) + T15 (modification câblée à l'écran — l'API existait, le formulaire d'édition manquait) ; archivage (ADR 0008) ; `catalog.manage` réservé à l'administrateur, testé | `backend/src/modules/catalog/catalog.service.ts`, `frontend/src/features/admin/catalog-page.tsx` — tests `backend/test/catalog.e2e-spec.ts` |
 
 > **EF-502 — ADR 0010.** Pas d'inscription publique : l'administrateur crée les comptes. La
@@ -322,6 +351,22 @@ Statut :
 > **EF-503 : divergence assumée.** Le CDC nomme trois rôles (administrateur, concepteur,
 > invité). L'application en implémente six, conformément au diagramme de cas d'utilisation.
 > Voir « Écarts assumés ».
+>
+> **T16 — vues dérivées, zéro entrée grisée (22/09/2026).** Six écrans restaient des entrées de
+> menu grisées (« Bientôt disponible ») : Planning, Kanban et Risques (chef de projet), Alertes
+> (ingénieur), Vue physique/Plan d'adressage/Validation (architecte), Propositions/Publication
+> client (commercial). Aucun n'a ajouté de nouveau modèle, à une exception près, explicitement
+> autorisée : `Project.dueDate` (migration additive, champ optionnel, jamais imposé), qui
+> alimente Planning et le calcul de retard de Risques. Tous les autres sont des vues
+> **dérivées** : Kanban et Planning relisent la même liste de projets et la même machine à états
+> que le tableau de bord (déplacer une carte déclenche la transition déjà existante, rien
+> d'autre) ; Risques combine les anomalies déjà calculées par les moteurs T4/T11/T12
+> (`useProjectAnomalies`, extrait pour être partagé avec Alertes), les échéances dépassées et les
+> projets immobiles depuis 14 jours ; Vue physique/Plan d'adressage/Validation relisent le MÊME
+> document d'architecture que le concepteur 2D (ADR 0001) en lecture seule ; Propositions et
+> Publication client filtrent la même liste de projets par statut. `ProjectsPanel` a gagné un
+> filtre `statuses` côté client pour ça, sans nouvel endpoint. Tests : `projects.e2e-spec.ts`
+> (describe « échéance (T16, Planning) »), suite frontend au vert.
 
 ---
 
@@ -331,7 +376,7 @@ Statut :
 |---|---|---|---|---|
 | ENF-01 | Performance | Temps de réponse inférieur à 2 s pour les actions courantes ; rendu fluide d'un plan comportant plusieurs centaines d'éléments ; latence de co-édition inférieure à 500 ms. | 🕓 Transverse · mesurée Phase 14 — chunks séparés et chargement paresseux en place | `frontend/vite.config.ts`, `frontend/src/app/router.tsx` |
 | ENF-02 | Sécurité | Chiffrement des échanges (TLS) et des données sensibles ; gestion sécurisée des sessions ; conformité à la loi 09-08 relative à la protection des données personnelles (Maroc) et, le cas échéant, au RGPD. | 🔨 Phases 1 et 14 — bcrypt, sessions rotatives révocables, HSTS, anonymisation, rétention, registre (testés) ; TLS de déploiement et chiffrement du volume à la charge de l’hébergement | `backend/src/security/`, `backend/src/domain/`, `backend/src/workers/`, `docs/REGISTRE-TRAITEMENTS.md` |
-| ENF-03 | Ergonomie | Interface intuitive et responsive ; prise en main rapide ; interface en français, extensible à l'arabe et à l'anglais. | 🔨 Phase 1 — interface en français, aucune chaîne en dur (test automatique), responsive, bascule RTL prête ; arabe et anglais à traduire | `frontend/src/i18n/` — test `i18n.test.ts` |
+| ENF-03 | Ergonomie | Interface intuitive et responsive ; prise en main rapide ; interface en français, extensible à l'arabe et à l'anglais. | 🔨 Phase 1, T17 — interface en français, aucune chaîne en dur (test automatique), responsive, bascule RTL prête, zéro entrée de navigation grisée ou inerte (recette automatisée, 41/41) ; arabe et anglais à traduire | `frontend/src/i18n/` — test `i18n.test.ts`, `e2e/recette.spec.ts` |
 >
 > **Tableaux de bord repris (20/09/2026).** Les six portails affichaient la même page générique
 > (onglets non fonctionnels, contrôle « mes projets/organisation » inerte, bloc « Progression des

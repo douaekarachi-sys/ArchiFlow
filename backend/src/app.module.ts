@@ -12,6 +12,7 @@ import { ArchitectureModule } from './modules/architecture/architecture.module';
 import { ClientCompaniesModule } from './modules/client-companies/client-companies.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
 import { ChatbotModule } from './modules/chatbot/chatbot.module';
+import { CommentsModule } from './modules/comments/comments.module';
 import { HealthModule } from './modules/health/health.controller';
 import { MailModule } from './modules/mail/mail.module';
 import { ProjectsModule } from './modules/projects/projects.module';
@@ -42,6 +43,7 @@ import { WorkersModule } from './workers/retention.worker';
     CatalogModule,
     ProjectsModule,
     ArchitectureModule,
+    CommentsModule,
     ReportsModule,
     ChatbotModule,
     HealthModule,

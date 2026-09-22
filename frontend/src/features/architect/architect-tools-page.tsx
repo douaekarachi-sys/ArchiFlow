@@ -189,7 +189,7 @@ export function ValidationDetailPage() {
   const architecture = useArchitecture(projectId ?? '');
   const catalog = useQuery({
     queryKey: ['catalog', 'equipment', 'validation'],
-    queryFn: () => catalogApi.equipment({ page: 1, pageSize: 500 }),
+    queryFn: () => catalogApi.equipment({ page: 1, pageSize: 100 }),
   });
   const equipmentIndex = useMemo(() => buildEquipmentIndex(catalog.data?.data ?? []), [catalog.data?.data]);
   const result = useMemo(

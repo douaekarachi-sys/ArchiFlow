@@ -1,4 +1,4 @@
-import type { Role } from '@archiflow/shared';
+import { ROLES, type Role } from '@archiflow/shared';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Plus } from 'lucide-react';
@@ -210,10 +210,12 @@ describe('Sidebar', () => {
     expect(screen.getByRole('link', { name: 'Projets' })).toHaveAttribute('href', '/admin/projects');
   });
 
-  it('grise les sections dont la fonctionnalité n’existe pas encore, avec leur phase', () => {
-    renderSidebar('CLIENT');
-    const documents = screen.getByText('Documents').closest('[aria-disabled]');
-    expect(documents).toHaveAttribute('aria-disabled', 'true');
+  it('zéro entrée grisée : chaque section de chaque portail est un vrai lien (T17, règle de fin)', () => {
+    for (const role of ROLES) {
+      const { container, unmount } = renderSidebar(role);
+      expect(container.querySelectorAll('[aria-disabled="true"]')).toHaveLength(0);
+      unmount();
+    }
   });
 
   it('le groupe replié masque ses entrées, le chevron pivote', async () => {

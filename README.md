@@ -80,6 +80,15 @@ Le seed (`npm run db:seed`) construit un scénario jouable **directement**, sans
    « 200 employés, combien de switches ? » (réponse chiffrée, calcul détaillé, sans connexion
    Internet — repli local par défaut), puis une question hors périmètre pour voir la proposition
    de transmission à l'équipe technique.
+8. **Messages** — toujours en `client@archiflow.local`, menu *Messages* : écrire un message sur
+   un projet, puis se reconnecter en `pm@archiflow.local` ou `architect@archiflow.local` et
+   l'ouvrir depuis le même projet — le fil est partagé, horodaté, avec l'auteur.
+
+Autres écrans dérivés à montrer en fonction du temps disponible, tous branchés sur des données
+réelles (aucun « Bientôt disponible » dans l'application livrée) : *Documents* (client — PDF,
+BOM, versions), *Planning*/*Kanban*/*Risques* (chef de projet), *Alertes* (ingénieur), *Vue
+physique*/*Plan d'adressage*/*Validation* (architecte), *Propositions*/*Publication client*
+(commercial).
 
 ## Vérifier
 

@@ -41,6 +41,10 @@ const pmTools = () => import('@/features/pm/pm-tools-page');
 const PlanningPage = lazy(() => pmTools().then((m) => ({ default: m.PlanningPage })));
 const KanbanPage = lazy(() => pmTools().then((m) => ({ default: m.KanbanPage })));
 const RisksPage = lazy(() => pmTools().then((m) => ({ default: m.RisksPage })));
+const clientTools = () => import('@/features/client/client-tools-page');
+const DocumentsPage = lazy(() => clientTools().then((m) => ({ default: m.DocumentsPage })));
+const MessagesPickerPage = lazy(() => clientTools().then((m) => ({ default: m.MessagesPickerPage })));
+const MessagesDetailPage = lazy(() => clientTools().then((m) => ({ default: m.MessagesDetailPage })));
 const needAnalysis = () => import('@/features/engineer/need-analysis-page');
 const NeedAnalysisPickerPage = lazy(() => needAnalysis().then((m) => ({ default: m.NeedAnalysisPickerPage })));
 const NeedAnalysisDetailPage = lazy(() => needAnalysis().then((m) => ({ default: m.NeedAnalysisDetailPage })));
@@ -104,6 +108,10 @@ const portalRoute = (role: Role): RouteObject => ({
           // mais jamais architecture.edit — DesignerPage retombe déjà en lecture seule.
           { path: 'projects/:id/design', element: <Lazy><DesignerPage /></Lazy> },
           { path: 'projects/:id/bom', element: <Lazy><BomDetailPage /></Lazy> },
+          // Documents (vue dérivée : PDF, BOM, versions déjà générés) et Messages (T17, point 1).
+          { path: 'documents', element: <Lazy><DocumentsPage /></Lazy> },
+          { path: 'messages', element: <Lazy><MessagesPickerPage /></Lazy> },
+          { path: 'projects/:id/messages', element: <Lazy><MessagesDetailPage /></Lazy> },
         ]
       : [
           { path: 'projects', element: <Lazy><ProjectsPage role={role} /></Lazy> },

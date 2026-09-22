@@ -315,7 +315,7 @@
     "website": { "invalid": "Adresse invalide" },
     "reference": { "required": "Référence requise" },
     "projectName": { "required": "Nom du projet requis" },
-    "comment": { "required": "Commentaire requis" },
+    "comment": { "required": "Commentaire requis", "tooLong": "Message trop long (4000 caractères maximum)" },
     "clientCompany": {
       "required": "Un compte client doit être rattaché à une société cliente",
       "forbidden": "Un compte interne ne se rattache pas à une société cliente"
@@ -365,6 +365,25 @@
     "risksSubtitle": "Anomalies critiques, échéances dépassées et projets immobiles depuis longtemps, sur tous vos projets.",
     "risksEmpty": "Aucun risque détecté",
     "risksEmptyHint": "Les anomalies critiques, retards et projets bloqués apparaîtront ici."
+  },
+  "clientDocuments": {
+    "subtitle": "Le PDF d'architecture, la nomenclature et l'historique des versions de vos projets.",
+    "empty": "Aucun document",
+    "emptyHint": "Les documents apparaîtront ici dès qu'un projet vous sera rattaché.",
+    "downloadPdf": "Télécharger le PDF",
+    "viewBom": "Voir la nomenclature",
+    "versionsTitle": "Versions publiées",
+    "versionLabel": "Version {{number}}",
+    "noVersions": "Aucune version enregistrée pour le moment."
+  },
+  "clientMessages": {
+    "pickerDescription": "Échangez avec l'équipe en charge de votre projet.",
+    "subtitle": "Fil de discussion partagé avec l'équipe technique et commerciale.",
+    "empty": "Aucun message",
+    "emptyHint": "Écrivez le premier message pour démarrer l'échange.",
+    "placeholder": "Écrivez votre message…",
+    "send": "Envoyer",
+    "unknownAuthor": "Utilisateur"
   },
   "sizing": {
     "ports": {

@@ -18,7 +18,7 @@ export interface ProjectAnomaly {
  */
 export function useProjectAnomalies() {
   const projects = useProjects({ pageSize: 100 });
-  const catalog = useQuery({ queryKey: ['catalog', 'equipment', 'anomalies'], queryFn: () => catalogApi.equipment({ page: 1, pageSize: 500 }) });
+  const catalog = useQuery({ queryKey: ['catalog', 'equipment', 'anomalies'], queryFn: () => catalogApi.equipment({ page: 1, pageSize: 100 }) });
   const equipmentIndex = useMemo(() => buildEquipmentIndex(catalog.data?.data ?? []), [catalog.data?.data]);
 
   const projectList = useMemo(() => projects.data?.data ?? [], [projects.data]);
