@@ -56,7 +56,7 @@ describe('VersionsDetailPage', () => {
   it('affiche le diff sémantique entre deux versions (EF-405) et permet de restaurer (ARCHITECT)', async () => {
     setSession('ARCHITECT');
     vi.mocked(projectsApi.get).mockResolvedValue({
-      id: 'proj-1', name: 'Nouveau siège Rabat', description: null, status: 'ARCHITECTURE',
+      id: 'proj-1', name: 'Nouveau siège Rabat', description: null, status: 'ARCHITECTURE', dueDate: null,
       clientCompanyId: 'c1', clientCompany: { id: 'c1', name: 'Atlas' }, createdAt: '', updatedAt: '',
       assignments: [], shares: [], request: null,
     });
@@ -90,7 +90,7 @@ describe('VersionsDetailPage', () => {
   it("n'affiche pas le bouton restaurer pour un rôle sans architecture.edit (ENGINEER)", async () => {
     setSession('ENGINEER');
     vi.mocked(projectsApi.get).mockResolvedValue({
-      id: 'proj-1', name: 'Nouveau siège Rabat', description: null, status: 'ARCHITECTURE',
+      id: 'proj-1', name: 'Nouveau siège Rabat', description: null, status: 'ARCHITECTURE', dueDate: null,
       clientCompanyId: 'c1', clientCompany: { id: 'c1', name: 'Atlas' }, createdAt: '', updatedAt: '',
       assignments: [], shares: [], request: null,
     });

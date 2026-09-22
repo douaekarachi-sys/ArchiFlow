@@ -74,14 +74,14 @@ export const PORTAL_NAV: Record<Role, RoleNav> = {
     main: [
       { key: 'dashboard', icon: LayoutDashboard, path: '/pm' },
       { key: 'projects', icon: FolderKanban, path: '/pm/projects' },
-      { key: 'planning', icon: History, phase: 10 },
+      { key: 'planning', icon: History, path: '/pm/planning' },
     ],
     group: {
       key: 'tracking',
       items: [
-        { key: 'kanban', icon: KanbanSquare, phase: 10 },
+        { key: 'kanban', icon: KanbanSquare, path: '/pm/kanban' },
         { key: 'costs', icon: Receipt, path: '/pm/bom' },
-        { key: 'risks', icon: AlertTriangle, phase: 10 },
+        { key: 'risks', icon: AlertTriangle, path: '/pm/risks' },
         { key: 'versions', icon: GitBranch, path: '/pm/versions' },
       ],
     },
@@ -90,7 +90,8 @@ export const PORTAL_NAV: Record<Role, RoleNav> = {
     main: [
       { key: 'dashboard', icon: LayoutDashboard, path: '/engineer' },
       { key: 'projects', icon: FolderKanban, path: '/engineer/projects' },
-      { key: 'alerts', icon: Radar, phase: 7 },
+      // Vue dérivée des anomalies déjà calculées par les moteurs T4/T11/T12 sur ses projets.
+      { key: 'alerts', icon: Radar, path: '/engineer/alerts' },
     ],
     group: {
       key: 'sizingGroup',
@@ -111,11 +112,11 @@ export const PORTAL_NAV: Record<Role, RoleNav> = {
     group: {
       key: 'design',
       items: [
-        // Le concepteur 2D est un outil PAR PROJET (ouvert depuis la fiche projet, pas un
-        // destination de rôle) : il n'a jamais eu sa place ici, même « à venir ».
-        { key: 'physicalView', icon: MapPinned, phase: 6 },
-        { key: 'addressPlan', icon: Waypoints, phase: 8 },
-        { key: 'validationCheck', icon: ShieldCheck, phase: 7 },
+        // Comme le concepteur 2D, ces trois outils n'ont de sens que pour un projet donné : un
+        // sélecteur de projet précède, comme pour l'historique des versions (EF-405).
+        { key: 'physicalView', icon: MapPinned, path: '/architect/physical' },
+        { key: 'addressPlan', icon: Waypoints, path: '/architect/addressing' },
+        { key: 'validationCheck', icon: ShieldCheck, path: '/architect/validation' },
       ],
     },
   },
@@ -123,7 +124,7 @@ export const PORTAL_NAV: Record<Role, RoleNav> = {
     main: [
       { key: 'dashboard', icon: LayoutDashboard, path: '/sales' },
       { key: 'projects', icon: FolderKanban, path: '/sales/projects' },
-      { key: 'proposals', icon: Send, phase: 11 },
+      { key: 'proposals', icon: Send, path: '/sales/proposals' },
     ],
     group: {
       key: 'quoting',
@@ -132,7 +133,9 @@ export const PORTAL_NAV: Record<Role, RoleNav> = {
         // deux entrées de menu, une seule destination.
         { key: 'bom', icon: FileSpreadsheet, path: '/sales/bom' },
         { key: 'costs', icon: Receipt, path: '/sales/bom' },
-        { key: 'clientPublish', icon: Share2, phase: 11 },
+        // Vue dérivée de la liste de projets (T10, EF-508) : les projets prêts à publier,
+        // filtrés par statut — la publication elle-même reste la transition déjà en place.
+        { key: 'clientPublish', icon: Share2, path: '/sales/client-publish' },
       ],
     },
   },

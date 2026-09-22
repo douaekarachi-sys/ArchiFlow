@@ -239,6 +239,29 @@ describe('affectations', () => {
   });
 });
 
+describe('échéance (T16, Planning) — le seul champ modifiable hors machine à états', () => {
+  it('pose puis retire une échéance', async () => {
+    const set = await server().patch(`${API}/projects/${w.projectA1}`).set(sessions.adminA.auth).send({ dueDate: '2026-12-01' });
+    expect(set.status).toBe(200);
+    expect(new Date(set.body.dueDate).toISOString().slice(0, 10)).toBe('2026-12-01');
+
+    const cleared = await server().patch(`${API}/projects/${w.projectA1}`).set(sessions.adminA.auth).send({ dueDate: null });
+    expect(cleared.status).toBe(200);
+    expect(cleared.body.dueDate).toBeNull();
+  });
+
+  it('un rôle sans project.update est refusé', async () => {
+    const res = await server().patch(`${API}/projects/${w.projectA1}`).set(sessions.engineerA.auth).send({ dueDate: '2026-12-01' });
+    expect(res.status).toBe(403);
+  });
+
+  it('isolation (ADR 0006) : un projet d’un autre locataire répond 404', async () => {
+    const adminB = await login(t, w.users.adminB.email);
+    const res = await server().patch(`${API}/projects/${w.projectA1}`).set(adminB.auth).send({ dueDate: '2026-12-01' });
+    expect(res.status).toBe(404);
+  });
+});
+
 describe('partage (T13, EF-401/402) — inviter un utilisateur de l’organisation avec un droit borné', () => {
   it('un utilisateur non affecté ne voit pas le projet, avant tout partage', async () => {
     const res = await server().get(`${API}/projects/${w.projectA2}`).set(sessions.architectA.auth);

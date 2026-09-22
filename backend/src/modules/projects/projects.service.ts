@@ -10,6 +10,7 @@ import {
   type Role,
   type TransitionRefusal,
   type TransitionRequestInput,
+  type UpdateProjectInput,
 } from '@archiflow/shared';
 import { AppError, forbidden, notFound } from '../../common/errors/app-error';
 import { skipTake, toPage, type Pagination } from '../../common/http/pagination';
@@ -25,6 +26,7 @@ const PROJECT_SUMMARY = {
   name: true,
   description: true,
   status: true,
+  dueDate: true,
   clientCompanyId: true,
   clientCompany: { select: { id: true, name: true } },
   createdAt: true,
@@ -111,6 +113,18 @@ export class ProjectsService {
     });
     if (!project) throw notFound('Projet');
     return project;
+  }
+
+  /** Échéance indicative (Planning, T16) — le seul champ modifiable hors machine à états. */
+  async update(ctx: AuthContext, projectId: string, input: UpdateProjectInput) {
+    const project = await this.get(ctx, projectId);
+    const updated = await this.prisma.tenant.project.update({
+      where: { id: project.id, organizationId: ctx.organizationId },
+      data: { dueDate: input.dueDate === undefined ? undefined : input.dueDate },
+      select: PROJECT_SUMMARY,
+    });
+    await this.audit.record(ctx, { action: 'project.update', targetType: 'project', targetId: project.id, projectId: project.id });
+    return updated;
   }
 
   async create(ctx: AuthContext, input: CreateRequestInput) {

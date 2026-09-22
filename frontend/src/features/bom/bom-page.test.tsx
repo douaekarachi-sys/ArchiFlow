@@ -26,7 +26,7 @@ function renderPage() {
 describe('BomDetailPage', () => {
   it('affiche la nomenclature et les coûts dérivés, matériel et licence distincts (EF-302, EF-303)', async () => {
     vi.mocked(projectsApi.get).mockResolvedValue({
-      id: 'proj-1', name: 'Nouveau siège Rabat', description: null, status: 'COMMERCIAL_REVIEW',
+      id: 'proj-1', name: 'Nouveau siège Rabat', description: null, status: 'COMMERCIAL_REVIEW', dueDate: null,
       clientCompanyId: 'c1', clientCompany: { id: 'c1', name: 'Atlas' }, createdAt: '', updatedAt: '',
       assignments: [], shares: [], request: null,
     });

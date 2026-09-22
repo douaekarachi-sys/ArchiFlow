@@ -25,7 +25,7 @@ function renderPage() {
 describe('ChatbotPage (T9)', () => {
   it('envoie une question et affiche la réponse avec le détail du calcul (repli local)', async () => {
     vi.mocked(projectsApi.list).mockResolvedValue({
-      data: [{ id: 'proj-1', name: 'Nouveau siège Rabat', description: null, status: 'CLIENT_REVIEW', clientCompanyId: 'c1', clientCompany: { id: 'c1', name: 'Atlas' }, createdAt: '', updatedAt: '' }],
+      data: [{ id: 'proj-1', name: 'Nouveau siège Rabat', description: null, status: 'CLIENT_REVIEW', dueDate: null, clientCompanyId: 'c1', clientCompany: { id: 'c1', name: 'Atlas' }, createdAt: '', updatedAt: '' }],
       total: 1,
       page: 1,
       pageSize: 1,
@@ -50,7 +50,7 @@ describe('ChatbotPage (T9)', () => {
 
   it('propose de transmettre à l’équipe technique quand le repli local ne sait pas répondre', async () => {
     vi.mocked(projectsApi.list).mockResolvedValue({
-      data: [{ id: 'proj-1', name: 'Nouveau siège Rabat', description: null, status: 'CLIENT_REVIEW', clientCompanyId: 'c1', clientCompany: { id: 'c1', name: 'Atlas' }, createdAt: '', updatedAt: '' }],
+      data: [{ id: 'proj-1', name: 'Nouveau siège Rabat', description: null, status: 'CLIENT_REVIEW', dueDate: null, clientCompanyId: 'c1', clientCompany: { id: 'c1', name: 'Atlas' }, createdAt: '', updatedAt: '' }],
       total: 1,
       page: 1,
       pageSize: 1,

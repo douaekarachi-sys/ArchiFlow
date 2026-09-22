@@ -1,4 +1,4 @@
-import type { Role } from '@archiflow/shared';
+import type { ProjectStatus, Role } from '@archiflow/shared';
 import { ChevronRight, FolderOpen } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,37 +11,49 @@ import { ProjectDetailDialog } from './project-detail-dialog';
 
 const dateFormat = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
 
+interface ProjectsPanelProps {
+  role: Role;
+  search?: string;
+  /** Filtre CÔTÉ CLIENT sur un sous-ensemble de statuts — vue dérivée, aucun nouvel appel serveur. */
+  statuses?: ProjectStatus[];
+  title?: string;
+  subtitle?: string;
+  emptyTitle?: string;
+  emptyDescription?: string;
+}
+
 /** Liste des projets visibles par l'utilisateur — avec ses trois états : chargement, vide, erreur. */
-export function ProjectsPanel({ role, search }: { role: Role; search?: string }) {
+export function ProjectsPanel({ role, search, statuses, title, subtitle, emptyTitle, emptyDescription }: ProjectsPanelProps) {
   const { t } = useTranslation();
-  const query = useProjects({ pageSize: 50, q: search || undefined });
+  const query = useProjects({ pageSize: 100, q: search || undefined });
   const [openId, setOpenId] = useState<string | null>(null);
+  const rows = statuses ? (query.data?.data.filter((p) => statuses.includes(p.status)) ?? []) : (query.data?.data ?? []);
 
   return (
     <section id="projects-list" className="dashboard-projects overflow-hidden rounded-card border border-[hsl(var(--dashboard-line))]">
       <header className="dashboard-projects-header flex flex-wrap items-center justify-between gap-3 px-5 py-4">
         <div>
-          <h2 className="text-base font-semibold text-[hsl(var(--dashboard-text))]">{t('projects.title')}</h2>
-          <p className="mt-0.5 text-xs text-[hsl(var(--dashboard-muted))]">{t('projects.subtitle')}</p>
+          <h2 className="text-base font-semibold text-[hsl(var(--dashboard-text))]">{title ?? t('projects.title')}</h2>
+          <p className="mt-0.5 text-xs text-[hsl(var(--dashboard-muted))]">{subtitle ?? t('projects.subtitle')}</p>
         </div>
-        {query.data && <span className="text-xs text-[hsl(var(--dashboard-muted))]">{t('projects.count', { count: query.data.total })}</span>}
+        {query.data && <span className="text-xs text-[hsl(var(--dashboard-muted))]">{t('projects.count', { count: rows.length })}</span>}
       </header>
       {query.isPending ? (
         <ProjectsSkeleton />
       ) : query.isError ? (
         <ErrorState message={errorMessage(t, query.error)} onRetry={() => void query.refetch()} />
-      ) : query.data.data.length === 0 ? (
+      ) : rows.length === 0 ? (
         <EmptyState
           icon={<FolderOpen />}
-          title={t('projects.empty.title')}
-          description={t(`projects.empty.${role === 'CLIENT' || role === 'ADMIN' ? role : 'default'}`)}
+          title={emptyTitle ?? t('projects.empty.title')}
+          description={emptyDescription ?? t(`projects.empty.${role === 'CLIENT' || role === 'ADMIN' ? role : 'default'}`)}
         />
       ) : (
         <div>
           <div className="dashboard-projects-columns hidden border-y border-[hsl(var(--dashboard-line))] px-5 py-3 text-[11px] font-medium uppercase tracking-[0.12em] text-[hsl(var(--dashboard-muted))] md:grid md:grid-cols-[minmax(260px,1.7fr)_minmax(160px,0.9fr)_minmax(150px,0.8fr)_140px_24px] md:gap-4">
             <span>{t('projects.columns.name')}</span><span>{t('projects.columns.client')}</span><span>{t('projects.columns.status')}</span><span>{t('projects.columns.updated')}</span><span />
           </div>
-          <div>{query.data.data.map((project) => <ProjectRow key={project.id} project={project} onOpen={() => setOpenId(project.id)} />)}</div>
+          <div>{rows.map((project) => <ProjectRow key={project.id} project={project} onOpen={() => setOpenId(project.id)} />)}</div>
         </div>
       )}
       <ProjectDetailDialog projectId={openId} onClose={() => setOpenId(null)} />

@@ -1,15 +1,17 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query } from '@nestjs/common';
 import {
   PROJECT_STATUSES,
   createAssignmentSchema,
   createRequestSchema,
   createShareSchema,
   transitionRequestSchema,
+  updateProjectSchema,
   type AuthContext,
   type CreateAssignmentInput,
   type CreateRequestInput,
   type CreateShareInput,
   type TransitionRequestInput,
+  type UpdateProjectInput,
 } from '@archiflow/shared';
 import { z } from 'zod';
 import { paginationSchema } from '../../common/http/pagination';
@@ -44,6 +46,12 @@ export class ProjectsController {
   @RequirePermission('project.read')
   get(@CurrentUser() ctx: AuthContext, @Param('id', uuidParam) id: string) {
     return this.projects.get(ctx, id);
+  }
+
+  @Patch(':id')
+  @RequirePermission('project.update')
+  update(@CurrentUser() ctx: AuthContext, @Param('id', uuidParam) id: string, @Body(zod(updateProjectSchema)) input: UpdateProjectInput) {
+    return this.projects.update(ctx, id, input);
   }
 
   @Get(':id/transitions')

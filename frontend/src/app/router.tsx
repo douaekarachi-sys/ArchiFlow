@@ -26,6 +26,21 @@ const ClientCompaniesPage = lazy(() => import('@/features/admin/client-companies
 const AuditPage = lazy(() => import('@/features/admin/audit-page').then((m) => ({ default: m.AuditPage })));
 const AdminRequestsPage = lazy(() => import('@/features/admin/requests-page').then((m) => ({ default: m.AdminRequestsPage })));
 const CatalogPage = lazy(() => import('@/features/admin/catalog-page').then((m) => ({ default: m.CatalogPage })));
+const architectTools = () => import('@/features/architect/architect-tools-page');
+const PhysicalViewPickerPage = lazy(() => architectTools().then((m) => ({ default: m.PhysicalViewPickerPage })));
+const PhysicalViewDetailPage = lazy(() => architectTools().then((m) => ({ default: m.PhysicalViewDetailPage })));
+const AddressingPickerPage = lazy(() => architectTools().then((m) => ({ default: m.AddressingPickerPage })));
+const AddressingDetailPage = lazy(() => architectTools().then((m) => ({ default: m.AddressingDetailPage })));
+const ValidationPickerPage = lazy(() => architectTools().then((m) => ({ default: m.ValidationPickerPage })));
+const ValidationDetailPage = lazy(() => architectTools().then((m) => ({ default: m.ValidationDetailPage })));
+const salesTools = () => import('@/features/sales/sales-tools-page');
+const ProposalsPage = lazy(() => salesTools().then((m) => ({ default: m.ProposalsPage })));
+const ClientPublishPage = lazy(() => salesTools().then((m) => ({ default: m.ClientPublishPage })));
+const AlertsPage = lazy(() => import('@/features/engineer/alerts-page').then((m) => ({ default: m.AlertsPage })));
+const pmTools = () => import('@/features/pm/pm-tools-page');
+const PlanningPage = lazy(() => pmTools().then((m) => ({ default: m.PlanningPage })));
+const KanbanPage = lazy(() => pmTools().then((m) => ({ default: m.KanbanPage })));
+const RisksPage = lazy(() => pmTools().then((m) => ({ default: m.RisksPage })));
 const needAnalysis = () => import('@/features/engineer/need-analysis-page');
 const NeedAnalysisPickerPage = lazy(() => needAnalysis().then((m) => ({ default: m.NeedAnalysisPickerPage })));
 const NeedAnalysisDetailPage = lazy(() => needAnalysis().then((m) => ({ default: m.NeedAnalysisDetailPage })));
@@ -116,6 +131,27 @@ const portalRoute = (role: Role): RouteObject => ({
                 { path: 'projects/:id/bom', element: <Lazy><BomDetailPage /></Lazy> },
               ]
             : []),
+          // Vues dérivées du portail Commercial (T10, EF-508) : mêmes projets, mêmes transitions
+          // de workflow, filtrés par statut — aucun nouveau modèle.
+          ...(role === 'SALES'
+            ? [
+                { path: 'proposals', element: <Lazy><ProposalsPage /></Lazy> },
+                { path: 'client-publish', element: <Lazy><ClientPublishPage /></Lazy> },
+              ]
+            : []),
+          // Vues dérivées du portail Architecte (schéma physique/adressage d'EF-205, EF-207,
+          // EF-202/203/204) : aucun nouveau modèle, elles lisent le MÊME document que le
+          // concepteur 2D (ADR 0001) — un sélecteur de projet précède, comme les versions.
+          ...(role === 'ARCHITECT'
+            ? [
+                { path: 'physical', element: <Lazy><PhysicalViewPickerPage role={role} /></Lazy> },
+                { path: 'projects/:id/physical', element: <Lazy><PhysicalViewDetailPage /></Lazy> },
+                { path: 'addressing', element: <Lazy><AddressingPickerPage role={role} /></Lazy> },
+                { path: 'projects/:id/addressing', element: <Lazy><AddressingDetailPage /></Lazy> },
+                { path: 'validation', element: <Lazy><ValidationPickerPage role={role} /></Lazy> },
+                { path: 'projects/:id/validation', element: <Lazy><ValidationDetailPage /></Lazy> },
+              ]
+            : []),
           // Outils par-projet du portail ingénieur (EF-202, Phase 4) : comme le concepteur 2D,
           // ils n'existent qu'appliqués à un projet — un sélecteur les précède depuis le menu.
           ...(role === 'ENGINEER'
@@ -125,6 +161,18 @@ const portalRoute = (role: Role): RouteObject => ({
                 { path: 'projects/:id/need-analysis', element: <Lazy><NeedAnalysisDetailPage /></Lazy> },
                 { path: 'sizing', element: <Lazy><SizingPickerPage /></Lazy> },
                 { path: 'projects/:id/sizing', element: <Lazy><SizingDetailPage /></Lazy> },
+                // Vue dérivée des anomalies déjà calculées (T4/T11/T12) sur ses projets.
+                { path: 'alerts', element: <Lazy><AlertsPage /></Lazy> },
+              ]
+            : []),
+          // Vues dérivées du portail Chef de projet (T16, point 2) : mêmes projets, mêmes
+          // anomalies (T4/T11/T12) et même machine à états — aucun nouveau modèle hormis
+          // `Project.dueDate` (Planning), explicitement autorisé.
+          ...(role === 'PROJECT_MANAGER'
+            ? [
+                { path: 'planning', element: <Lazy><PlanningPage /></Lazy> },
+                { path: 'kanban', element: <Lazy><KanbanPage /></Lazy> },
+                { path: 'risks', element: <Lazy><RisksPage /></Lazy> },
               ]
             : []),
         ]),

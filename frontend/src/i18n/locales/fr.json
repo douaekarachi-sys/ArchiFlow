@@ -350,6 +350,22 @@
       "unitOutOfRange": "Position U {{unit}} hors des bornes de la baie « {{rack}} » ({{totalUnits}} U)."
     }
   },
+  "engineerAlerts": {
+    "subtitle": "Anomalies critiques et avertissements détectés sur vos projets, calculés par les mêmes moteurs qu'à la conception.",
+    "empty": "Aucune alerte",
+    "emptyHint": "Les anomalies détectées sur vos projets (capacité, compatibilité, adressage, placement) apparaîtront ici."
+  },
+  "pmTools": {
+    "planningSubtitle": "Tous vos projets triés par échéance. Modifiez la date directement dans la liste.",
+    "planningEmpty": "Aucun projet à planifier",
+    "dueDate": "Échéance",
+    "kanbanSubtitle": "Glissez une carte vers une autre colonne pour faire avancer le projet dans le circuit de validation.",
+    "riskOverdue": "Échéance dépassée ({{date}})",
+    "riskStale": "Bloqué depuis {{days}} jours au statut « {{status}} »",
+    "risksSubtitle": "Anomalies critiques, échéances dépassées et projets immobiles depuis longtemps, sur tous vos projets.",
+    "risksEmpty": "Aucun risque détecté",
+    "risksEmptyHint": "Les anomalies critiques, retards et projets bloqués apparaîtront ici."
+  },
   "sizing": {
     "ports": {
       "formula": "{{workstations}} postes + {{growthPercent}}% de croissance = {{totalPorts}} ports → {{switchCount}} switches {{switchCapacity}} ports",
@@ -640,6 +656,22 @@
       "power": { "title": "Puissance électrique", "subtitle": "Dimensionnement" }
     }
   },
+  "architectTools": {
+    "physicalPickerDescription": "Choisissez un projet pour consulter sa construction physique (bâtiment, étage, salle, baie).",
+    "physicalSubtitle": "Bâtiment → étage → salle → baie, tel que défini dans le concepteur 2D.",
+    "physicalEmpty": "Aucune construction physique définie",
+    "physicalEmptyHint": "Ouvrez le concepteur 2D pour créer un bâtiment, une salle et une baie, puis y placer des équipements.",
+    "rackUnitsCount": "{{count}} U",
+    "rackEquipmentCount_one": "{{count}} équipement",
+    "rackEquipmentCount_other": "{{count}} équipements",
+    "addressingPickerDescription": "Choisissez un projet pour consulter son plan d'adressage IP/VLAN.",
+    "addressingSubtitle": "VLAN, sous-réseaux et rattachements, tels que définis dans le concepteur 2D.",
+    "addressingEmpty": "Aucun réseau défini",
+    "addressingEmptyHint": "Ouvrez le concepteur 2D pour créer un réseau (VLAN, sous-réseau, passerelle).",
+    "addressingColumns": { "network": "Réseau", "vlan": "VLAN", "cidr": "Sous-réseau", "gateway": "Passerelle", "dhcp": "Plage DHCP", "equipment": "Équipements" },
+    "validationPickerDescription": "Choisissez un projet pour consulter les anomalies détectées sur son architecture.",
+    "validationSubtitle": "Capacité, compatibilité, structure, adressage et construction physique — mêmes règles qu'à l'édition (ADR 0003)."
+  },
   "versions": {
     "pickerDescription": "Choisissez un projet pour consulter l'historique de ses versions d'architecture.",
     "detailDescription": "Historique, comparaison et restauration — chaque sauvegarde fige une version auto-porteuse (caractéristiques et prix compris).",
@@ -660,6 +692,16 @@
     "restoreAction": "Restaurer",
     "restoreTarget": "la version {{number}}",
     "restoreConsequence": "Une nouvelle version sera créée à partir de celle-ci, revalidée contre le catalogue actuel. L'historique existant reste intact."
+  },
+  "salesTools": {
+    "proposalsSubtitle": "Projets pour lesquels une proposition a été publiée au client, quel que soit son statut actuel.",
+    "proposalsListSubtitle": "En consultation, en commentaires, en révision ou validés.",
+    "proposalsEmpty": "Aucune proposition publiée",
+    "proposalsEmptyHint": "Les projets apparaîtront ici dès qu'une proposition aura été publiée au client.",
+    "publishSubtitle": "Projets validés en interne, prêts à être publiés au client.",
+    "publishListSubtitle": "Ouvrez un projet pour publier sa proposition — la transition reste soumise aux mêmes règles.",
+    "publishEmpty": "Aucun projet à publier",
+    "publishEmptyHint": "Les projets validés en revue commerciale apparaîtront ici."
   },
   "bom": {
     "pickerDescription": "Choisissez un projet pour consulter sa nomenclature et ses coûts.",

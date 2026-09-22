@@ -42,6 +42,7 @@ describe('RequestPage', () => {
       name: 'Nouveau siège Rabat',
       description: 'Rabat\n\nLe besoin est le suivant : je veux du Wi-Fi pour 200 employés',
       status: 'DRAFT',
+      dueDate: null,
       clientCompanyId: '33333333-3333-3333-3333-333333333333',
       clientCompany: { id: '33333333-3333-3333-3333-333333333333', name: 'Client A' },
       createdAt: '2026-01-01T00:00:00.000Z',

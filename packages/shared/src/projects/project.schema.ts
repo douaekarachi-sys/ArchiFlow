@@ -9,6 +9,12 @@ export const createProjectSchema = z.object({
 });
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 
+/** Échéance indicative (Planning, T16) — jamais imposée, purement informative ; `null` la retire. */
+export const updateProjectSchema = z.object({
+  dueDate: z.coerce.date().nullish(),
+});
+export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
+
 /** applyTransition : le statut cible et, pour un retour en arrière, son motif (ADR 0005). */
 export const transitionRequestSchema = z.object({
   to: z.enum(PROJECT_STATUSES),

@@ -38,6 +38,7 @@ export interface ProjectSummary {
   name: string;
   description: string | null;
   status: ProjectStatus;
+  dueDate: string | null;
   clientCompanyId: string;
   clientCompany: { id: string; name: string };
   createdAt: string;
@@ -160,6 +161,7 @@ export const projectsApi = {
   list: (query: { page?: number; pageSize?: number; status?: ProjectStatus; q?: string } = {}) =>
     api.get<Page<ProjectSummary>>('/projects', query),
   get: (id: string) => api.get<ProjectDetail>(`/projects/${id}`),
+  update: (id: string, input: { dueDate: string | null }) => api.patch<ProjectSummary>(`/projects/${id}`, input),
   history: (id: string) => api.get<StatusHistoryEntry[]>(`/projects/${id}/history`),
   transitions: (id: string) => api.get<AvailableTransition[]>(`/projects/${id}/transitions`),
   transition: (id: string, input: TransitionRequestInput) =>

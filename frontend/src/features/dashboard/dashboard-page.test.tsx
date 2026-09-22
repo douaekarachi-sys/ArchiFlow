@@ -18,6 +18,7 @@ function project(overrides: Partial<ProjectSummary> = {}): ProjectSummary {
     name: 'Nouveau siège Rabat',
     description: null,
     status: 'ENGINEERING',
+    dueDate: null,
     clientCompanyId: 'c1',
     clientCompany: { id: 'c1', name: 'Groupe Atlas Services' },
     createdAt: '2026-08-01T00:00:00.000Z',

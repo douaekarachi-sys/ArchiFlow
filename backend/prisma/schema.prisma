@@ -196,6 +196,8 @@ model Project {
   clientCompanyId String        @db.Uuid
   name            String
   description     String?
+  /// Échéance indicative (Planning, T16) — jamais imposée, purement informative.
+  dueDate         DateTime?
   /// Écrit UNIQUEMENT par applyTransition (ADR 0005).
   status          ProjectStatus @default(DRAFT)
   createdById     String        @db.Uuid

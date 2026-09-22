@@ -211,10 +211,9 @@ describe('Sidebar', () => {
   });
 
   it('grise les sections dont la fonctionnalité n’existe pas encore, avec leur phase', () => {
-    renderSidebar('ARCHITECT');
-    // Le groupe « Conception » est ouvert par défaut.
-    const physicalView = screen.getByText('Vue physique').closest('[aria-disabled]');
-    expect(physicalView).toHaveAttribute('aria-disabled', 'true');
+    renderSidebar('CLIENT');
+    const documents = screen.getByText('Documents').closest('[aria-disabled]');
+    expect(documents).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('le groupe replié masque ses entrées, le chevron pivote', async () => {
